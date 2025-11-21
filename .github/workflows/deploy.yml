@@ -45,9 +45,6 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             cd /home/backend/be12-team2
-
-            export CONFIG_USER=${{ secrets.CONFIG_USER }}
-            export CONFIG_PASS=${{ secrets.CONFIG_PASS }}
             
             chmod +x deploy-generic.sh
             
