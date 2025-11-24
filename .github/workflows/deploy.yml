@@ -37,7 +37,7 @@ jobs:
           push: true
           tags: onyune/front-server:v1  # docker-compose.yml에 적은 태그와 똑같이!
 
-      # 6. 학교 서버에 접속해서 도커 컨테이너 재실행
+      # 학교 서버에 접속해서 도커 컨테이너 재실행
       - name: Deploy to School Server via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -54,6 +54,7 @@ jobs:
             echo "2. Restarting Containers"
             # 무중단 배포 흉내 (순차 재시작)
             docker compose up -d front-1
+            
             echo "Wait for front-1 to boot..."
             sleep 15  # 1호기가 켜질 시간 벌어주기
             
