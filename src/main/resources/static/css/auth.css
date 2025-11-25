@@ -1,0 +1,241 @@
+/* auth.css - 로그인 및 회원가입 전용 스타일 */
+
+/* ===== 레이아웃 ===== */
+.auth-container {
+    min-height: calc(100vh - 180px); /* 헤더/푸터 제외한 높이 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1.5rem;
+    background-color: #f8f9fa;
+}
+
+.auth-card {
+    background: white;
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== 헤더 영역 ===== */
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-header h1 {
+    font-size: 1.8rem;
+    color: #2d5016; /* 메인 컬러 사용 */
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* ===== 알림 메시지 (에러/성공) ===== */
+.alert {
+    padding: 0.8rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.alert-error {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+/* ===== 폼 스타일 ===== */
+.auth-form {
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #2d5016; /* 포커스 시 메인 컬러 */
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.checkbox-container input {
+    cursor: pointer;
+    accent-color: #2d5016;
+}
+
+.link {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.link:hover {
+    color: #2d5016;
+    text-decoration: underline;
+}
+
+/* ===== 버튼 스타일 ===== */
+.btn-primary {
+    width: 100%;
+    padding: 0.9rem;
+    background: #2d5016;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1b5e20;
+}
+
+/* ===== 구분선 ===== */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.divider span {
+    padding: 0 10px;
+}
+
+/* ===== 소셜 로그인 ===== */
+.social-login {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.btn-social {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: opacity 0.2s;
+    position: relative;
+}
+
+.btn-social .icon {
+    position: absolute;
+    left: 1rem;
+    font-size: 1.1rem;
+}
+
+.btn-social:hover {
+    opacity: 0.9;
+}
+
+.btn-kakao {
+    background-color: #FEE500;
+    color: #000000;
+}
+
+.btn-naver {
+    background-color: #03C75A;
+    color: #FFFFFF;
+}
+
+.btn-google {
+    background-color: #FFFFFF;
+    color: #333333;
+    border: 1px solid #ddd;
+}
+
+/* ===== 풋터 링크 ===== */
+.auth-footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.link-primary {
+    color: #2d5016;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 0.3rem;
+}
+
+.link-primary:hover {
+    text-decoration: underline;
+}
+
+/* ===== 반응형 (모바일) ===== */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 1.5rem;
+        box-shadow: none; /* 모바일에서는 그림자 제거하고 심플하게 */
+        background: transparent;
+    }
+
+    .auth-header h1 {
+        font-size: 1.5rem;
+    }
+}

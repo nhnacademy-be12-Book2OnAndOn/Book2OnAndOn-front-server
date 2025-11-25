@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} ?: 'Book2OnAndOn - 온라인 서점'">Book2OnAndOn - 온라인 서점</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="overlay" id="overlay"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3>카테고리</h3>
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+    </div>
+
+    <ul class="sidebar-menu">
+        <th:block th:each="category : ${categories}">
+            <p>category</p>
+        </th:block>
+    </ul>
+</aside>
+
+<header>
+    <div class="header-content">
+        <div class="header-left">
+            <button class="hamburger-menu" onclick="toggleSidebar()">☰</button>
+            <a th:href="@{/}" class="logo">Book2OnAndOn</a>
+        </div>
+        <ul class="header-nav">
+            <li><a th:href="@{/books/bestseller}">베스트셀러</a></li>
+            <li><a th:href="@{/books/new}">신간</a></li>
+            <li><a th:href="@{/books/sale}">할인</a></li>
+        </ul>
+        <div class="header-right">
+            <th:block th:if="${session.user == null}">
+                <button class="btn-login" th:onclick="'location.href=\'' + @{/login} + '\''">로그인</button>
+                <button class="btn-signup" th:onclick="'location.href=\'' + @{/signup} + '\''">회원가입</button>
+            </th:block>
+            <th:block th:if="${session.user != null}">
+                <span th:text="${session.user.name} + '님'">사용자님</span>
+                <button class="btn-login" th:onclick="'location.href=\'' + @{/logout} + '\''">로그아웃</button>
+            </th:block>
+        </div>
+    </div>
+</header>
+
+<section class="hero-section">
+    <div class="hero-content">
+        <h1>
+            오늘 읽을<br>
+            <span class="highlight">다음 한 권을 찾아보세요</span>
+        </h1>
+        <p>
+            저렴, 세컨드, 희귀본, 조판본을<br>
+            Book2OnAndOn에서 한눈에 쉽고 편리하게.
+        </p>
+        <form th:action="@{/books/search}" method="get" class="search-box">
+            <input type="text" name="keyword" th:value="${keyword}"
+                   placeholder="예) 스토리 부트, 자바, 마케팅 서비스">
+            <button type="submit">도서 검색</button>
+        </form>
+        <div class="tags">
+                <span class="tag" th:each="tag : ${popularTags}"
+                      th:text="'#' + ${tag}">태그</span>
+        </div>
+    </div>
+
+    <div class="promo-box" th:if="${promotion != null}">
+        <h3 th:text="${promotion.title}">오늘의 추천</h3>
+        <h4 th:text="${promotion.subtitle}">개발자들을 위한 필독서 세트</h4>
+        <p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;"
+           th:text="${promotion.description}">
+            클린 코드, 리팩토링, 도메인 주도 설계를 담은 필수 3종 세트
+        </p>
+        <div class="price">
+            <span class="original-price" th:text="'₩' + ${#numbers.formatInteger(promotion.originalPrice, 0, 'COMMA')}">₩90,000</span>
+            <span class="discount" th:text="${promotion.discountRate} + '% 할인'">30% 할인</span>
+            <div th:text="'₩' + ${#numbers.formatInteger(promotion.salePrice, 0, 'COMMA')}">₩79,800</div>
+        </div>
+        <button th:onclick="'addToCart(' + ${promotion.id} + ')'">장바구니 담기</button>
+    </div>
+</section>
+
+<main>
+    <div class="sidebar-section">
+
+
+        <div class="book-grid-container">
+            <div class="section-header">
+                <h2>
+                    <span th:text="${sectionTitle} ?: 'IT · 프로그래밍 도서'">IT · 프로그래밍 도서</span>
+                    <span style="color:#999; font-size:1rem;"
+                          th:text="'총 ' + ${totalBooks} + '건'">총 42건</span>
+                </h2>
+                <a th:href="@{/books/all}" class="view-all">더보기 →</a>
+            </div>
+
+            <div class="book-grid">
+                <div class="book-card" th:each="book : ${books}">
+                    <a th:href="@{/books/{id}(id=${book.id})}">
+                        <img class="book-image"
+                             th:src="${book.imageUrl}"
+                             th:alt="${book.title}">
+                    </a>
+                    <span class="book-tag" th:text="${book.tag}">Spring</span>
+                    <div class="book-info">
+                        <div class="book-title" th:text="${book.title}">Book Title</div>
+                        <div class="book-subtitle" th:text="${book.author}">저자</div>
+                        <div class="book-price"
+                             th:text="'₩' + ${#numbers.formatInteger(book.price, 0, 'COMMA')}">
+                            ₩79,800
+                        </div>
+                    </div>
+                    <div class="book-actions">
+                        <button th:onclick="'addToCart(' + ${book.id} + ')'">장바구니</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pagination" th:if="${totalPages > 1}">
+                <button th:if="${currentPage > 0}"
+                        th:onclick="'location.href=\'' + @{/books(page=${currentPage - 1})} + '\''">
+                    이전
+                </button>
+
+                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                    <button th:classappend="${i == currentPage} ? 'active' : ''"
+                            th:onclick="'location.href=\'' + @{/books(page=${i})} + '\''"
+                            th:text="${i + 1}">1</button>
+                </th:block>
+
+                <button th:if="${currentPage < totalPages - 1}"
+                        th:onclick="'location.href=\'' + @{/books(page=${currentPage + 1})} + '\''">
+                    다음
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-links">
+            <a th:href="@{/support}">고객센터</a>
+            <a th:href="@{/terms}">이용약관</a>
+            <a th:href="@{/privacy}">개인정보처리방침</a>
+        </div>
+        <p>© 2025 Book2OnAndOn. All rights reserved.</p>
+    </div>
+</footer>
+
+<th:block th:fragment="categoryItem(cat)">
+    <th:block th:if="${cat != null}">
+        <li class="category-item">
+            <div class="category-link-wrapper">
+                <a th:href="@{/books/category/{id}(id=${cat.id})}"
+                   th:text="${cat.name}">카테고리명</a>
+
+                <span th:if="${not #lists.isEmpty(cat.children)}" class="toggle-btn">▼</span>
+            </div>
+
+            <ul th:if="${not #lists.isEmpty(cat.children)}" class="sub-menu">
+                <th:block th:each="child : ${cat.children}">
+                    <th:block th:replace="~{:: categoryItem(${child})}"></th:block>
+                </th:block>
+            </ul>
+        </li>
+    </th:block>
+</th:block>
+
+<script th:src="@{/js/script.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function addToCart(bookId) {
+        fetch('/api/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ bookId: bookId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('장바구니에 추가되었습니다.');
+                } else {
+                    alert('장바구니 추가에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다.');
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtns = document.querySelectorAll('.toggle-btn');
+
+        toggleBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const subMenu = this.parentElement.nextElementSibling;
+                if (subMenu) {
+                    subMenu.classList.toggle('open');
+                    this.textContent = subMenu.classList.contains('open') ? '▲' : '▼';
+                }
+            });
+        });
+    });
+    /*]]>*/
+</script>
+</body>
+</html>
