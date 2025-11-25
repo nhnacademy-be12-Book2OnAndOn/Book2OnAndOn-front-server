@@ -39,6 +39,7 @@ jobs:
 
       # 학교 서버에 접속해서 도커 컨테이너 재실행
       - name: Deploy to School Server via SSH
+
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
