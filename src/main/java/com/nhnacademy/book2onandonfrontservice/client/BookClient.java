@@ -1,6 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.client;
 
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,27 +21,6 @@ public interface BookClient {
 
     // 2. 카테고리 목록 가져오기
     @GetMapping("/api/books/categories")
-    List<Map<String, Object>> getCategories();
+    List<CategoryDto> getCategories();
 
-    // 3. 인기 태그 가져오기
-    @GetMapping("/api/books/tags/popular")
-    List<String> getPopularTags();
-
-    // 4. 메인 프로모션 도서 가져오기
-    @GetMapping("/api/books/promotions/main")
-    Map<String, Object> getMainPromotion();
-
-    // 5. 베스트셀러
-    @GetMapping("/api/books/bestseller")
-    List<BookDto> getBestsellers();
-
-    // 6. 신간
-    @GetMapping("/api/books/new")
-    List<BookDto> getNewBooks();
-
-    // 7. 검색
-    @GetMapping("/api/books/search")
-    Page<BookDto> searchBooks(@RequestParam("keyword") String keyword,
-                              @RequestParam("page") int page,
-                              @RequestParam("size") int size);
 }

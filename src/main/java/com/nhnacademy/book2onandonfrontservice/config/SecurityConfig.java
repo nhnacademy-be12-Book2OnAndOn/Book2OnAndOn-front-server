@@ -16,7 +16,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/**", "/login", "/signup", "/css/**", "/js/**", "/images/**").permitAll() // 정적 자원 및 로그인 허용
+                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/error", "/books/**").permitAll()
                 .anyRequest().authenticated() // 나머지는 로그인 필요
             )
             .formLogin(form -> form

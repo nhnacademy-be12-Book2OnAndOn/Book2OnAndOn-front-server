@@ -9,21 +9,19 @@
 <body>
 <div class="overlay" id="overlay"></div>
 
-<!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h3>카테고리</h3>
         <button class="close-btn" onclick="toggleSidebar()">×</button>
     </div>
+
     <ul class="sidebar-menu">
-        <li th:each="category : ${categories}">
-            <a th:href="@{/books/category/{id}(id=${category.id})}"
-               th:text="${category.name}">카테고리</a>
-        </li>
+        <th:block th:each="category : ${categories}">
+            <p>category</p>
+        </th:block>
     </ul>
 </aside>
 
-<!-- Header -->
 <header>
     <div class="header-content">
         <div class="header-left">
@@ -48,7 +46,6 @@
     </div>
 </header>
 
-<!-- Hero Section -->
 <section class="hero-section">
     <div class="hero-content">
         <h1>
@@ -70,7 +67,6 @@
         </div>
     </div>
 
-    <!-- Promotion Box -->
     <div class="promo-box" th:if="${promotion != null}">
         <h3 th:text="${promotion.title}">오늘의 추천</h3>
         <h4 th:text="${promotion.subtitle}">개발자들을 위한 필독서 세트</h4>
@@ -87,47 +83,10 @@
     </div>
 </section>
 
-<!-- Main Content -->
 <main>
     <div class="sidebar-section">
-        <!-- Filter Sidebar -->
-        <aside class="filter-sidebar">
-            <div class="filter-section">
-                <h3>카테고리</h3>
-                <ul>
-                    <li th:each="category : ${categoryStats}">
-                        <a th:href="@{/books/category/{id}(id=${category.id})}"
-                           th:text="${category.name}">카테고리</a>
-                        <span class="count" th:text="${category.count}">0</span>
-                    </li>
-                </ul>
-            </div>
 
-            <div class="filter-section">
-                <h3>분야</h3>
-                <ul>
-                    <li th:each="field : ${fields}">
-                        <a th:href="@{/books/field/{id}(id=${field.id})}"
-                           th:text="${field.name}">분야</a>
-                        <span class="count" th:text="${field.count}">0</span>
-                    </li>
-                </ul>
-            </div>
 
-            <div class="filter-section">
-                <h3>가격</h3>
-                <form th:action="@{/books/filter}" method="get" class="price-range">
-                    <div class="price-inputs">
-                        ₩<input type="number" name="minPrice" th:value="${minPrice}" placeholder="0">
-                        ~
-                        ₩<input type="number" name="maxPrice" th:value="${maxPrice}" placeholder="100,000+">
-                    </div>
-                    <button type="submit" class="apply-filter-btn">필터 적용</button>
-                </form>
-            </div>
-        </aside>
-
-        <!-- Book Grid -->
         <div class="book-grid-container">
             <div class="section-header">
                 <h2>
@@ -160,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- Pagination -->
             <div class="pagination" th:if="${totalPages > 1}">
                 <button th:if="${currentPage > 0}"
                         th:onclick="'location.href=\'' + @{/books(page=${currentPage - 1})} + '\''">
@@ -182,7 +140,6 @@
     </div>
 </main>
 
-<!-- Footer -->
 <footer>
     <div class="footer-content">
         <div class="footer-links">
@@ -193,6 +150,25 @@
         <p>© 2025 Book2OnAndOn. All rights reserved.</p>
     </div>
 </footer>
+
+<th:block th:fragment="categoryItem(cat)">
+    <th:block th:if="${cat != null}">
+        <li class="category-item">
+            <div class="category-link-wrapper">
+                <a th:href="@{/books/category/{id}(id=${cat.id})}"
+                   th:text="${cat.name}">카테고리명</a>
+
+                <span th:if="${not #lists.isEmpty(cat.children)}" class="toggle-btn">▼</span>
+            </div>
+
+            <ul th:if="${not #lists.isEmpty(cat.children)}" class="sub-menu">
+                <th:block th:each="child : ${cat.children}">
+                    <th:block th:replace="~{:: categoryItem(${child})}"></th:block>
+                </th:block>
+            </ul>
+        </li>
+    </th:block>
+</th:block>
 
 <script th:src="@{/js/script.js}"></script>
 <script th:inline="javascript">
@@ -218,6 +194,21 @@
                 alert('오류가 발생했습니다.');
             });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtns = document.querySelectorAll('.toggle-btn');
+
+        toggleBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const subMenu = this.parentElement.nextElementSibling;
+                if (subMenu) {
+                    subMenu.classList.toggle('open');
+                    this.textContent = subMenu.classList.contains('open') ? '▲' : '▼';
+                }
+            });
+        });
+    });
     /*]]>*/
 </script>
 </body>

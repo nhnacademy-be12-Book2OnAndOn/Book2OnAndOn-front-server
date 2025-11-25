@@ -331,6 +331,50 @@ main {
     color: #999;
 }
 
+/* 사이드바 메뉴 스타일 */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar-menu li {
+    padding: 5px 0;
+}
+
+/* 하위 메뉴 (들여쓰기 적용) */
+.sub-menu {
+    list-style: none;
+    padding-left: 20px; /* 들여쓰기 핵심 */
+    display: none; /* 기본적으로 숨김 (JS로 토글) */
+    border-left: 1px solid #ddd; /* 계층 관계선 */
+}
+
+/* 링크와 토글 버튼 배치 */
+.category-link-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 10px;
+}
+
+.category-link-wrapper a {
+    text-decoration: none;
+    color: #333;
+    flex-grow: 1;
+}
+
+/* 토글 버튼 스타일 */
+.toggle-btn {
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: #999;
+}
+
+/* 활성화 클래스 (JS로 제어) */
+.sub-menu.open {
+    display: block;
+}
+
 /* ===== 가격 필터 ===== */
 .price-range {
     margin-top: 1rem;
