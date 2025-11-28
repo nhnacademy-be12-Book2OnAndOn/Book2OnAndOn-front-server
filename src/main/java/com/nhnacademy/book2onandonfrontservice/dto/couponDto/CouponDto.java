@@ -1,5 +1,8 @@
 package com.nhnacademy.book2onandonfrontservice.dto.couponDto;
 
+import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyDiscountType;
+import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyStatus;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +12,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CouponDto {
 
-    private Integer couponRemainingQuantity; //쿠폰 수량
-    private Long couponPolicyId; //정책 id
+    private Long couponId;
+    private String couponName;
+    private String discountDescription;
+    private Integer discountValue;
+    private CouponPolicyDiscountType discountType;
+    private Integer minPrice;
+    private Integer maxPrice;
+    private Integer durationDays;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private CouponPolicyStatus status;
+    private Integer couponRemainingQuantity;
+    
 }
