@@ -4,155 +4,7 @@
     <meta charset="UTF-8">
     <title>관리자 - 쿠폰 정책 상세</title>
     <link rel="stylesheet" href="/css/styles.css">
-    <style>
-        .admin-container {
-            max-width: 1000px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-        }
-
-        /* 헤더 영역 */
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 1rem;
-        }
-        .detail-title h2 { margin: 0; color: #333; font-size: 1.8rem; }
-        .detail-id { color: #888; font-size: 0.9rem; margin-top: 5px; }
-
-        /* 컨텐츠 박스 */
-        .detail-card {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #2d5016;
-            margin-bottom: 1rem;
-            border-left: 4px solid #2d5016;
-            padding-left: 10px;
-        }
-
-        /* 그리드 레이아웃 */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .info-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .info-label {
-            font-size: 0.85rem;
-            color: #666;
-            font-weight: 600;
-        }
-
-        .info-value {
-            font-size: 1rem;
-            color: #333;
-            font-weight: 500;
-        }
-
-        /* 배지 스타일 */
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .badge-type { background: #e3f2fd; color: #1565c0; }
-        .badge-active { background: #e8f5e9; color: #2e7d32; }
-        .badge-deactive { background: #ffebee; color: #c62828; }
-
-        /* 적용 대상 태그 스타일 */
-        .target-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .target-tag {
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            color: #555;
-        }
-        .empty-text { color: #999; font-style: italic; }
-
-        /* 하단 버튼 그룹 */
-        .btn-group {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .btn {
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            border: 1px solid transparent;
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-        .btn-list { background: white; border-color: #ddd; color: #333; }
-        .btn-edit { background: #2d5016; color: white; }
-        .btn-delete { background: #d32f2f; color: white; }
-
-        /* 쿠폰 생성 버튼 (주황색 강조) */
-        .btn-create-coupon { background: #ff6f00; color: white; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .btn-create-coupon:hover { background: #e65100; transform: translateY(-1px); }
-
-        /* 구분선 */
-        .divider { border-top: 1px solid #f0f0f0; margin: 2rem 0; }
-
-        /* ===== 모달 스타일 ===== */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000;
-            display: none; /* 기본 숨김 */
-            justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: white; padding: 2rem; border-radius: 12px; width: 450px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            animation: slideDown 0.3s ease-out;
-        }
-        @keyframes slideDown {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .modal-content h3 { margin-top: 0; color: #333; border-bottom: 2px solid #2d5016; padding-bottom: 10px; display: inline-block; }
-        .modal-actions { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 10px; }
-        .form-control { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
-
-        /* 체크박스 커스텀 */
-        .checkbox-label {
-            user-select: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .checkbox-label:hover { background: #f5f5f5; }
-        .checkbox-label input { width: 18px; height: 18px; accent-color: #2d5016; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/policyDetail.css}">
 </head>
 <body>
 
@@ -268,7 +120,7 @@
         <button type="button" class="btn btn-create-coupon"
                 th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}"
                 onclick="openCouponModal()">
-            🎟️ 쿠폰 발행
+             쿠폰 발행
         </button>
 
         <a th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}" class="btn btn-edit">수정</a>
@@ -283,7 +135,7 @@
 
 <div id="couponModal" class="modal-overlay">
     <div class="modal-content">
-        <h3>🎟️ 쿠폰 발행</h3>
+        <h3>쿠폰 발행</h3>
         <p style="color: #666; margin-bottom: 20px;">
             선택한 정책(<b>[[${policy.couponPolicyName}]]</b>)을 기반으로<br>실제 발급 가능한 쿠폰을 생성합니다.
         </p>
@@ -295,7 +147,7 @@
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="number" id="quantity" name="quantity" class="form-control" placeholder="수량을 입력하세요 (예: 100)" min="1">
 
-                    <label class="checkbox-label" style="white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                    <label class="checkbox-label">
                         <input type="checkbox" id="unlimitedCheck" onchange="toggleQuantityInput()">
                         <span>♾️ 무제한</span>
                     </label>
@@ -310,49 +162,7 @@
     </div>
 </div>
 
-<script>
-    // 1. 체크박스 상태에 따라 입력창 제어
-    function toggleQuantityInput() {
-        const isUnlimited = document.getElementById('unlimitedCheck').checked;
-        const quantityInput = document.getElementById('quantity');
-
-        if (isUnlimited) {
-            // 무제한 체크 시: 입력창 비우고, 비활성화(disabled) -> 서버로 값 전송 안 됨 (null)
-            quantityInput.value = '';
-            quantityInput.disabled = true;
-            quantityInput.placeholder = "무제한 발행 모드";
-            quantityInput.style.backgroundColor = "#f0f0f0"; // 회색 처리
-        } else {
-            // 체크 해제 시: 입력창 활성화
-            quantityInput.disabled = false;
-            quantityInput.placeholder = "수량을 입력하세요 (예: 100)";
-            quantityInput.style.backgroundColor = "white";
-            quantityInput.focus();
-        }
-    }
-
-    // 2. 모달 열기 (초기화 포함)
-    function openCouponModal() {
-        document.getElementById('couponModal').style.display = 'flex';
-
-        // 상태 초기화: 무제한 체크 해제, 입력창 활성화
-        document.getElementById('unlimitedCheck').checked = false;
-        toggleQuantityInput();
-    }
-
-    // 3. 모달 닫기
-    function closeCouponModal() {
-        document.getElementById('couponModal').style.display = 'none';
-    }
-
-    // 4. 배경 클릭 시 닫기
-    window.onclick = function(event) {
-        const modal = document.getElementById('couponModal');
-        if (event.target == modal) {
-            closeCouponModal();
-        }
-    }
-</script>
+<script th:src="@{/js/policyDetail.js}"></script>
 
 </body>
 </html>

@@ -15,9 +15,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/error", "/books/**").permitAll()
-                .anyRequest().authenticated() // 나머지는 로그인 필요
+                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/error", "/books/**", "/admin/**").permitAll()
+                .anyRequest().authenticated()// 나머지는 로그인 필요
             )
             .formLogin(form -> form
                 .loginPage("/login") // 우리가 만든 login.html 사용

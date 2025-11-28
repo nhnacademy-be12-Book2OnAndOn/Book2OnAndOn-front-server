@@ -13,32 +13,38 @@
     <div class="page-header">
         <div class="page-title">
             <h2>쿠폰 정책 관리</h2>
-            <p>총 <b th:text="${policies != null ? policies.size() : 0}">0</b>개의 정책이 등록되어 있습니다.</p>
+            <p>총 <b th:text="${policies != null ? policies.size() : 0}">0</b>개의 정책이 조회되었습니다.</p>
         </div>
         <a href="/admin/policies/create" class="btn-create">
             <span>+ 정책 등록</span>
         </a>
     </div>
 
-    <div class="filter-toolbar">
+    <form action="/admin/policies" method="get" class="filter-toolbar">
+
         <label for="filterType" style="font-weight: bold; color: #555;">타입:</label>
-        <select id="filterType" class="filter-select" onchange="filterTable()">
-            <option value="ALL">전체 보기</option>
+        <select name="type" id="filterType" class="filter-select">
+            <option value="">전체 보기</option>
             <option th:each="type : ${policyTypes}"
                     th:value="${type}"
-                    th:text="${type}">WELCOME</option>
+                    th:text="${type}"
+                    th:selected="${type == searchType}">
+            </option>
         </select>
 
         <label for="filterStatus" style="font-weight: bold; color: #555;">상태:</label>
-        <select id="filterStatus" class="filter-select" onchange="filterTable()">
-            <option value="ALL">전체 보기</option>
+        <select name="status" id="filterStatus" class="filter-select">
+            <option value="">전체 보기</option>
             <option th:each="status : ${statuses}"
                     th:value="${status}"
-                    th:text="${status == T(com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyStatus).ACTIVE ? '활성' : '비활성'}">활성</option>
+                    th:text="${status.name() == 'ACTIVE' ? '활성' : '비활성'}"
+                    th:selected="${status == searchStatus}">
+            </option>
         </select>
 
-        <button onclick="resetFilter()" class="btn-reset">↺ 필터 초기화</button>
-    </div>
+        <button type="submit" class="btn-reset" style="margin-left: auto; background: #333; color: white; border: none;">🔍 조회</button>
+        <a href="/admin/policies" class="btn-reset">↺ 초기화</a>
+    </form>
 
     <div class="table-container">
         <table id="policyTable">
@@ -55,8 +61,6 @@
             </thead>
             <tbody>
             <tr th:each="policy : ${policies}"
-                th:data-type="${policy.couponPolicyType}"
-                th:data-status="${policy.couponPolicyStatus}"
                 th:classappend="${policy.couponPolicyStatus?.name() == 'DEACTIVE'} ? 'deactive'">
 
                 <td th:text="${policy.couponPolicyId}">1</td>
@@ -117,7 +121,7 @@
 
             <tr th:if="${policies == null or #lists.isEmpty(policies)}">
                 <td colspan="7" style="text-align: center; padding: 4rem; color: #999;">
-                    등록된 쿠폰 정책이 없습니다.
+                    검색된 쿠폰 정책이 없습니다.
                 </td>
             </tr>
             </tbody>
@@ -126,24 +130,22 @@
 
     <div class="pagination" th:if="${totalPages > 0}">
         <a th:if="${currentPage > 0}"
-           th:href="@{/admin/policies(page=${currentPage - 1})}"
+           th:href="@{/admin/policies(page=${currentPage - 1}, type=${searchType}, status=${searchStatus})}"
            class="page-link">&lt;</a>
 
         <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
-            <a th:href="@{/admin/policies(page=${i})}"
+            <a th:href="@{/admin/policies(page=${i}, type=${searchType}, status=${searchStatus})}"
                th:text="${i + 1}"
                class="page-link"
                th:classappend="${i == currentPage} ? 'active'">1</a>
         </th:block>
 
         <a th:if="${currentPage < totalPages - 1}"
-           th:href="@{/admin/policies(page=${currentPage + 1})}"
+           th:href="@{/admin/policies(page=${currentPage + 1}, type=${searchType}, status=${searchStatus})}"
            class="page-link">&gt;</a>
     </div>
 
 </div>
-
-<script th:src="@{/js/policyList.js}"></script>
 
 </body>
 </html>
