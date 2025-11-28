@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>아이디 찾기</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <h1>아이디 찾기</h1>
+            <p>이름과 이메일을 입력해 주세요</p>
+        </div>
+
+        <div th:if="${error}" class="alert alert-error">
+            <p th:text="${error}"></p>
+        </div>
+
+        <form th:action="@{/find-id}" method="post" class="auth-form">
+
+            <div class="form-group">
+                <label for="name">이름</label>
+                <input type="text" id="name" name="name" placeholder="가입 시 입력한 이름" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">이메일</label>
+                <input type="email" id="email" name="email" placeholder="가입 시 입력한 이메일" required>
+            </div>
+
+            <button type="submit" class="btn-primary">아이디 찾기</button>
+        </form>
+
+        <div class="auth-footer">
+            <a th:href="@{/login}" class="link">로그인 페이지로 돌아가기</a>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,16 +1,17 @@
-package com.nhnacademy.book2onandonfrontservice.dto.userDto;
+package com.nhnacademy.book2onandonfrontservice.dto.userDto.request;
 
-import com.nhnacademy.book2onandonfrontservice.dto.userDto.enums.Role;
 import jakarta.validation.constraints.NotBlank;
-import java.time.LocalDate;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalDate;
 
-@RequiredArgsConstructor
 @Getter
 @Setter
-public class SignupForm {
+@NoArgsConstructor
+@AllArgsConstructor
+public class LocalSignUpRequest {
     @NotBlank(message = "아이디는 필수입니다.")
     private String userLoginId;
 
