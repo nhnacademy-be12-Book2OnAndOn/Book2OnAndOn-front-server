@@ -46,8 +46,15 @@ public class AuthViewController {
             accessCookie.setHttpOnly(true);
             accessCookie.setSecure(true);
             accessCookie.setPath("/");
-            accessCookie.setMaxAge(3600);
+            accessCookie.setMaxAge(1800);
             response.addCookie(accessCookie);
+
+            Cookie refreshCookie = new Cookie("refreshToken", token.getRefreshToken());
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(true);
+            refreshCookie.setPath("/");
+            refreshCookie.setMaxAge(604800); //7일
+            response.addCookie(refreshCookie);
 
             return "redirect:/";
 
