@@ -7,7 +7,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LocalSignUpRe
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LoginRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.FindIdResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.TokenResponseDto;
+import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -96,13 +98,35 @@ public class AuthViewController {
 
     //로그아웃(쿠키 삭제)
     @GetMapping("/logout")
-    public String logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("accessToken", null);
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        // 쿠키에서 Access Token 꺼내기
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+
+        // Redis 블랙리스트 등록
+        if (accessToken != null) {
+            try {
+                // Bearer를 붙여서 보내야 Gateway/BE에서 인식
+                userClient.logout("Bearer " + accessToken);
+            } catch (Exception e) {
+                // 백엔드 호출이 실패하더라도(이미 만료됨 등),
+                // 프론트엔드에서는 무조건 로그아웃 처리를 진행해야 함.
+                log.warn("백엔드 로그아웃 호출 실패 (토큰 만료 등): {}", e.getMessage());
+            }
+        }
+
+        // 클라이언트 쿠키 강제 삭제
+        deleteCookie(response, "accessToken");
+        deleteCookie(response, "refreshToken");
+
+        return "redirect:/login?logout";
+    }
+
+    // 쿠키 삭제 헬퍼 메서드
+    private void deleteCookie(HttpServletResponse response, String name) {
+        Cookie cookie = new Cookie(name, null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
-
-        return "redirect:/login?logout";
     }
 
     //아이디 찾기 페이지

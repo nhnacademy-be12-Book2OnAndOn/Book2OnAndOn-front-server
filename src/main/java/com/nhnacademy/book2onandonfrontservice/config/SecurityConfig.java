@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue;
 
 @Configuration
 @EnableWebSecurity
@@ -17,8 +18,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable())
+                //X-XSS-Protection 헤더 설정
+                //브라우저의 내장 XSS필터를 활성화하고, 공격 감지시 페이지 로드 차단
+                .headers(headers -> headers
+                        .xssProtection(xss -> xss
+                                .headerValue(HeaderValue.ENABLED_MODE_BLOCK)
+                        )
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "script-src 'self' 'unsafe-inLine'; object-src 'none'; base-uri 'self';"))
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/books/**").permitAll()
+                        .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/books/**")
+                        .permitAll()
                         .anyRequest().permitAll() // 프론트는 인증 기능 자체가 없음
                 );
 
@@ -39,4 +50,6 @@ public class SecurityConfig {
 
              해결:
              - CSRF를 disable 해야 AuthViewController가 동작
+             XSS헤더: 사용자가 악성 스크립트가 포함된 URL을 클릭했을 때, 브라우저가 이를 감지하면 페이지 렌더링을 멈춰버리게함.
+             CSP(ContentSecurityPolicy): 우리 서버에서 제공한 자바스크립트 파일만 실행하라고 브라우저에게 명령함. 외부 사이트의 악성 스크립트를 심어도 브라우저가 거절.
  */
