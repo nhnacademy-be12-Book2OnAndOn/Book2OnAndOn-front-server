@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/admin/coupons")
 @RequiredArgsConstructor
-public class CouponController {
+public class AdminCouponController {
 
     private final CouponClient couponClient;
 

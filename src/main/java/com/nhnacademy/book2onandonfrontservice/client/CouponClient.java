@@ -3,6 +3,7 @@ package com.nhnacademy.book2onandonfrontservice.client;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponCreateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
+import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,4 +28,10 @@ public interface CouponClient {
     void updateCouponQuantity(@PathVariable Long couponId,
                               @RequestBody CouponUpdateDto updateDto);
 
+    @GetMapping("/api/coupons/appliable")
+    CouponDto getAppliableCoupons(@RequestParam("bookId") Long bookId,
+                                  @RequestParam("categoryIds") List<Long> categoryIds);
+
+    @PostMapping("/api/coupons/{couponId}/issue")
+    void issueCoupon(@PathVariable("couponId") Long couponId);
 }
