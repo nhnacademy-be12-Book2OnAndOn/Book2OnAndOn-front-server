@@ -20,8 +20,8 @@
             <li><a th:href="@{/books/sale}">할인</a></li>
         </ul>
         <div class="header-right">
-            <button class="btn-login" th:onclick="'location.href=\'' + @{/login} + '\''">로그인</button>
-            <button class="btn-signup" th:onclick="'location.href=\'' + @{/signup} + '\''">회원가입</button>
+            <button class="btn-login" th:onclick="|location.href='@{/login}'|">로그인</button>
+            <button class="btn-signup" th:onclick="|location.href='@{/signup}'|">회원가입</button>
         </div>
     </div>
 </header>

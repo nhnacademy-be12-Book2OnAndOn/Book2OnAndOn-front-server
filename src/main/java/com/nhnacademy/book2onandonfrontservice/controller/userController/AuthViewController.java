@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Slf4j
 @Controller
@@ -40,10 +42,10 @@ public class AuthViewController {
     //로그인 처리
     @PostMapping("/login")
     public String login(@ModelAttribute LoginRequest loginRequest,
-                        HttpServletResponse response,
-                        Model model) {
+                        HttpServletResponse response) {
         try {
             TokenResponseDto token = userClient.login(loginRequest);
+
             Cookie accessCookie = new Cookie("accessToken", token.getAccessToken());
             accessCookie.setHttpOnly(true);
             accessCookie.setSecure(true);
@@ -55,14 +57,13 @@ public class AuthViewController {
             refreshCookie.setHttpOnly(true);
             refreshCookie.setSecure(true);
             refreshCookie.setPath("/");
-            refreshCookie.setMaxAge(604800); //7일
+            refreshCookie.setMaxAge(604800);
             response.addCookie(refreshCookie);
 
             return "redirect:/";
 
         } catch (Exception e) {
-            model.addAttribute("error", "아이디 또는 비밀번호가 올바르지 않습니다.");
-            return "auth/login";
+            return "redirect:/login?error=true";
         }
     }
 
@@ -93,6 +94,30 @@ public class AuthViewController {
             log.error("회원가입 실패", e);
             model.addAttribute("error", "회원가입에 실패했습니다. (" + e.getMessage() + ")");
             return "auth/signup";
+        }
+    }
+
+    //이메일 인증번호 발송
+    @PostMapping("/email/send")
+    @ResponseBody
+    public ResponseEntity<String> sendEmail(@RequestParam String email) {
+        try {
+            userClient.sendEmailVerification(email);
+            return ResponseEntity.ok("인증번호가 발송되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("발송 실패: " + e.getMessage());
+        }
+    }
+
+    //인증번호 검증
+    @PostMapping("/email/verify")
+    @ResponseBody
+    public ResponseEntity<String> verifyCode(@RequestParam String email, @RequestParam String code) {
+        try {
+            String result = userClient.verifyEmail(email, code);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("인증 실패: 코드를 확인해주세요.");
         }
     }
 

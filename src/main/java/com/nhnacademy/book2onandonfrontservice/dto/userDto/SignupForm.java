@@ -1,6 +1,5 @@
 package com.nhnacademy.book2onandonfrontservice.dto.userDto;
 
-import com.nhnacademy.book2onandonfrontservice.dto.userDto.enums.Role;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import lombok.Getter;

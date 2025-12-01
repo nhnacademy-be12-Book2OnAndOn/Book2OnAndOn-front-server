@@ -6,18 +6,48 @@
     <title>회원가입 - Book2OnAndOn</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/auth.css}">
+
+    <style>
+        .error-text {
+            color: #c62828;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        /* 인증 버튼 스타일 */
+        .btn-small {
+            padding: 0.8rem 1rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .btn-small:hover {
+            background: #5a6268;
+        }
+
+        .btn-small:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
 <header>
     <div class="header-content">
         <div class="header-left">
-            <a th:href="@{/static}" class="logo">Book2OnAndOn</a>
+            <a th:href="@{/}" class="logo">Book2OnAndOn</a>
         </div>
         <ul class="header-nav">
             <li><a th:href="@{/books/bestseller}">베스트셀러</a></li>
         </ul>
         <div class="header-right">
-            <button class="btn-login" th:onclick="'location.href=\'' + @{/login} + '\''">로그인</button>
+            <button class="btn-login" th:onclick="|location.href='@{/login}'|">로그인</button>
         </div>
     </div>
 </header>
@@ -33,7 +63,8 @@
             <p th:text="${error}"></p>
         </div>
 
-        <form th:action="@{/signup}" th:object="${signupForm}" method="post" class="auth-form">
+        <form th:action="@{/signup}" th:object="${signupForm}" method="post" class="auth-form"
+              onsubmit="return validateForm()">
 
             <div class="form-group">
                 <label for="userLoginId">아이디</label>
@@ -57,8 +88,22 @@
 
             <div class="form-group">
                 <label for="email">이메일</label>
-                <input type="email" id="email" th:field="*{email}" placeholder="example@email.com" required>
+                <div style="display: flex; gap: 8px;">
+                    <input type="email" id="email" th:field="*{email}" placeholder="example@email.com" required
+                           style="flex: 1;">
+                    <button type="button" id="btn-send" class="btn-small" onclick="sendVerification()">인증번호 전송</button>
+                </div>
                 <div class="error-text" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</div>
+            </div>
+
+            <div class="form-group" id="verification-group" style="display: none;">
+                <label for="verifyCode">인증번호</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="verifyCode" placeholder="6자리 코드 입력" style="flex: 1;">
+                    <button type="button" id="btn-verify" class="btn-small" onclick="checkVerification()">확인</button>
+                </div>
+                <p id="verify-message" style="font-size: 0.85rem; margin-top: 5px;"></p>
+                <input type="hidden" id="isEmailVerified" value="false">
             </div>
 
             <div class="form-group">
@@ -83,3 +128,97 @@
         </div>
     </div>
 </div>
+
+<footer>
+    <div class="footer-content">
+        <p>© 2025 Book2OnAndOn. All rights reserved.</p>
+    </div>
+</footer>
+
+<script>
+    // (기존 자바스크립트 로직 그대로 유지)
+    function sendVerification() {
+        const email = document.getElementById('email').value;
+        if (!email) {
+            alert("이메일을 입력해주세요.");
+            return;
+        }
+
+        const btn = document.getElementById('btn-send');
+        btn.disabled = true;
+        btn.innerText = "전송중...";
+
+        fetch('/email/send', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `email=${encodeURIComponent(email)}`
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert("인증번호가 발송되었습니다. 메일함을 확인해주세요.");
+                    document.getElementById('verification-group').style.display = 'block';
+                    btn.innerText = "재전송";
+                } else {
+                    response.text().then(text => alert(text));
+                    btn.innerText = "인증번호 전송";
+                }
+                btn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("서버 통신 오류가 발생했습니다.");
+                btn.disabled = false;
+                btn.innerText = "인증번호 전송";
+            });
+    }
+
+    function checkVerification() {
+        const email = document.getElementById('email').value;
+        const code = document.getElementById('verifyCode').value;
+        const msg = document.getElementById('verify-message');
+        const verifyBtn = document.getElementById('btn-verify');
+
+        if (!code) {
+            alert("인증번호를 입력해주세요.");
+            return;
+        }
+
+        fetch('/email/verify', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`
+        })
+            .then(response => {
+                if (response.ok) {
+                    msg.style.color = 'green';
+                    msg.innerText = "인증되었습니다.";
+                    document.getElementById('isEmailVerified').value = "true";
+
+                    document.getElementById('email').readOnly = true;
+                    document.getElementById('verifyCode').disabled = true;
+                    verifyBtn.disabled = true;
+                    document.getElementById('btn-send').disabled = true;
+                } else {
+                    msg.style.color = 'red';
+                    msg.innerText = "인증번호가 일치하지 않습니다.";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                msg.style.color = 'red';
+                msg.innerText = "인증 중 오류가 발생했습니다.";
+            });
+    }
+
+    function validateForm() {
+        const isVerified = document.getElementById('isEmailVerified').value;
+        if (isVerified !== "true") {
+            alert("이메일 인증을 완료해주세요.");
+            document.getElementById('email').focus();
+            return false;
+        }
+        return true;
+    }
+</script>
+</body>
+</html>

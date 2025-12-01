@@ -23,4 +23,18 @@ public class JwtUtils {
             return null;
         }
     }
+
+    public static String getRole(String token) {
+        try {
+            String[] chunks = token.split("\\.");
+            Base64.Decoder decoder = Base64.getUrlDecoder();
+            String payload = new String(decoder.decode(chunks[1]));
+
+            JsonNode node = objectMapper.readTree(payload);
+
+            return node.get("role").asText();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }
