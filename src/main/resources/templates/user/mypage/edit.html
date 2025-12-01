@@ -1,170 +1,52 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layout/mypage-layout :: layout(
+        title = ~{::title},
+        sidebarActive = 'edit',
+        content = ~{::content}
+      )">
 <head>
-    <meta charset="UTF-8">
     <title>내 정보 수정</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <style>
-        .dashboard-wrapper {
-            display: flex;
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-            gap: 2rem;
-        }
-
-        .dashboard-sidebar {
-            width: 240px;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1.5rem 1rem;
-            height: fit-content;
-        }
-
-        .dashboard-sidebar h3 {
-            margin-bottom: 1rem;
-            color: #2d5016;
-            font-size: 1.1rem;
-        }
-
-        .dashboard-menu {
-            list-style: none;
-            padding: 0;
-        }
-
-        .dashboard-menu li {
-            margin-bottom: 0.8rem;
-        }
-
-        .dashboard-menu a {
-            color: #333;
-            text-decoration: none;
-            padding: 0.6rem 0.8rem;
-            display: block;
-            border-radius: 6px;
-        }
-
-        .dashboard-menu a:hover,
-        .dashboard-menu .active {
-            background: #e8f5e9;
-            color: #2d5016;
-        }
-
-        .edit-container {
-            max-width: 600px;
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            font-weight: bold;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
-
-        .btn-cancel {
-            flex: 1;
-            padding: 12px;
-            background: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .btn-save {
-            flex: 1;
-            padding: 12px;
-            background: #2d5016;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-    </style>
 </head>
+
 <body>
+<div th:fragment="content">
 
-<main>
-    <div class="dashboard-wrapper">
+    <div class="address-form-container">
+        <h2>⚙️ 회원 정보 수정</h2>
 
-        <!-- 사이드바 -->
-        <aside class="dashboard-sidebar">
-            <h3>마이페이지</h3>
-            <ul class="dashboard-menu">
-                <li><a href="/users/me">대시보드</a></li>
-                <li><a href="/users/me/reviews">내 리뷰</a></li>
-                <li><a href="/orders/me">주문 내역</a></li>
-                <li><a href="/coupons/me">쿠폰함</a></li>
-                <li><a href="/users/me/edit" class="active">내 정보 수정</a></li>
-                <li><a href="/logout" style="color:#d9534f;">로그아웃</a></li>
-            </ul>
-        </aside>
+        <div th:if="${error}" class="error-box" th:text="${error}"></div>
 
-        <!-- 수정 폼 -->
-        <section class="edit-container">
+        <form th:action="@{/users/me/edit}" th:object="${userUpdateRequest}" method="post">
 
-            <h2 style="margin-bottom:20px; border-bottom:2px solid #2d5016; padding-bottom:10px;">
-                ⚙️ 회원 정보 수정
-            </h2>
+            <div class="form-field">
+                <label for="name">이름</label>
+                <input type="text" id="name" th:field="*{name}" required>
+            </div>
 
-            <div th:if="${error}"
-                 style="background:#ffebee;color:#c62828;padding:12px;margin-bottom:20px;border-radius:4px;"
-                 th:text="${error}"></div>
+            <div class="form-field">
+                <label for="nickname">닉네임</label>
+                <input type="text" id="nickname" th:field="*{nickname}" required>
+            </div>
 
-            <form th:action="@{/users/me/edit}" th:object="${userUpdateRequest}" method="post">
+            <div class="form-field">
+                <label for="email">이메일</label>
+                <input type="email" id="email" th:field="*{email}" required>
+            </div>
 
-                <div class="form-group">
-                    <label>이름</label>
-                    <input type="text" th:field="*{name}" required>
-                </div>
+            <div class="form-field">
+                <label for="phone">휴대폰 번호</label>
+                <input type="text" id="phone" th:field="*{phone}" placeholder="01000000000" required>
+            </div>
 
-                <div class="form-group">
-                    <label>닉네임</label>
-                    <input type="text" th:field="*{nickname}" required>
-                </div>
+            <div class="form-actions">
+                <a href="/users/me" class="btn-cancel">취소</a>
+                <button type="submit" class="submit-btn">수정 저장</button>
+            </div>
 
-                <div class="form-group">
-                    <label>이메일</label>
-                    <input type="email" th:field="*{email}" required>
-                </div>
-
-                <div class="form-group">
-                    <label>휴대폰 번호</label>
-                    <input type="text" th:field="*{phone}" placeholder="01000000000" required>
-                </div>
-
-                <div class="btn-group">
-                    <a href="/users/me" class="btn-cancel">취소</a>
-                    <button type="submit" class="btn-save">수정 저장</button>
-                </div>
-
-            </form>
-        </section>
-
+        </form>
     </div>
-</main>
 
+</div>
 </body>
 </html>

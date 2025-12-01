@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout (title, sidebarActive, content)">
+<head>
+    <meta charset="UTF-8">
+    <title th:replace="${title}">마이페이지</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/mypage.css}">
+</head>
+
+<body>
+
+<main>
+    <div class="dashboard-wrapper">
+
+        <aside class="dashboard-sidebar">
+            <h3>마이페이지</h3>
+
+            <ul class="dashboard-menu">
+                <li><a href="/users/me" th:classappend="${sidebarActive=='dashboard'} ? 'active'">대시보드</a></li>
+                <li><a href="/users/me/reviews" th:classappend="${sidebarActive=='reviews'} ? 'active'">내 리뷰</a></li>
+                <li><a href="/orders/me" th:classappend="${sidebarActive=='orders'} ? 'active'">주문 내역</a></li>
+                <li><a href="/coupons/me" th:classappend="${sidebarActive=='coupons'} ? 'active'">쿠폰함</a></li>
+                <li><a href="/users/me/addresses" th:classappend="${sidebarActive=='addresses'} ? 'active'">내 주소 관리</a>
+                </li>
+                <li><a href="/users/me/edit" th:classappend="${sidebarActive=='edit'} ? 'active'">내 정보 수정</a></li>
+                <li><a href="/logout" style="color:#d9534f;">로그아웃</a></li>
+            </ul>
+        </aside>
+
+        <section class="dashboard-main">
+            <div th:replace="${content}"></div>
+        </section>
+
+    </div>
+</main>
+
+</body>
+</html>
