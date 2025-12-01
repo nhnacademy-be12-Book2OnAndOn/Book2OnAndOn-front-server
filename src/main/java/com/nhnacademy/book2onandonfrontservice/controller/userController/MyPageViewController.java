@@ -147,11 +147,13 @@ public class MyPageViewController {
     }
 
     //주소 추가 페이지
-    @GetMapping("/addresses/me")
+    @GetMapping("/addresses/new")
     public String createAddressForm(Model model) {
         model.addAttribute("addressForm", new UserAddressCreateRequest());
+        model.addAttribute("isUpdate", false);
         return "user/mypage/address-form";
     }
+
 
     //배송지 저장
     @PostMapping("/addresses")
@@ -169,16 +171,33 @@ public class MyPageViewController {
     //주소 수정 페이지
     @GetMapping("/addresses/{id}/edit")
     public String updateAddressForm(HttpServletRequest request, @PathVariable Long id, Model model) {
+
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
         try {
             UserAddressResponseDto address = userClient.getAddressDetail(token, id);
-            model.addAttribute("addressForm", address);
+
+            UserAddressUpdateRequest form = new UserAddressUpdateRequest(
+                    address.getUserAddressName(),
+                    address.getRecipient(),
+                    address.getPhone(),
+                    address.getZipCode(),
+                    address.getUserAddress(),
+                    address.getUserAddressDetail(),
+                    address.isDefault()
+            );
+
+            model.addAttribute("addressForm", form);
+            model.addAttribute("addressId", id);
             model.addAttribute("isUpdate", true);
+
             return "user/mypage/address-form";
+
         } catch (Exception e) {
             return "redirect:/users/me/addresses";
         }
     }
+
 
     //주소 수정
     @PostMapping("/addresses/{id}/update")

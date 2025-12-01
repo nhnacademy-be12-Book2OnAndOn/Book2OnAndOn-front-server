@@ -1,83 +1,53 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layout/mypage-layout :: layout(
+        title = ~{::title},
+        sidebarActive = 'addresses',
+        content = ~{::content}
+      )">
+
 <head>
-    <meta charset="UTF-8">
     <title>내 주소 관리</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <link rel="stylesheet" th:href="@{/css/mypage.css}">
 </head>
+
 <body>
+<div th:fragment="content">
 
-<main>
-    <div class="dashboard-wrapper">
+    <h2>내 주소 관리</h2>
 
-        <aside class="dashboard-sidebar">
-            <h3>마이페이지</h3>
-            <ul class="dashboard-menu">
-                <li><a href="/users/me">대시보드</a></li>
-                <li><a href="/users/me/reviews">내 리뷰</a></li>
-                <li><a href="/orders/me">주문 내역</a></li>
-                <li><a href="/coupons/me">쿠폰함</a></li>
-                <li><a href="/users/me/addresses" class="active">내 주소 관리</a></li>
-                <li><a href="/users/me/edit">내 정보 수정</a></li>
-                <li><a href="/logout" style="color:#d9534f;">로그아웃</a></li>
-            </ul>
-        </aside>
+    <a href="/users/me/addresses/new" class="add-address-btn">+ 새 주소 추가</a>
 
-        <section class="dashboard-main">
+    <p th:if="${#lists.isEmpty(addresses)}" class="empty-text">등록된 배송지가 없습니다.</p>
 
-            <h2>내 주소 관리</h2>
+    <div th:each="addr : ${addresses}" class="address-card">
 
-            <div>
-                <a href="/users/me/addresses/new" class="add-address-btn">+ 새 주소 추가</a>
-            </div>
+        <h4 th:text="${addr.userAddressName}"></h4>
 
-            <p th:if="${#lists.isEmpty(addresses)}" class="empty-text" style="padding: 1rem; color: #666;">
-                등록된 배송지가 없습니다.
-            </p>
+        <p>
+            <strong th:text="${addr.recipient}"></strong>
+            <span th:text="'(' + ${addr.phone} + ')'"></span>
+        </p>
 
-            <div th:each="address : ${addresses}" class="address-card">
-                <h4 th:text="${address.userAddressName}"></h4>
+        <p>
+            (<span th:text="${addr.zipCode}"></span>)
+            <span th:text="${addr.userAddress}"></span>
+            <span th:text="${addr.userAddressDetail}"></span>
+        </p>
 
-                <div class="address-content">
-                    <p>
-                        <strong th:text="${address.recipient}"></strong>
-                        <span th:text="'(' + ${address.phone} + ')'" style="color:#666; font-size:0.9em;"></span>
-                    </p>
-                    <p>
-                        (<span th:text="${address.zipCode}"></span>)
-                        <span th:text="${address.userAddress}"></span>
-                        <span th:text="${address.userAddressDetail}"></span>
-                    </p>
+        <span th:if="${addr.isDefault}" class="default-badge">✔ 기본 배송지</span>
 
-                    <span th:if="${address.isDefault}" class="default-badge">✔ 기본 배송지</span>
-                </div>
+        <div class="address-actions">
+            <a th:href="@{'/users/me/addresses/' + ${addr.addressId} + '/edit'}"
+               class="btn-edit">수정</a>
 
-                <div class="address-actions">
-                    <button type="button" class="btn-edit"
-                            th:onclick="'location.href=\'/users/me/addresses/' + ${address.addressId} + '/edit\''">
-                        수정
-                    </button>
-
-                    <button type="button" class="btn-delete"
-                            th:onclick="'deleteAddress(' + ${address.addressId} + ')'">
-                        삭제
-                    </button>
-                </div>
-            </div>
-
-        </section>
+            <form th:action="@{'/users/me/addresses/' + ${addr.addressId} + '/delete'}"
+                  method="post">
+                <button class="btn-delete">삭제</button>
+            </form>
+        </div>
 
     </div>
-</main>
 
-<script>
-    function deleteAddress(id) {
-        if (confirm("정말 삭제하시겠습니까?")) {
-            location.href = "/users/me/addresses/" + id + "/delete";
-        }
-    }
-</script>
-
+</div>
 </body>
 </html>

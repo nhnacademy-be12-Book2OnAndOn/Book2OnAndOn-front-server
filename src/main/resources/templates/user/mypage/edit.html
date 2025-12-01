@@ -1,69 +1,52 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layout/mypage-layout :: layout(
+        title = ~{::title},
+        sidebarActive = 'edit',
+        content = ~{::content}
+      )">
 <head>
-    <meta charset="UTF-8">
     <title>내 정보 수정</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <link rel="stylesheet" th:href="@{/css/mypage.css}">
 </head>
+
 <body>
+<div th:fragment="content">
 
-<main>
-    <div class="dashboard-wrapper">
+    <div class="address-form-container">
+        <h2>⚙️ 회원 정보 수정</h2>
 
-        <aside class="dashboard-sidebar">
-            <h3>마이페이지</h3>
-            <ul class="dashboard-menu">
-                <li><a href="/users/me">대시보드</a></li>
-                <li><a href="/users/me/reviews">내 리뷰</a></li>
-                <li><a href="/orders/me">주문 내역</a></li>
-                <li><a href="/coupons/me">쿠폰함</a></li>
-                <li><a href="/users/me/addresses">내 주소 관리</a></li>
-                <li><a href="/users/me/edit" class="active">내 정보 수정</a></li>
-                <li><a href="/logout" style="color:#d9534f;">로그아웃</a></li>
-            </ul>
-        </aside>
+        <div th:if="${error}" class="error-box" th:text="${error}"></div>
 
-        <section class="dashboard-main">
+        <form th:action="@{/users/me/edit}" th:object="${userUpdateRequest}" method="post">
 
-            <div class="address-form-container">
-                <h2>⚙️ 회원 정보 수정</h2>
-
-                <div th:if="${error}" class="error-box" th:text="${error}"></div>
-
-                <form th:action="@{/users/me/edit}" th:object="${userUpdateRequest}" method="post">
-
-                    <div class="form-field">
-                        <label for="name">이름</label>
-                        <input type="text" id="name" th:field="*{name}" required>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="nickname">닉네임</label>
-                        <input type="text" id="nickname" th:field="*{nickname}" required>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="email">이메일</label>
-                        <input type="email" id="email" th:field="*{email}" required>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="phone">휴대폰 번호</label>
-                        <input type="text" id="phone" th:field="*{phone}" placeholder="01000000000" required>
-                    </div>
-
-                    <div class="form-actions">
-                        <a href="/users/me" class="btn-cancel">취소</a>
-                        <button type="submit" class="submit-btn">수정 저장</button>
-                    </div>
-
-                </form>
+            <div class="form-field">
+                <label for="name">이름</label>
+                <input type="text" id="name" th:field="*{name}" required>
             </div>
-        </section>
 
+            <div class="form-field">
+                <label for="nickname">닉네임</label>
+                <input type="text" id="nickname" th:field="*{nickname}" required>
+            </div>
+
+            <div class="form-field">
+                <label for="email">이메일</label>
+                <input type="email" id="email" th:field="*{email}" required>
+            </div>
+
+            <div class="form-field">
+                <label for="phone">휴대폰 번호</label>
+                <input type="text" id="phone" th:field="*{phone}" placeholder="01000000000" required>
+            </div>
+
+            <div class="form-actions">
+                <a href="/users/me" class="btn-cancel">취소</a>
+                <button type="submit" class="submit-btn">수정 저장</button>
+            </div>
+
+        </form>
     </div>
-</main>
 
+</div>
 </body>
 </html>
