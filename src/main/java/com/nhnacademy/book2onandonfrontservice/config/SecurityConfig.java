@@ -17,7 +17,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/error", "/books/**", "/admin/**").permitAll()
+                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/error", "/books/**", "/admin/**", "/my-coupon/**").permitAll()
                 .anyRequest().authenticated()// 나머지는 로그인 필요
             )
             .formLogin(form -> form
