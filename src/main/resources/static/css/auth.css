@@ -192,20 +192,10 @@
     opacity: 0.9;
 }
 
-.btn-kakao {
-    background-color: #FEE500;
-    color: #000000;
-}
-
-.btn-naver {
-    background-color: #03C75A;
-    color: #FFFFFF;
-}
-
-.btn-google {
-    background-color: #FFFFFF;
-    color: #333333;
-    border: 1px solid #ddd;
+.btn-payco {
+    background-color: #fa2828;
+    color: white;
+    border: 1px solid #fa2828;
 }
 
 /* ===== 풋터 링크 ===== */

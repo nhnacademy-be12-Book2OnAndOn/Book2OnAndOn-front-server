@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>아이디 찾기 결과</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <h1>아이디 찾기 결과</h1>
+        </div>
+
+        <div class="alert alert-success">
+            <p>회원님의 아이디는 다음과 같습니다.</p>
+            <h2 th:text="${userLoginId}" style="margin-top: 10px; color: #2d5016;"></h2>
+        </div>
+
+        <div class="auth-footer">
+            <a th:href="@{/login}" class="btn-primary" style="text-decoration: none;">로그인하기</a>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
