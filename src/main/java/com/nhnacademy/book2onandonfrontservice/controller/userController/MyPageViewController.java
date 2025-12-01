@@ -1,6 +1,9 @@
 package com.nhnacademy.book2onandonfrontservice.controller.userController;
 
+import com.nhnacademy.book2onandonfrontservice.client.MemberCouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
+import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressCreateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressUpdateRequest;
@@ -14,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class MyPageViewController {
 
     private final UserClient userClient;
+    private final MemberCouponClient memberCouponClient;
 
     //마이페이지
     @GetMapping
@@ -56,7 +61,15 @@ public class MyPageViewController {
                 model.addAttribute("recentReviews", List.of());
             }
 
-            model.addAttribute("couponCount", 0);
+            try {
+                Page<MemberCouponDto> memberCouponPage = memberCouponClient.getMyCoupon(myUserId, 0, 1, MemberCouponStatus.NOT_USED);
+
+                model.addAttribute("couponCount", memberCouponPage.getTotalElements());
+            } catch (Exception e) {
+                log.warn("쿠폰 개수 조회 실패", e);
+                model.addAttribute("couponCount", 0);
+            }
+
             model.addAttribute("orderCount", 0);
 
             return "user/mypage/index";

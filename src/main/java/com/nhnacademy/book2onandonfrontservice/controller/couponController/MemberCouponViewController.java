@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/my-page/coupons")
+@RequestMapping("/users/me/coupons")
 public class MemberCouponViewController {
 
     private final MemberCouponClient memberCouponClient;

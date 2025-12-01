@@ -1,33 +1,32 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/mypage-layout :: layout(~{::title}, 'coupons', ~{::section})}">
 <head>
-    <meta charset="UTF-8">
     <title>내 쿠폰함</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" th:href="@{/css/memberCoupon.css}">
 </head>
 <body>
 
-<div class="coupon-container">
+<section>
+    <link rel="stylesheet" th:href="@{/css/memberCoupon.css}">
 
     <div class="page-header">
         <div class="page-title">내 쿠폰함</div>
     </div>
 
     <div class="status-tabs">
-        <a th:href="@{/my-page/coupons}"
+        <a th:href="@{/users/me/coupons}"
            class="tab-item"
            th:classappend="${currentStatus == null} ? 'active'">전체</a>
 
-        <a th:href="@{/my-page/coupons(status='NOT_USED')}"
+        <a th:href="@{/users/me/coupons(status='NOT_USED')}"
            class="tab-item"
            th:classappend="${currentStatus?.name() == 'NOT_USED'} ? 'active'">사용 가능</a>
 
-        <a th:href="@{/my-page/coupons(status='USED')}"
+        <a th:href="@{/users/me/coupons(status='USED')}"
            class="tab-item"
            th:classappend="${currentStatus?.name() == 'USED'} ? 'active'">사용 완료</a>
 
-        <a th:href="@{/my-page/coupons(status='EXPIRED')}"
+        <a th:href="@{/users/me/coupons(status='EXPIRED')}"
            class="tab-item"
            th:classappend="${currentStatus?.name() == 'EXPIRED'} ? 'active'">만료됨</a>
     </div>
@@ -46,12 +45,12 @@
                     <th:block th:if="${coupon.discountType?.name() == 'FIXED'}">
                         <span class="discount-val" style="font-size: 1.8rem;"
                               th:text="${#numbers.formatInteger(coupon.discountValue/1000, 0, 'COMMA')}"></span>
-                        <span class="discount-unit"></span>
+                        <span class="discount-unit">천원</span>
                     </th:block>
                 </div>
 
                 <div class="coupon-info">
-                    <div class="coupon-name" th:text="${coupon.couponName}"></div>
+                    <div class="coupon-name" th:text="${coupon.couponName}">쿠폰명</div>
 
                     <div class="coupon-condition">
                         <span th:text="${#numbers.formatInteger(coupon.minPrice, 0, 'COMMA')} + '원 이상 구매'"></span>
@@ -90,22 +89,22 @@
 
     <div class="pagination" th:if="${totalPages > 0}">
         <a th:if="${currentPage > 0}"
-           th:href="@{/my-page/coupons(page=${currentPage - 1}, status=${currentStatus})}"
+           th:href="@{/users/me/coupons(page=${currentPage - 1}, status=${currentStatus})}"
            class="page-link">&lt;</a>
 
         <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
-            <a th:href="@{/my-page/coupons(page=${i}, status=${currentStatus})}"
+            <a th:href="@{/users/me/coupons(page=${i}, status=${currentStatus})}"
                th:text="${i + 1}"
                class="page-link"
-               th:classappend="${i == currentPage} ? 'active'"></a>
+               th:classappend="${i == currentPage} ? 'active'">1</a>
         </th:block>
 
         <a th:if="${currentPage < totalPages - 1}"
-           th:href="@{/my-page/coupons(page=${currentPage + 1}, status=${currentStatus})}"
+           th:href="@{/users/me/coupons(page=${currentPage + 1}, status=${currentStatus})}"
            class="page-link">&gt;</a>
     </div>
 
-</div>
+</section>
 
 </body>
 </html>
