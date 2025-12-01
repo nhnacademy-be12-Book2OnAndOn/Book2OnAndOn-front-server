@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 관리 - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<div class="admin-container">
+    <nav class="admin-sidebar">
+        <div class="admin-brand">Admin Center</div>
+        <div class="admin-menu">
+            <a th:href="@{/admin}">📊 대시보드</a>
+            <a th:href="@{/admin/users}" class="active">👥 회원 관리</a>
+            <a th:href="@{/admin/books}">📚 도서 관리</a>
+            <a th:href="@{/admin/orders}">📦 주문 관리</a>
+
+            <div style="margin-top: 50px; border-top: 1px solid #444; padding-top: 10px;">
+                <a th:href="@{/}" style="color: #aaa; font-size: 0.9rem;">🏠 쇼핑몰 메인으로</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <h2>👥 회원 관리</h2>
+            <span style="color: #666;">총 <span th:text="${page.totalElements}">0</span>명</span>
+        </div>
+
+        <div th:if="${param.success}"
+             style="color: green; margin-bottom: 15px; background: #e8f5e9; padding: 10px; border-radius: 4px;">
+            ✅ 처리가 완료되었습니다.
+        </div>
+        <div th:if="${param.error}"
+             style="color: red; margin-bottom: 15px; background: #ffebee; padding: 10px; border-radius: 4px;">
+            ❌ 오류가 발생했습니다.
+        </div>
+
+        <table class="admin-table">
+            <thead>
+            <tr>
+                <th style="width: 50px;">ID</th>
+                <th>아이디</th>
+                <th>이름</th>
+                <th>이메일</th>
+                <th>등급</th>
+                <th>상태</th>
+                <th>권한</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.userId}">1</td>
+
+                <td>
+                    <a th:href="@{/admin/users/{id}(id=${user.userId})}"
+                       th:text="${user.userLoginId}"
+                       style="font-weight: bold; color: #2d5016; text-decoration: none;">
+                        testuser
+                    </a>
+                </td>
+
+                <td th:text="${user.name}">홍길동</td>
+                <td th:text="${user.email}">email@test.com</td>
+                <td><span class="badge" th:text="${user.gradeName}">BASIC</span></td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${user.status == 'ACTIVE' ? 'badge-active' :
+                                           (user.status == 'CLOSED' ? 'badge-closed' : 'badge-dormant')}"
+                          th:text="${user.status}">ACTIVE</span>
+                </td>
+                <td th:text="${user.role}">USER</td>
+                <td>
+                    <!-- 수정됨: th:onclick → th:attr -->
+                    <button class="btn-small"
+                            th:attr="onclick=|openEditModal('${user.userId}', '${user.role}', '${user.gradeName}', '${user.status}')|">
+                        수정
+                    </button>
+
+                    <!-- 수정됨: th:onclick → th:attr -->
+                    <button class="btn-small" style="color: #c62828; border-color: #c62828;"
+                            th:attr="onclick=|deleteUser('${user.userId}')|">
+                        강퇴
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination" style="margin-top: 20px; justify-content: center; display: flex; gap: 5px;">
+            <a th:if="${!page.first}"
+               th:href="@{/admin/users(page=${page.number - 1})}"
+               class="btn-small" style="text-decoration: none;">&lt; 이전</a>
+
+            <span style="padding: 5px 10px; color: #666;"
+                  th:text="${page.number + 1} + ' / ' + ${page.totalPages}">1 / 5</span>
+
+            <a th:if="${!page.last}"
+               th:href="@{/admin/users(page=${page.number + 1})}"
+               class="btn-small" style="text-decoration: none;">다음 &gt;</a>
+        </div>
+
+    </main>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3 style="margin-bottom: 20px;">회원 정보 수정</h3>
+        <form id="editForm" method="post">
+            <div class="form-row">
+                <label>권한</label>
+                <label for="editRole"></label>
+                <select name="role" id="editRole">
+                    <option value="USER">USER</option>
+                    <option value="MEMBER_ADMIN">MEMBER_ADMIN</option>
+                    <option value="BOOK_ADMIN">BOOK_ADMIN</option>
+                    <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>등급</label>
+                <label for="editGrade"></label>
+                <select name="gradeName" id="editGrade">
+                    <option value="BASIC">BASIC</option>
+                    <option value="ROYAL">ROYAL</option>
+                    <option value="GOLD">GOLD</option>
+                    <option value="PLATINUM">PLATINUM</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>상태</label>
+                <label for="editStatus"></label>
+                <select name="status" id="editStatus">
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="DORMANT">DORMANT</option>
+                    <option value="CLOSED">CLOSED</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top: 10px;">수정 완료</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditModal(userId, currentRole, currentGrade, currentStatus) {
+        const modal = document.getElementById('editModal');
+        const form = document.getElementById('editForm');
+
+        form.action = '/admin/users/' + userId + '/update';
+
+        document.getElementById('editRole').value = currentRole;
+        document.getElementById('editGrade').value = currentGrade;
+        document.getElementById('editStatus').value = currentStatus || 'ACTIVE';
+
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    window.onclick = function (event) {
+        const modal = document.getElementById('editModal');
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function deleteUser(userId) {
+        const reason = prompt("강제 탈퇴 사유를 입력해주세요:", "운영 정책 위반");
+        if (reason) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '/admin/users/' + userId + '/delete';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'reason';
+            input.value = reason;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+
+</body>
+</html>

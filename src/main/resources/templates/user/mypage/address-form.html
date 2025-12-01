@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isUpdate} ? '배송지 수정' : '새 배송지 추가'">배송지 입력</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<main>
+    <div style="max-width:600px; margin:50px auto; padding:30px; background:white; border-radius:8px; border:1px solid #eee;">
+
+        <h2 style="margin-bottom:20px;"
+            th:text="${isUpdate} ? '배송지 수정' : '새 배송지 추가'"></h2>
+
+        <!-- =======================
+             배송지 수정 (isUpdate = true)
+        ======================== -->
+        <form th:if="${isUpdate}"
+              th:action="@{/users/me/addresses/{id}/update(id=${addressForm.addressId})}"
+              th:object="${addressForm}" method="post">
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>배송지 이름 (별칭)</label>
+                <label>
+                    <input type="text" th:field="*{userAddressName}" required
+                           style="width:100%; padding:10px; border:1px solid #ddd;">
+                </label>
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>받는 사람</label>
+                <label>
+                    <input type="text" th:field="*{recipient}" required
+                           style="width:100%; padding:10px; border:1px solid #ddd;">
+                </label>
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>연락처</label>
+                <label>
+                    <input type="text" th:field="*{phone}" placeholder="010-0000-0000" required
+                           style="width:100%; padding:10px; border:1px solid #ddd;">
+                </label>
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>주소</label>
+                <div style="display:flex; gap:5px; margin-bottom:5px;">
+                    <label>
+                        <input type="text" th:field="*{zipCode}" placeholder="우편번호"
+                               style="width:100px; padding:10px; border:1px solid #ddd;">
+                    </label>
+                    <button type="button" onclick="alert('주소 API 필요')">주소 찾기</button>
+                </div>
+                <input type="text" th:field="*{userAddress}" placeholder="도로명 주소"
+                       style="width:100%; padding:10px; border:1px solid #ddd; margin-bottom:5px;">
+                <input type="text" th:field="*{userAddressDetail}" placeholder="상세 주소"
+                       style="width:100%; padding:10px; border:1px solid #ddd;">
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label><input type="checkbox" th:field="*{isDefault}"> 기본 배송지로 설정</label>
+            </div>
+
+            <button type="submit" class="btn-signup" style="width:100%; padding:12px;">수정하기</button>
+        </form>
+
+
+        <!-- =======================
+             배송지 추가 (isUpdate = false)
+        ======================== -->
+        <form th:unless="${isUpdate}"
+              th:action="@{/users/me/addresses}"
+              th:object="${addressForm}" method="post">
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>배송지 이름 (별칭)</label>
+                <input type="text" th:field="*{userAddressName}" required
+                       style="width:100%; padding:10px; border:1px solid #ddd;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>받는 사람</label>
+                <input type="text" th:field="*{recipient}" required
+                       style="width:100%; padding:10px; border:1px solid #ddd;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>연락처</label>
+                <label>
+                    <input type="text" th:field="*{phone}" placeholder="010-0000-0000" required
+                           style="width:100%; padding:10px; border:1px solid #ddd;">
+                </label>
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>주소</label>
+                <div style="display:flex; gap:5px; margin-bottom:5px;">
+                    <label>
+                        <input type="text" th:field="*{zipCode}" placeholder="우편번호"
+                               style="width:100px; padding:10px; border:1px solid #ddd;">
+                    </label>
+                </div>
+                <label>
+                    <input type="text" th:field="*{userAddress}" placeholder="도로명 주소"
+                           style="width:100%; padding:10px; border:1px solid #ddd; margin-bottom:5px;">
+                </label>
+                <label>
+                    <input type="text" th:field="*{userAddressDetail}" placeholder="상세 주소"
+                           style="width:100%; padding:10px; border:1px solid #ddd;">
+                </label>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label><input type="checkbox" th:field="*{isDefault}"> 기본 배송지로 설정</label>
+            </div>
+
+            <button type="submit" class="btn-signup" style="width:100%; padding:12px;">등록하기</button>
+        </form>
+
+    </div>
+</main>
+
+</body>
+</html>
