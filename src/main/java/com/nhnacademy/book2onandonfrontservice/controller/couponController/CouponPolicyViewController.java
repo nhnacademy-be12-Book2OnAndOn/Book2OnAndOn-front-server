@@ -1,10 +1,10 @@
-package com.nhnacademy.book2onandonfrontservice.controller.couponPolicyController;
+package com.nhnacademy.book2onandonfrontservice.controller.couponController;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.CouponPolicyClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
-import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
+import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponCreateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyDiscountType;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyStatus;
@@ -34,10 +34,10 @@ public class CouponPolicyViewController {
                                @RequestParam(defaultValue = "10") int size,
                                @RequestParam(required = false) CouponPolicyType type,
                                @RequestParam(required = false) CouponPolicyDiscountType discountType,
-                               @RequestParam(required = false) CouponPolicyStatus couponPolicyStatus,
+                               @RequestParam(required = false) CouponPolicyStatus status,
                                Model model) {
 
-        Page<CouponPolicyDto> policyPage = couponPolicyClient.getPolicies(page, size, type, discountType, couponPolicyStatus);
+        Page<CouponPolicyDto> policyPage = couponPolicyClient.getPolicies(page, size, type, discountType, status);
 
         model.addAttribute("policies", policyPage.getContent());
         model.addAttribute("currentPage", page);
@@ -45,7 +45,7 @@ public class CouponPolicyViewController {
 
         model.addAttribute("searchType", type);
         model.addAttribute("searchDiscountType", discountType);
-        model.addAttribute("searchStatus", couponPolicyStatus);
+        model.addAttribute("searchStatus", status);
 
         // 페이지네이션 로직
         int startPage = Math.max(0, page - 2);
@@ -118,7 +118,7 @@ public class CouponPolicyViewController {
     public String createCoupon(@PathVariable Long id,
                                @RequestParam(required = false) Integer quantity) {
 
-        CouponDto requestDto = new CouponDto(quantity, id);
+        CouponCreateDto requestDto = new CouponCreateDto(quantity, id);
         couponClient.createCoupon(requestDto);
         return "redirect:/admin/policies/details/" + id;
     }
