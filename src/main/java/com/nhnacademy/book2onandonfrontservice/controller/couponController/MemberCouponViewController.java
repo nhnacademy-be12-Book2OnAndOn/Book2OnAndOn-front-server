@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("my-page/coupons")
+@RequestMapping("/my-page/coupons")
 public class MemberCouponViewController {
 
     private final MemberCouponClient memberCouponClient;
@@ -25,7 +25,9 @@ public class MemberCouponViewController {
                                @RequestParam(required = false) MemberCouponStatus status,
                                Model model) {
 
-        Page<MemberCouponDto> myCouponPage = memberCouponClient.getMyCoupon(page, size, status);
+        //test
+        Long userId = 2L;
+        Page<MemberCouponDto> myCouponPage = memberCouponClient.getMyCoupon(userId, page, size, status);
 
         model.addAttribute("myCoupons", myCouponPage.getContent());
         model.addAttribute("currentPage", page);
@@ -37,7 +39,7 @@ public class MemberCouponViewController {
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
 
-        return "myCoupon";
+        return "memberCoupon";
     }
 
 }
