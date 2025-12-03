@@ -1,67 +1,166 @@
-/* auth.css - 로그인 및 회원가입 전용 스타일 */
+/* =========================================================
+ * auth.css - 로그인/회원가입 폼
+ * =======================================================*/
 
-/* ===== 레이아웃 ===== */
+/* ===== 팔레트 / 토큰 ===== */
+:root {
+    --green-900: #0f3d0f;
+    --green-800: #295229;
+    --green-700: #2d5f3f; /* forest green */
+    --green-600: #4b914b;
+    --green-500: #597f66;
+    --green-300: #e8f0eb;
+
+    --ivory: #f5f7f2;
+    --white: #ffffff;
+
+    --gray-900: #131313;
+    --gray-700: #555;
+    --gray-500: #888;
+
+    --radius-xl: 32px;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+
+    --shadow-card: 0 25px 50px rgba(18, 40, 25, 0.15);
+    --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.08);
+
+    font-family: 'Pretendard', 'Spoqa Han Sans Neo', -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ===== 베이스 ===== */
+body {
+    background: linear-gradient(180deg, #f7faf5 0%, #eef5ed 60%, #f7faf5 100%);
+    color: var(--green-900);
+    line-height: 1.5;
+    min-height: auto;
+}
+
+/* ===== 전체 페이지 레이아웃 ===== */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-page main {
+    flex: 1;
+    display: flex;
+}
+
+/* ===== 히어로 영역 (좌측 설명 블럭) ===== */
+.hero.auth-hero {
+    flex: 1;
+    padding: 6.5rem;
+    background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.9),
+            rgba(247, 250, 245, 0.96)
+    );
+}
+
+.auth-hero .hero-text {
+    max-width: 560px;
+    align-content: center;
+}
+
+.auth-hero .hero-badge {
+    background: rgba(47, 98, 66, 0.14);
+    color: var(--green-700);
+}
+
+.auth-hero h1 {
+    color: #205433;
+}
+
+.auth-hero .hero-desc {
+    color: #456549;
+}
+
+/* 히어로 영역 버튼 */
+.auth-hero .btn.secondary {
+    background: #2f6242;
+    color: #fff;
+    border: 1px solid #2f6242;
+}
+
+.auth-hero .btn.secondary:hover {
+    background: #2f714d;
+    color: #fff;
+}
+
+.auth-hero .btn.ghost {
+    border: 1px solid rgba(47, 98, 66, 0.35);
+    color: #2f6242;
+    background: transparent;
+    width: 180px;
+}
+
+.auth-hero .btn.ghost:hover {
+    border-color: #2f6242;
+    color: #2f6242;
+}
+
+/* ===== 중앙 폼 레이아웃 ===== */
 .auth-container {
-    min-height: calc(100vh - 180px); /* 헤더/푸터 제외한 높이 */
+    min-height: calc(100vh - 200px);
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 2rem 1.5rem;
-    background-color: #f8f9fa;
+    padding: 4rem 1.5rem;
 }
 
 .auth-card {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     width: 100%;
-    max-width: 420px;
-    padding: 2.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    max-width: 520px;
+    padding: 3.1rem 3rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(34, 139, 34, 0.15);
+    box-shadow: 0 40px 90px rgba(4, 20, 10, 0.35);
+    backdrop-filter: blur(6px);
 }
 
-/* ===== 헤더 영역 ===== */
+/* ===== 헤더 텍스트 ===== */
 .auth-header {
     text-align: center;
     margin-bottom: 2rem;
 }
 
 .auth-header h1 {
-    font-size: 1.8rem;
-    color: #2d5016; /* 메인 컬러 사용 */
-    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    color: var(--green-700);
+    margin-bottom: 0.4rem;
 }
 
 .auth-header p {
-    color: #666;
+    color: #5a6c58;
     font-size: 0.95rem;
 }
 
-/* ===== 알림 메시지 (에러/성공) ===== */
+/* ===== 메시지 ===== */
 .alert {
-    padding: 0.8rem 1rem;
-    border-radius: 4px;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
     margin-bottom: 1.5rem;
     font-size: 0.9rem;
     text-align: center;
 }
 
 .alert-error {
-    background-color: #ffebee;
+    background: #ffe6ea;
     color: #c62828;
     border: 1px solid #ffcdd2;
 }
 
 .alert-success {
-    background-color: #e8f5e9;
+    background: #e8f5e9;
     color: #2e7d32;
     border: 1px solid #c8e6c9;
 }
 
-/* ===== 폼 스타일 ===== */
-.auth-form {
-    margin-bottom: 1.5rem;
-}
-
+/* ===== 폼 ===== */
 .form-group {
     margin-bottom: 1.2rem;
 }
@@ -70,22 +169,24 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #333;
+    color: #1f2b1c;
     font-size: 0.9rem;
 }
 
 .form-group input {
     width: 100%;
-    padding: 0.8rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid rgba(34, 139, 34, 0.25);
+    border-radius: 16px;
+    font-size: 1.05rem;
+    background: rgba(255, 255, 255, 0.9);
+    transition: border-color 0.2s, box-shadow 0.2s;
     outline: none;
-    transition: border-color 0.2s;
 }
 
 .form-group input:focus {
-    border-color: #2d5016; /* 포커스 시 메인 컬러 */
+    border-color: var(--green-700);
+    box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.15);
 }
 
 .form-options {
@@ -99,43 +200,126 @@
 .checkbox-container {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
     cursor: pointer;
-    color: #666;
+    color: #4d5a4d;
 }
 
 .checkbox-container input {
     cursor: pointer;
-    accent-color: #2d5016;
+    accent-color: var(--green-700);
 }
 
+.find-links {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* ===== 링크 ===== */
 .link {
-    color: #666;
+    color: #6f7d6f;
     text-decoration: none;
     transition: color 0.2s;
 }
 
 .link:hover {
-    color: #2d5016;
+    color: var(--green-700);
+}
+
+.separator {
+    color: rgba(111, 125, 111, 0.6);
+}
+
+.link-primary {
+    color: var(--green-700);
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 0.3rem;
+}
+
+.link-primary:hover {
     text-decoration: underline;
 }
 
-/* ===== 버튼 스타일 ===== */
+/* ===== 버튼 ===== */
 .btn-primary {
     width: 100%;
-    padding: 0.9rem;
-    background: #2d5016;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 600;
+    padding: 1rem 1.25rem;
+    background-color: #2f6242;
+    border: 1px solid #2f6242;
+    border-radius: 18px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
     cursor: pointer;
-    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    transition: background-color 0.2s ease;
+    position: relative;
 }
 
 .btn-primary:hover {
-    background: #1b5e20;
+    background-color: #2f714d;
+}
+
+.input-inline {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.input-inline input {
+    flex: 1;
+}
+
+.btn-small {
+    padding: 0.9rem 1.1rem;
+    background: #2f6242;
+    color: #fff;
+    border: 1px solid #2f6242;
+    border-radius: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: background 0.2s;
+}
+
+.btn-small:hover {
+    background: #2f714d;
+}
+
+.btn-small:disabled {
+    background: #c7d3c9;
+    border-color: #c7d3c9;
+    cursor: not-allowed;
+}
+
+/* 카드 내부 기본 primary 버튼 (텍스트 크기만 약간 다름) */
+.auth-card .btn.primary {
+    width: 100%;
+    padding: 1.05rem;
+    background-color: #2f6242;
+    border: 1px solid #2f6242;
+    border-radius: 18px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+    gap: 0.45rem;
+    transition: background-color 0.2s ease, transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-card .btn.primary:hover {
+    background-color: #2f714d;
+    transform: translateY(-1px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== 구분선 ===== */
@@ -144,7 +328,7 @@
     align-items: center;
     text-align: center;
     margin: 1.5rem 0;
-    color: #999;
+    color: #9aa49a;
     font-size: 0.85rem;
 }
 
@@ -152,7 +336,7 @@
 .divider::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid rgba(111, 125, 111, 0.3);
 }
 
 .divider span {
@@ -168,28 +352,31 @@
 
 .btn-social {
     width: 100%;
-    padding: 0.8rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.95rem;
-    font-weight: 600;
+    padding: 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 18px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    transition: opacity 0.2s;
+    gap: 0.6rem;
+    transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
 }
 
 .btn-social .icon {
     position: absolute;
-    left: 1rem;
+    left: 1.2rem;
     font-size: 1.1rem;
 }
 
 .btn-social:hover {
-    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    background-color: #fa4242;
 }
 
 .btn-payco {
@@ -198,34 +385,74 @@
     border: 1px solid #fa2828;
 }
 
-/* ===== 풋터 링크 ===== */
-.auth-footer {
+/* ===== 로그인 페이지 푸터 (사이트 공용 푸터 스타일 확장) ===== */
+.auth-page .site-footer {
+    background: var(--green-700);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 2.25rem 0 1.25rem;
+    margin-top: 0;
+}
+
+.auth-page .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 2rem;
+}
+
+.auth-page .site-footer h4 {
+    margin-bottom: 0.75rem;
+    color: var(--white);
+}
+
+.auth-page .site-footer a {
+    color: var(--green-300);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+}
+
+.auth-page .site-footer a:hover {
+    color: var(--white);
+}
+
+.auth-page .site-footer p {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.auth-page .site-footer .copyright {
+    text-align: center;
     margin-top: 2rem;
+    padding-top: 1.5rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    width: min(1200px, 90%);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* 단순 텍스트 풋터 (필요 시 사용) */
+.auth-footer {
     text-align: center;
     font-size: 0.9rem;
-    color: #666;
+    color: #526052;
+    margin-top: 20px;
 }
 
-.link-primary {
-    color: #2d5016;
-    font-weight: 600;
-    text-decoration: none;
-    margin-left: 0.3rem;
-}
-
-.link-primary:hover {
-    text-decoration: underline;
-}
-
-/* ===== 반응형 (모바일) ===== */
+/* ===== 반응형 ===== */
 @media (max-width: 480px) {
+    .auth-container {
+        padding: 2rem 1rem;
+    }
+
     .auth-card {
-        padding: 1.5rem;
-        box-shadow: none; /* 모바일에서는 그림자 제거하고 심플하게 */
-        background: transparent;
+        padding: 2rem 1.5rem;
+        border-radius: 18px;
     }
 
     .auth-header h1 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
     }
 }
