@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 포인트 - Book2OnAndOn</title>
+    <link rel="stylesheet" href="/css/pointHistoryUser.css">
+</head>
+<body>
+<header>
+    <h1>마이페이지</h1>
+</header>
+
+<div class="container">
+    <h2 class="page-title">내 포인트</h2>
+
+    <!-- 포인트 요약 -->
+    <div class="point-summary">
+        <div class="point-summary-header">보유 포인트</div>
+        <div class="point-amount" id="currentPoint">0 P</div>
+        <div class="point-info-grid">
+            <div class="point-info-item">
+                <div class="point-info-label">이번 달 적립</div>
+                <div class="point-info-value" id="monthlyEarned">0 P</div>
+            </div>
+            <div class="point-info-item">
+                <div class="point-info-label">이번 달 사용</div>
+                <div class="point-info-value" id="monthlyUsed">0 P</div>
+            </div>
+            <div class="point-info-item">
+                <div class="point-info-label">소멸 예정 포인트</div>
+                <div class="point-info-value" id="expiringPoint">0 P</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 포인트 이력 -->
+    <div class="section-header">
+        <h3 class="section-title">포인트 내역</h3>
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterHistory('ALL')">전체</button>
+            <button class="filter-tab" onclick="filterHistory('EARN')">적립</button>
+            <button class="filter-tab" onclick="filterHistory('USE')">사용</button>
+        </div>
+    </div>
+
+    <div class="history-table">
+        <table>
+            <thead>
+            <tr>
+                <th>일시</th>
+                <th>구분</th>
+                <th>내용</th>
+                <th>포인트</th>
+                <th>잔액</th>
+                <th>만료일</th>
+            </tr>
+            </thead>
+            <tbody id="historyTableBody">
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <div>데이터를 불러오는 중...</div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div id="pagination" class="pagination"></div>
+</div>
+
+<script src="/js/pointHistoryUser.js"></script>
+</body>
+</html>
