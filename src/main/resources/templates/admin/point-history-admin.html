@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포인트 관리 - Book2OnAndOn</title>
+    <link rel="stylesheet" href="/css/pointHistoryAdmin.css">
+</head>
+<body>
+<header>
+    <h1>관리자 페이지</h1>
+</header>
+
+<div class="container">
+    <div class="page-header">
+        <h2 class="page-title">사용자 포인트 관리</h2>
+    </div>
+
+    <!-- 사용자 검색 -->
+    <div class="search-section">
+        <form class="search-form" onsubmit="searchUser(event)">
+            <input
+                    type="number"
+                    class="search-input"
+                    id="userIdInput"
+                    placeholder="사용자 ID를 입력하세요"
+                    min="1"
+                    required>
+            <button type="submit" class="btn btn-primary">조회</button>
+        </form>
+    </div>
+
+    <!-- 현재 포인트 정보 -->
+    <div id="pointInfoSection" style="display: none;">
+        <div class="current-point-card">
+            <div class="point-info">
+                <div>
+                    <div class="point-label">사용자 ID: <strong id="currentUserId"></strong></div>
+                    <div class="point-label">현재 보유 포인트</div>
+                </div>
+                <div class="point-value" id="currentPoint">0 P</div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="openAdjustModal('EARN')">포인트 지급</button>
+                <button class="btn btn-danger" onclick="openAdjustModal('USE')">포인트 차감</button>
+                <button class="btn btn-secondary" onclick="expirePoints()">만료 포인트 처리</button>
+            </div>
+        </div>
+
+        <!-- 포인트 이력 -->
+        <div class="history-table">
+            <table>
+                <thead>
+                <tr>
+                    <th>일시</th>
+                    <th>구분</th>
+                    <th>포인트</th>
+                    <th>잔액</th>
+                    <th>설명</th>
+                    <th>만료일</th>
+                </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div>포인트 이력이 없습니다</div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+</div>
+
+<!-- 포인트 조정 모달 -->
+<div id="adjustModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="adjustModalTitle">포인트 지급/차감</h3>
+            <button class="close-btn" onclick="closeAdjustModal()">&times;</button>
+        </div>
+        <form id="adjustForm" onsubmit="submitAdjust(event)">
+            <div class="form-group">
+                <label class="form-label">조정 유형</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" name="adjustType" value="EARN" id="typeEarn" required>
+                        <label for="typeEarn">지급 (적립)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="adjustType" value="USE" id="typeUse">
+                        <label for="typeUse">차감 (사용)</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">포인트</label>
+                <input type="number" id="adjustPoint" class="form-input" min="1" step="1" required>
+                <div class="form-help">조정할 포인트를 입력하세요</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">사유</label>
+                <input type="text" id="adjustReason" class="form-input" maxlength="100" required>
+                <div class="form-help">포인트 조정 사유를 입력하세요</div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeAdjustModal()">취소</button>
+                <button type="submit" class="btn btn-primary">확인</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/js/pointHistoryAdmin.js"></script>
+</body>
+</html>

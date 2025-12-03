@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포인트 정책 관리 - Book2OnAndOn</title>
+    <link rel="stylesheet" href="/css/pointPolicy.css">
+</head>
+<body>
+<header>
+    <h1>관리자 페이지</h1>
+</header>
+
+<div class="container">
+    <div class="page-header">
+        <h2 class="page-title">포인트 정책 관리</h2>
+        <button class="btn btn-primary" onclick="loadPolicies()">🔄 새로고침</button>
+    </div>
+
+    <div class="policies-table">
+        <table>
+            <thead>
+            <tr>
+                <th>정책 ID</th>
+                <th>정책명</th>
+                <th>적립 비율(%)</th>
+                <th>고정 포인트</th>
+                <th>상태</th>
+                <th>작업</th>
+            </tr>
+            </thead>
+            <tbody id="policiesTableBody">
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <div>데이터를 불러오는 중...</div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 수정 모달 -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">포인트 정책 수정</h3>
+            <button class="close-btn" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form id="editForm" onsubmit="submitEdit(event)">
+            <div class="form-group">
+                <label class="form-label">정책 ID</label>
+                <input type="text" id="editPolicyId" class="form-input" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">정책명</label>
+                <input type="text" id="editPolicyName" class="form-input" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">적립 비율 (%)</label>
+                <input type="number" id="editAccrualRate" class="form-input" min="0" max="100" step="0.1">
+                <div class="form-help">0-100 사이의 값을 입력하세요</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">고정 포인트</label>
+                <input type="number" id="editAccrualPoint" class="form-input" min="0" step="1">
+                <div class="form-help">고정 지급 포인트를 입력하세요</div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">취소</button>
+                <button type="submit" class="btn btn-primary">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 활성화 상태 변경 모달 -->
+<div id="activeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">정책 상태 변경</h3>
+            <button class="close-btn" onclick="closeActiveModal()">&times;</button>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <p><strong id="activePolicyName"></strong> 정책의 상태를 변경하시겠습니까?</p>
+        </div>
+        <div class="form-group">
+            <label class="form-label">
+                활성 상태
+                <label class="toggle-switch" style="margin-left: 10px;">
+                    <input type="checkbox" id="activeToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </label>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeActiveModal()">취소</button>
+            <button type="button" class="btn btn-primary" onclick="submitActiveChange()">확인</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/pointPolicy.js"></script>
+</body>
+</html>
