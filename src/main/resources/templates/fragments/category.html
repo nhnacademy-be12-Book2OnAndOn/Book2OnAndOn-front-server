@@ -1,0 +1,17 @@
+<th:block th:fragment="categoryBranch(cat, depth)">
+    <li class="category-item" th:classappend="' depth-' + ${depth}">
+        <div class="category-row" onclick="toggleSubcategory(this)"
+             th:data-has-children="${cat.children != null and !#lists.isEmpty(cat.children) and depth < 2} ? 'true' : 'false'"
+             th:data-depth="${depth}">
+            <a th:href="@{/books/category/{id}(id=${cat.id})}" th:text="${cat.name}">카테고리명</a>
+            <span class="subcategory-toggle"
+                  th:if="${cat.children != null and !#lists.isEmpty(cat.children) and depth < 2}"></span>
+        </div>
+        <ul class="subcategory-list"
+            th:if="${cat.children != null and !#lists.isEmpty(cat.children) and depth < 2}">
+            <th:block th:each="child : ${cat.children}">
+                <th:block th:replace="~{fragments/category :: categoryBranch(${child}, ${depth} + 1)}"></th:block>
+            </th:block>
+        </ul>
+    </li>
+</th:block>

@@ -1,174 +1,493 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title th:text="${title} ?: 'Book2OnAndOn - 온라인 서점'">Book2OnAndOn - 온라인 서점</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
-<div class="overlay" id="overlay"></div>
-
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <h3>카테고리</h3>
-        <button class="close-btn" onclick="toggleSidebar()">×</button>
-    </div>
-
-    <ul class="sidebar-menu">
-        <th:block th:each="category : ${categories}">
-            <p>category</p>
-        </th:block>
-    </ul>
-</aside>
-
-<header>
-    <div class="header-content">
-        <div class="header-left">
-            <button class="hamburger-menu" onclick="toggleSidebar()">☰</button>
-            <a th:href="@{/}" class="logo">Book2OnAndOn</a>
+<header class="main-header">
+    <div class="header-bar container">
+        <button aria-label="카테고리 열기" class="hamburger" onclick="toggleSidebar()" type="button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="logo-wrap">
+            <a class="logo-link" th:href="@{/}">
+                <img alt="Book2OnAndOn logo" class="logo-mark" src="/images/logo.png"
+                     th:src="@{/images/logo.png}">
+                <span class="brand-name">Book2OnAndOn</span>
+            </a>
         </div>
-        <ul class="header-nav">
-            <li><a th:href="@{/books/bestseller}">베스트셀러</a></li>
-            <li><a th:href="@{/books/new}">신간</a></li>
-            <li><a th:href="@{/books/sale}">할인</a></li>
-        </ul>
-        <div class="header-right">
+
+        <form class="global-search" method="get" th:action="@{/books/search}">
+            <div class="group">
+                <svg aria-hidden="true" class="icon" viewBox="0 0 24 24">
+                    <g>
+                        <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
+                    </g>
+                </svg>
+                <input autocomplete="off" class="input" inputmode="search" name="keyword"
+                       placeholder="책 제목, 저자, ISBN 검색..." th:value="${keyword}" type="text">
+                <button aria-label="검색어 삭제" class="btn-clear" type="button"></button>
+            </div>
+        </form>
+
+        <div class="header-actions">
+            <div class="icon-buttons">
+                <a aria-label="마이페이지" class="icon-btn" th:href="@{/mypage}">
+                    <i aria-hidden="true" class="fi fi-rs-user"></i>
+                </a>
+                <a aria-label="장바구니" class="icon-btn cart" th:href="@{/cart}">
+                    <i aria-hidden="true" class="fi fi-rs-cart"></i>
+                    <span class="cart-count" data-cart-count th:text="${cartCount} ?: 0">0</span>
+                </a>
+            </div>
             <th:block th:if="${session.user == null}">
-                <button class="btn-login" th:onclick="'location.href=\'' + @{/login} + '\''">로그인</button>
-                <button class="btn-signup" th:onclick="'location.href=\'' + @{/signup} + '\''">회원가입</button>
+                <button class="text-link" th:onclick="'location.href=\'' + @{/login} + '\''" type="button">로그인</button>
+                <button class="solid-link" th:onclick="'location.href=\'' + @{/signup} + '\''" type="button">회원가입
+                </button>
             </th:block>
             <th:block th:if="${session.user != null}">
-                <span th:text="${session.user.name} + '님'">사용자님</span>
-                <button class="btn-login" th:onclick="'location.href=\'' + @{/logout} + '\''">로그아웃</button>
+                <span class="user-name" th:text="${session.user.name} + '님'">사용자님</span>
+                <button class="text-link" th:onclick="'location.href=\'' + @{/logout} + '\''" type="button">로그아웃
+                </button>
             </th:block>
         </div>
     </div>
+
+    <nav class="category-nav">
+        <div class="container chip-list" th:if="${sectionBlocks != null and #lists.isNotEmpty(sectionBlocks)}">
+            <a class="chip"
+               th:classappend="${iter.index == 0}? 'active' : ''"
+               th:each="block,iter : ${sectionBlocks}"
+               th:href="'#section-' + (${block.id} ?: ${iter.index})"
+               th:text="${block.title}">신간 도서</a>
+        </div>
+        <div class="container chip-list"
+             th:if="${(sectionBlocks == null or #lists.isEmpty(sectionBlocks)) and featuredSections != null}">
+            <a class="chip active" href="#section-new">신간 도서</a>
+            <a class="chip"
+               th:each="collection,iter : ${featuredSections}"
+               th:href="'#section-featured-' + ${iter.index}"
+               th:text="${collection.title} ?: '베스트 셀러'"></a>
+        </div>
+        <div class="container chip-list"
+             th:if="${(sectionBlocks == null or #lists.isEmpty(sectionBlocks)) and featuredSections == null}">
+            <a class="chip active" href="#section-new">신간 도서</a>
+            <a class="chip" href="#section-bestseller-week">이번주 베스트 셀러</a>
+            <a class="chip" href="#section-bestseller-yesterday">어제 베스트 셀러</a>
+            <a class="chip" href="#section-popular">인기 도서</a>
+        </div>
+    </nav>
 </header>
 
-<section class="hero-section">
-    <div class="hero-content">
-        <h1>
-            오늘 읽을<br>
-            <span class="highlight">다음 한 권을 찾아보세요</span>
-        </h1>
-        <p>
-            저렴, 세컨드, 희귀본, 조판본을<br>
-            Book2OnAndOn에서 한눈에 쉽고 편리하게.
-        </p>
-        <form th:action="@{/books/search}" method="get" class="search-box">
-            <input type="text" name="keyword" th:value="${keyword}"
-                   placeholder="예) 스토리 부트, 자바, 마케팅 서비스">
-            <button type="submit">도서 검색</button>
-        </form>
-        <div class="tags">
-                <span class="tag" th:each="tag : ${popularTags}"
-                      th:text="'#' + ${tag}">태그</span>
-        </div>
-    </div>
-
-    <div class="promo-box" th:if="${promotion != null}">
-        <h3 th:text="${promotion.title}">오늘의 추천</h3>
-        <h4 th:text="${promotion.subtitle}">개발자들을 위한 필독서 세트</h4>
-        <p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;"
-           th:text="${promotion.description}">
-            클린 코드, 리팩토링, 도메인 주도 설계를 담은 필수 3종 세트
-        </p>
-        <div class="price">
-            <span class="original-price" th:text="'₩' + ${#numbers.formatInteger(promotion.originalPrice, 0, 'COMMA')}">₩90,000</span>
-            <span class="discount" th:text="${promotion.discountRate} + '% 할인'">30% 할인</span>
-            <div th:text="'₩' + ${#numbers.formatInteger(promotion.salePrice, 0, 'COMMA')}">₩79,800</div>
-        </div>
-        <button th:onclick="'addToCart(' + ${promotion.id} + ')'">장바구니 담기</button>
-    </div>
-</section>
-
 <main>
-    <div class="sidebar-section">
+    <div class="overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <aside class="category-sidebar" id="categorySidebar">
+        <div class="sidebar-header">
+            <h3>카테고리</h3>
+            <button class="close-sidebar" onclick="toggleSidebar()" type="button">×</button>
+        </div>
+        <ul class="category-list">
+            <th:block th:each="category : ${categories}">
+                <th:block th:replace="~{fragments/category :: categoryBranch(${category}, 0)}"></th:block>
+            </th:block>
+        </ul>
+    </aside>
 
+    <section class="hero">
+        <div class="container hero-inner">
+            <div class="hero-text">
+                <p class="hero-badge" th:text="${promotion?.badge} ?: '이번 주 특별 할인'">이번 주 특별 할인</p>
+                <h1>책으로 떠나는 <br> 무한한 여행</h1>
+                <p class="hero-desc">
+                    Book2OnAndOn에서 다양한 장르의 도서를 만나보세요. <br> 베스트셀러부터 숨은 명작까지 모두 한 곳에서.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn primary" th:href="@{/books/bestseller}">베스트셀러 보기</a>
+                    <a class="btn secondary" th:href="@{/books/new}">신간 도서</a>
+                </div>
+                <div class="tag-cloud" th:if="${popularTags != null}">
+                    <span class="tag" th:each="tag : ${popularTags}" th:text="'#' + ${tag}">#태그</span>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-card">
+                    <div class="hero-image">
+                        <img alt="추천 도서" th:if="${promotion?.imageUrl != null}" th:src="${promotion.imageUrl}">
+                        <img alt="읽는 책"
+                             src="https://images.unsplash.com/photo-1473755504818-b72b6dfdc226?auto=format&fit=crop&w=820&q=80"
+                             th:if="${promotion?.imageUrl == null}">
+                    </div>
+                    <div class="hero-price" th:if="${promotion != null}">
+                        <p class="label" th:text="${promotion.subtitle} ?: '오늘의 추천 세트'">오늘의 추천 세트</p>
+                        <div class="price-row">
+                            <span class="sale-price"
+                                  th:text="${promotion.salePrice} != null ? '₩' + ${#numbers.formatInteger(promotion.salePrice, 0, 'COMMA')} : ''">₩79,800</span>
+                            <span class="original" th:if="${promotion.originalPrice != null}"
+                                  th:text="'₩' + ${#numbers.formatInteger(promotion.originalPrice, 0, 'COMMA')}">₩99,000</span>
+                        </div>
+                        <p class="discount" th:if="${promotion.discountRate != null}"
+                           th:text="${promotion.discountRate} + '% 할인'">20% 할인</p>
+                        <button class="btn ghost" th:onclick="'addToCart(' + ${promotion.id} + ')'"><span>장바구니 담기</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        <div class="book-grid-container">
+    <th:block th:if="${sectionBlocks != null and #lists.isNotEmpty(sectionBlocks)}">
+        <section class="linked-section highlight" th:id="'section-' + (${sectionBlocks[0].id} ?: 0)"
+                 th:with="block=${sectionBlocks[0]}">
+            <div class="container">
+                <div class="section-header">
+                    <div>
+                        <p class="section-eyebrow"
+                           th:text="${block.subtitle} ?: '새로 업데이트된 큐레이션을 살펴보세요'">따끈따끈한 신간을 가장 먼저 만나보세요</p>
+                        <h2 th:text="${block.title} ?: '신간 도서'">신간 도서</h2>
+                    </div>
+                    <a class="view-all"
+                       th:href="${block.viewAllLink}"
+                       th:if="${block.viewAllLink != null}">전체보기 →</a>
+                </div>
+
+                <div class="linked-grid" th:if="${block.books != null and #lists.isNotEmpty(block.books)}">
+                    <article class="linked-card" th:each="book : ${block.books}">
+                        <div class="linked-thumb">
+                            <span class="linked-badge" th:if="${book.tag != null}" th:text="${book.tag}">신간</span>
+                            <img th:alt="${book.title}" th:if="${book.imageUrl != null}" th:src="${book.imageUrl}">
+                            <div class="thumb-fallback" th:unless="${book.imageUrl != null}">표지 준비중</div>
+                        </div>
+                        <div class="linked-info">
+                            <p class="linked-title" th:text="${book.title} ?: '도서 준비중'">도서 제목</p>
+                            <p class="linked-author" th:text="${book.author} ?: '저자 정보 준비중'">저자명</p>
+                            <div class="linked-meta">
+                                <span class="linked-rating" th:if="${book.rating != null}">
+                                    ★ <span th:text="${book.rating}">4.8</span>
+                                </span>
+                                <div class="linked-price">
+                                    <span class="price"
+                                          th:text="${book.price != null} ? ${#numbers.formatInteger(book.price, 0, 'COMMA')} + '원' : '가격 준비중'">19,800원</span>
+                                    <span class="origin"
+                                          th:if="${book.originalPrice != null}"
+                                          th:text="${#numbers.formatInteger(book.originalPrice, 0, 'COMMA')} + '원'">25,000원</span>
+                                </div>
+                            </div>
+                            <p class="linked-discount" th:if="${book.discountRate != null}"
+                               th:text="${book.discountRate} + '% 할인'">13% 할인</p>
+                            <button class="linked-cart" th:onclick="'addToCart(' + ${book.id} + ')'">장바구니</button>
+                        </div>
+                    </article>
+                </div>
+                <div class="linked-grid" th:if="${block.books == null or #lists.isEmpty(block.books)}">
+                    <article class="linked-card placeholder">
+                        <div class="linked-info">
+                            <p class="linked-title">도서 준비중</p>
+                            <p class="linked-author">곧 새로운 책을 소개할게요.</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+        <section class="membership-cta" id="section-membership">
+            <div class="container cta-inner">
+                <div>
+                    <p class="cta-eyebrow">회원 전용 혜택</p>
+                    <h3>지금 가입하고 첫 구매 시 15% 할인을 받아보세요</h3>
+                    <p>새로운 취향을 발견할 준비가 되셨나요? 매주 업데이트되는 큐레이션을 이메일로 받아보세요.</p>
+                </div>
+                <button class="btn primary" th:onclick="'location.href=\'' + @{/signup} + '\''" type="button">회원가입하기
+                </button>
+            </div>
+        </section>
+
+        <th:block th:each="block,iter : ${sectionBlocks}">
+            <section class="linked-section" th:id="'section-' + (${block.id} ?: ${iter.index})"
+                     th:if="${iter.index > 0}">
+                <div class="container">
+                    <div class="section-header">
+                        <div>
+                            <p class="section-eyebrow"
+                               th:text="${block.subtitle} ?: '새로 업데이트된 큐레이션을 살펴보세요'">따끈따끈한 신간을 가장 먼저 만나보세요</p>
+                            <h2 th:text="${block.title} ?: '베스트 셀러'">신간 도서</h2>
+                        </div>
+                        <a class="view-all"
+                           th:href="${block.viewAllLink}"
+                           th:if="${block.viewAllLink != null}">전체보기 →</a>
+                    </div>
+
+                    <div class="linked-grid" th:if="${block.books != null and #lists.isNotEmpty(block.books)}">
+                        <article class="linked-card" th:each="book : ${block.books}">
+                            <div class="linked-thumb">
+                                <span class="linked-badge" th:if="${book.tag != null}" th:text="${book.tag}">베스트</span>
+                                <img th:alt="${book.title}" th:if="${book.imageUrl != null}" th:src="${book.imageUrl}">
+                                <div class="thumb-fallback" th:unless="${book.imageUrl != null}">표지 준비중</div>
+                            </div>
+                            <div class="linked-info">
+                                <p class="linked-title" th:text="${book.title} ?: '도서 준비중'">도서 제목</p>
+                                <p class="linked-author" th:text="${book.author} ?: '저자 정보 준비중'">저자명</p>
+                                <div class="linked-meta">
+                                    <span class="linked-rating" th:if="${book.rating != null}">
+                                        ★ <span th:text="${book.rating}">4.8</span>
+                                    </span>
+                                    <div class="linked-price">
+                                        <span class="price"
+                                              th:text="${book.price != null} ? ${#numbers.formatInteger(book.price, 0, 'COMMA')} + '원' : '가격 준비중'">19,800원</span>
+                                        <span class="origin"
+                                              th:if="${book.originalPrice != null}"
+                                              th:text="${#numbers.formatInteger(book.originalPrice, 0, 'COMMA')} + '원'">25,000원</span>
+                                    </div>
+                                </div>
+                                <p class="linked-discount" th:if="${book.discountRate != null}"
+                                   th:text="${book.discountRate} + '% 할인'">13% 할인</p>
+                                <button class="linked-cart" th:onclick="'addToCart(' + ${book.id} + ')'">장바구니</button>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="linked-grid" th:if="${block.books == null or #lists.isEmpty(block.books)}">
+                        <article class="linked-card placeholder">
+                            <div class="linked-info">
+                                <p class="linked-title">도서 준비중</p>
+                                <p class="linked-author">베스트 셀러를 준비하고 있습니다.</p>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </th:block>
+    </th:block>
+
+    <section class="book-section" id="section-new"
+             th:unless="${sectionBlocks != null and #lists.isNotEmpty(sectionBlocks)}">
+        <div class="container">
             <div class="section-header">
-                <h2>
-                    <span th:text="${sectionTitle} ?: 'IT · 프로그래밍 도서'">IT · 프로그래밍 도서</span>
-                    <span style="color:#999; font-size:1rem;"
-                          th:text="'총 ' + ${totalBooks} + '건'">총 42건</span>
-                </h2>
-                <a th:href="@{/books/all}" class="view-all">더보기 →</a>
+                <div>
+                    <p class="section-eyebrow" th:text="${sectionSubtitle} ?: '따끈따끈한 신간을 가장 먼저 만나보세요'">따끈따끈한 신간을 가장 먼저
+                        만나보세요</p>
+                    <h2 th:text="${sectionTitle} ?: '신간 도서'">신간 도서</h2>
+                </div>
+                <div class="section-actions">
+                    <span class="count" th:text="${totalBooks != null} ? '총 ' + ${totalBooks} + '건' : ''">총 42건</span>
+                    <a class="view-all" th:href="@{/books/all}">전체보기 →</a>
+                </div>
             </div>
 
-            <div class="book-grid">
+            <div class="book-grid" th:if="${books != null and #lists.isNotEmpty(books)}">
                 <div class="book-card" th:each="book : ${books}">
-                    <a th:href="@{/books/{id}(id=${book.id})}">
-                        <img class="book-image"
-                             th:src="${book.imageUrl}"
-                             th:alt="${book.title}">
+                    <span class="book-badge" th:text="${book.tag} ?: '추천'">추천</span>
+                    <a class="book-cover" th:href="@{/books/{id}(id=${book.id})}">
+                        <img class="book-image" th:alt="${book.title}" th:if="${book.imageUrl != null}"
+                             th:src="${book.imageUrl}">
+                        <div class="thumb-fallback" th:unless="${book.imageUrl != null}">표지 준비중</div>
                     </a>
-                    <span class="book-tag" th:text="${book.tag}">Spring</span>
-                    <div class="book-info">
-                        <div class="book-title" th:text="${book.title}">Book Title</div>
-                        <div class="book-subtitle" th:text="${book.author}">저자</div>
-                        <div class="book-price"
-                             th:text="'₩' + ${#numbers.formatInteger(book.price, 0, 'COMMA')}">
-                            ₩79,800
+                    <div class="book-details">
+                        <p class="book-title" th:text="${book.title} ?: '도서 준비중'">Book Title</p>
+                        <p class="book-author" th:text="${book.author} ?: '저자 정보 준비중'">저자명</p>
+                        <div class="book-meta">
+                            <div class="rating" th:if="${book.rating != null}">
+                                <span>★</span>
+                                <span th:text="${book.rating}">4.8</span>
+                            </div>
+                            <div class="price-info">
+                                <span class="price"
+                                      th:text="${book.price != null} ? '₩' + ${#numbers.formatInteger(book.price, 0, 'COMMA')} : '가격 준비중'">₩79,800</span>
+                                <span class="origin" th:if="${book.originalPrice != null}"
+                                      th:text="'₩' + ${#numbers.formatInteger(book.originalPrice, 0, 'COMMA')}">₩99,000</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="book-actions">
-                        <button th:onclick="'addToCart(' + ${book.id} + ')'">장바구니</button>
+                    <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
+                </div>
+            </div>
+            <div class="book-grid" th:if="${books == null or #lists.isEmpty(books)}">
+                <div class="book-card placeholder">
+                    <div class="book-details">
+                        <p class="book-title">도서 준비중</p>
+                        <p class="book-author">신간 데이터를 불러오는 중입니다.</p>
                     </div>
                 </div>
             </div>
 
             <div class="pagination" th:if="${totalPages > 1}">
                 <button th:if="${currentPage > 0}"
-                        th:onclick="'location.href=\'' + @{/books(page=${currentPage - 1})} + '\''">
-                    이전
+                        th:onclick="'location.href=\'' + @{/books(page=${currentPage - 1})} + '\''">이전
                 </button>
-
                 <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
                     <button th:classappend="${i == currentPage} ? 'active' : ''"
-                            th:onclick="'location.href=\'' + @{/books(page=${i})} + '\''"
-                            th:text="${i + 1}">1</button>
+                            th:onclick="'location.href=\'' + @{/books(page=${i})} + '\''" th:text="${i + 1}">1
+                    </button>
                 </th:block>
-
                 <button th:if="${currentPage < totalPages - 1}"
-                        th:onclick="'location.href=\'' + @{/books(page=${currentPage + 1})} + '\''">
-                    다음
+                        th:onclick="'location.href=\'' + @{/books(page=${currentPage + 1})} + '\''">다음
                 </button>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="membership-cta" id="section-membership"
+             th:unless="${sectionBlocks != null and #lists.isNotEmpty(sectionBlocks)}">
+        <div class="container cta-inner">
+            <div>
+                <p class="cta-eyebrow">회원 전용 혜택</p>
+                <h3>지금 가입하고 첫 구매 시 15% 할인을 받아보세요</h3>
+                <p>새로운 취향을 발견할 준비가 되셨나요? 매주 업데이트되는 큐레이션을 이메일로 받아보세요.</p>
+            </div>
+            <button class="btn primary" th:onclick="'location.href=\'' + @{/signup} + '\''" type="button">회원가입하기
+            </button>
+        </div>
+    </section>
+
+    <section class="book-collection" th:if="${featuredSections != null}"
+             th:unless="${sectionBlocks != null and #lists.isNotEmpty(sectionBlocks)}">
+        <div class="container" th:each="collection,iter : ${featuredSections}"
+             th:id="'section-featured-' + ${iter.index}">
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow" th:text="${collection.subtitle} ?: '가장 많은 사랑을 받은 책들'">가장 많은 사랑을 받은 책들</p>
+                    <h2 th:text="${collection.title} ?: '베스트 셀러'">이번 주 베스트셀러</h2>
+                </div>
+                <a class="view-all" th:href="${collection.link}">전체보기 →</a>
+            </div>
+            <div class="book-grid" th:if="${collection.books != null and #lists.isNotEmpty(collection.books)}">
+                <div class="book-card" th:each="book : ${collection.books}">
+                    <span class="book-badge" th:text="${book.tag} ?: '추천'">추천</span>
+                    <a class="book-cover" th:href="@{/books/{id}(id=${book.id})}">
+                        <img class="book-image" th:alt="${book.title}" th:if="${book.imageUrl != null}"
+                             th:src="${book.imageUrl}">
+                        <div class="thumb-fallback" th:unless="${book.imageUrl != null}">표지 준비중</div>
+                    </a>
+                    <div class="book-details">
+                        <p class="book-title" th:text="${book.title} ?: '도서 준비중'">Book Title</p>
+                        <p class="book-author" th:text="${book.author} ?: '저자 정보 준비중'">저자명</p>
+                        <div class="book-meta">
+                            <div class="rating" th:if="${book.rating != null}">
+                                <span>★</span>
+                                <span th:text="${book.rating}">4.8</span>
+                            </div>
+                            <div class="price-info">
+                                <span class="price"
+                                      th:text="${book.price != null} ? '₩' + ${#numbers.formatInteger(book.price, 0, 'COMMA')} : '가격 준비중'">₩79,800</span>
+                                <span class="origin" th:if="${book.originalPrice != null}"
+                                      th:text="'₩' + ${#numbers.formatInteger(book.originalPrice, 0, 'COMMA')}">₩99,000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
+                </div>
+            </div>
+            <div class="book-grid" th:if="${collection.books == null or #lists.isEmpty(collection.books)}">
+                <div class="book-card placeholder">
+                    <div class="book-details">
+                        <p class="book-title">도서 준비중</p>
+                        <p class="book-author">베스트 셀러 데이터를 준비하고 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="book-collection" id="section-bestseller-week"
+             th:if="${featuredSections == null and (sectionBlocks == null or #lists.isEmpty(sectionBlocks))}">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">이번주 베스트 셀러</p>
+                    <h2>이번주 베스트 셀러</h2>
+                </div>
+            </div>
+            <div class="book-grid">
+                <div class="book-card placeholder">
+                    <div class="book-details">
+                        <p class="book-title">도서 준비중</p>
+                        <p class="book-author">곧 이번주 베스트 셀러를 만나보실 수 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="book-collection" id="section-bestseller-yesterday"
+             th:if="${featuredSections == null and (sectionBlocks == null or #lists.isEmpty(sectionBlocks))}">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">어제 베스트 셀러</p>
+                    <h2>어제 베스트 셀러</h2>
+                </div>
+            </div>
+            <div class="book-grid">
+                <div class="book-card placeholder">
+                    <div class="book-details">
+                        <p class="book-title">도서 준비중</p>
+                        <p class="book-author">어제의 베스트 셀러 데이터를 준비하고 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="book-collection" id="section-popular"
+             th:if="${featuredSections == null and (sectionBlocks == null or #lists.isEmpty(sectionBlocks))}">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">가장 많이 본 책</p>
+                    <h2>인기 도서</h2>
+                </div>
+            </div>
+            <div class="book-grid">
+                <div class="book-card placeholder">
+                    <div class="book-details">
+                        <p class="book-title">도서 준비중</p>
+                        <p class="book-author">인기 도서를 수집 중입니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
 </main>
 
-<footer>
-    <div class="footer-content">
-        <div class="footer-links">
-            <a th:href="@{/support}">고객센터</a>
+<footer class="site-footer">
+    <div class="container footer-grid">
+        <div>
+            <div class="logo-wrap light">
+                <a class="logo-link" th:href="@{/}">
+                    <img alt="Book2OnAndOn logo" class="logo-mark" src="/images/logo.png"
+                         th:src="@{/images/logo.png}">
+                    <span class="brand-name">Book2OnAndOn</span>
+                </a>
+            </div>
+            <p>책으로 떠나는 무한한 여행, <br> 당신의 서재를 채워보세요.</p>
+        </div>
+        <div>
+            <h4>고객센터</h4>
+            <a th:href="@{/support}">자주 묻는 질문</a>
+            <a th:href="@{/support/guide}">이용 안내</a>
+            <a th:href="@{/support/exchange}">반품/교환 안내</a>
+            <a th:href="@{/notice}">공지사항</a>
+        </div>
+        <div>
+            <h4>카테고리</h4>
+            <a th:href="@{/books/bestseller}">베스트셀러</a>
+            <a th:href="@{/books/new}">신간 도서</a>
+            <a th:href="@{/books/literature}">문학</a>
+            <a th:href="@{/books/self}">자기계발</a>
+        </div>
+        <div>
+            <h4>회사 정보</h4>
+            <a th:href="@{/company/about}">회사 소개</a>
             <a th:href="@{/terms}">이용약관</a>
             <a th:href="@{/privacy}">개인정보처리방침</a>
+            <a th:href="@{/contact}">제휴 문의</a>
         </div>
-        <p>© 2025 Book2OnAndOn. All rights reserved.</p>
     </div>
+    <p class="copyright">© 2025 Book2OnAndOn. All rights reserved. <br> 도서 DB 제공 : 알라딘 인터넷서점(www.aladin.co.kr)</p>
 </footer>
-
-<th:block th:fragment="categoryItem(cat)">
-    <th:block th:if="${cat != null}">
-        <li class="category-item">
-            <div class="category-link-wrapper">
-                <a th:href="@{/books/category/{id}(id=${cat.id})}"
-                   th:text="${cat.name}">카테고리명</a>
-
-                <span th:if="${not #lists.isEmpty(cat.children)}" class="toggle-btn">▼</span>
-            </div>
-
-            <ul th:if="${not #lists.isEmpty(cat.children)}" class="sub-menu">
-                <th:block th:each="child : ${cat.children}">
-                    <th:block th:replace="~{:: categoryItem(${child})}"></th:block>
-                </th:block>
-            </ul>
-        </li>
-    </th:block>
-</th:block>
 
 <script th:src="@{/js/script.js}"></script>
 <script th:inline="javascript">
@@ -177,13 +496,17 @@
         fetch('/api/cart/add', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ bookId: bookId })
+            body: JSON.stringify({bookId: bookId})
         })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    const badge = document.querySelector('[data-cart-count]');
+                    if (badge) {
+                        badge.textContent = parseInt(badge.textContent || '0', 10) + 1;
+                    }
                     alert('장바구니에 추가되었습니다.');
                 } else {
                     alert('장바구니 추가에 실패했습니다.');
@@ -195,20 +518,6 @@
             });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtns = document.querySelectorAll('.toggle-btn');
-
-        toggleBtns.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const subMenu = this.parentElement.nextElementSibling;
-                if (subMenu) {
-                    subMenu.classList.toggle('open');
-                    this.textContent = subMenu.classList.contains('open') ? '▲' : '▼';
-                }
-            });
-        });
-    });
     /*]]>*/
 </script>
 </body>
