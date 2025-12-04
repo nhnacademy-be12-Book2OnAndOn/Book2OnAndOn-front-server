@@ -63,7 +63,7 @@ public class MyPageViewController {
             }
 
             try {
-                Page<MemberCouponDto> memberCouponPage = memberCouponClient.getMyCoupon(myUserId, 0, 1,
+                Page<MemberCouponDto> memberCouponPage = memberCouponClient.getMyCoupon("Bearer " + accessToken, 0, 1,
                         MemberCouponStatus.NOT_USED);
 
                 model.addAttribute("couponCount", memberCouponPage.getTotalElements());

@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface MemberCouponClient {
 
     @GetMapping("/api/my-coupon")
-    Page<MemberCouponDto> getMyCoupon(@RequestHeader("X-USER-ID") Long userId,
+    Page<MemberCouponDto> getMyCoupon(@RequestHeader("Authorization") String accessToken,
                                       @RequestParam("page") int page,
                                       @RequestParam("size") int size,
-                                      @RequestParam(value = "status", required = false)MemberCouponStatus status);
+                                      @RequestParam(value = "status", required = false) MemberCouponStatus status);
 }
