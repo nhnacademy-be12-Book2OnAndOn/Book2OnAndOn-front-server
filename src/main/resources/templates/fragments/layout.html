@@ -1,0 +1,137 @@
+<th:block th:fragment="commonHeader(currentUser, cartCount, sectionBlocks, featuredSections, showNav)"
+          xmlns:th="http://www.thymeleaf.org">
+    <header class="main-header">
+        <div class="header-bar container">
+            <button aria-label="카테고리 열기" class="hamburger" onclick="toggleSidebar()" type="button">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo-wrap">
+                <a class="logo-link" th:href="@{/}">
+                    <img alt="Book2OnAndOn logo" class="logo-mark" src="/images/logo.png"
+                         th:src="@{/images/logo.png}">
+                    <span class="brand-name">Book2OnAndOn</span>
+                </a>
+            </div>
+
+            <form class="global-search" method="get" th:action="@{/books/search}">
+                <div class="group">
+                    <svg aria-hidden="true" class="icon" viewBox="0 0 24 24">
+                        <g>
+                            <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
+                        </g>
+                    </svg>
+                    <input autocomplete="off" class="input" inputmode="search" name="keyword"
+                           placeholder="책 제목, 저자, ISBN 검색..." th:value="${keyword}" type="text">
+                    <button aria-label="검색어 삭제" class="btn-clear" type="button"></button>
+                </div>
+            </form>
+
+            <div class="header-actions">
+                <div class="icon-buttons">
+                    <a aria-label="장바구니" class="icon-btn cart" th:href="@{/cart}">
+                        <i aria-hidden="true" class="fi fi-rs-cart"></i>
+                        <span class="cart-count" data-cart-count th:text="${cartCount} ?: 0">0</span>
+                    </a>
+                </div>
+                <th:block th:if="${currentUser == null}">
+                    <button class="text-link user-name-btn" th:onclick="|location.href='@{/login}'|" type="button">로그인
+                    </button>
+                    <button class="solid-link" th:onclick="|location.href='@{/signup}'|" type="button">회원가입</button>
+                </th:block>
+                <th:block th:if="${currentUser != null}">
+                    <button class="text-link user-name-btn"
+                            th:onclick="|location.href='@{${#strings.contains(currentUser.role, 'ADMIN')} ? '/admin' : '/users/me'}'|"
+                            th:text="${currentUser.name} + '님'" type="button">사용자님
+                    </button>
+                    <button class="text-link logout" th:onclick="|location.href='@{/logout}'|" type="button">로그아웃
+                    </button>
+                </th:block>
+            </div>
+        </div>
+
+        <nav class="category-nav" th:if="${showNav}">
+            <div class="container chip-list" th:if="${sectionBlocks != null and #lists.isNotEmpty(sectionBlocks)}">
+                <a class="chip"
+                   th:classappend="${iter.index == 0}? 'active' : ''"
+                   th:each="block,iter : ${sectionBlocks}"
+                   th:href="'#section-' + (${block.id} ?: ${iter.index})"
+                   th:text="${block.title}">신간 도서</a>
+            </div>
+            <div class="container chip-list"
+                 th:if="${(sectionBlocks == null or #lists.isEmpty(sectionBlocks)) and featuredSections != null}">
+                <a class="chip active" href="#section-new">신간 도서</a>
+                <a class="chip"
+                   th:each="collection,iter : ${featuredSections}"
+                   th:href="'#section-featured-' + ${iter.index}"
+                   th:text="${collection.title} ?: '베스트 셀러'"></a>
+            </div>
+            <div class="container chip-list"
+                 th:if="${(sectionBlocks == null or #lists.isEmpty(sectionBlocks)) and featuredSections == null}">
+                <a class="chip active" href="#section-new">신간 도서</a>
+                <a class="chip" href="#section-bestseller">베스트 셀러</a>
+                <a class="chip" href="#section-bestseller-yesterday">어제 베스트 셀러</a>
+                <a class="chip" href="#section-popular">인기 도서</a>
+            </div>
+        </nav>
+    </header>
+
+    <th:block th:if="${#vars.containsKey('categories') and categories != null}"
+              th:replace="~{fragments/layout :: categorySidebar(${categories})}"></th:block>
+</th:block>
+
+<th:block th:fragment="categorySidebar(categories)" xmlns:th="http://www.thymeleaf.org">
+    <div class="overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <aside class="category-sidebar" id="categorySidebar">
+        <div class="sidebar-header">
+            <h3>카테고리</h3>
+            <button class="close-sidebar" onclick="toggleSidebar()" type="button">×</button>
+        </div>
+        <ul class="category-list">
+            <th:block th:each="category : ${categories}">
+                <th:block th:replace="~{fragments/category :: categoryBranch(${category}, 0)}"></th:block>
+            </th:block>
+        </ul>
+    </aside>
+</th:block>
+
+<th:block th:fragment="commonFooter" xmlns:th="http://www.thymeleaf.org">
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div>
+                <div class="logo-wrap light">
+                    <a class="logo-link" th:href="@{/}">
+                        <img alt="Book2OnAndOn logo" class="logo-mark" src="/images/logo.png"
+                             th:src="@{/images/logo.png}">
+                        <span class="brand-name">Book2OnAndOn</span>
+                    </a>
+                </div>
+                <p>책으로 떠나는 무한한 여행, <br> 당신의 서재를 채워보세요.</p>
+            </div>
+            <div>
+                <h4>고객센터</h4>
+                <a th:href="@{/support}">자주 묻는 질문</a>
+                <a th:href="@{/support/guide}">이용 안내</a>
+                <a th:href="@{/support/exchange}">반품/교환 안내</a>
+                <a th:href="@{/notice}">공지사항</a>
+            </div>
+            <div>
+                <h4>카테고리</h4>
+                <a th:href="@{/books/new}">신간도서</a>
+                <a th:href="@{/books/bestseller}">베스트 셀러</a>
+                <a th:href="@{/books/literature}">어제 베스트 셀러</a>
+                <a th:href="@{/books/self}">인기 도서</a>
+            </div>
+            <div>
+                <h4>회사 정보</h4>
+                <a th:href="@{/company/about}">회사 소개</a>
+                <a th:href="@{/terms}">이용약관</a>
+                <a th:href="@{/privacy}">개인정보처리방침</a>
+                <a th:href="@{/contact}">제휴 문의</a>
+            </div>
+        </div>
+        <p class="copyright">© 2025 Book2OnAndOn. All rights reserved. <br> 도서 DB 제공 : 알라딘 인터넷서점(www.aladin.co.kr)</p>
+    </footer>
+    <script th:src="@{/js/script.js}"></script>
+</th:block>

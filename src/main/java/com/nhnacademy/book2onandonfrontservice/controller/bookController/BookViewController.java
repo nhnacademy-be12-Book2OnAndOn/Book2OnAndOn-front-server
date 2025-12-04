@@ -1,8 +1,6 @@
 package com.nhnacademy.book2onandonfrontservice.controller.bookController;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -20,11 +18,6 @@ public class BookViewController {
     // 메인 페이지 (대시보드)
     @GetMapping("/")
     public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
-        // 1. 사이드바 카테고리
-        List<CategoryDto> categories = bookClient.getCategories();
-        log.info("카테고리들: {}", categories);
-        model.addAttribute("categories", categories);
-
 //        // 2. 헤더/히어로 섹션 데이터
 //        List<String> popularTags = bookClient.getPopularTags();
 //        model.addAttribute("popularTags", popularTags);

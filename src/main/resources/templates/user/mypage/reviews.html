@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>내 리뷰 목록</title>
@@ -17,7 +17,7 @@
 
             <ul class="dashboard-menu">
                 <li><a href="/users/me">대시보드</a></li>
-                <li><a href="/users/me/reviews" class="active">내 리뷰</a></li>
+                <li><a class="active" href="/internal/users/">내 리뷰</a></li>
                 <li><a href="/orders/me">주문 내역</a></li>
                 <li><a href="/coupons/me">쿠폰함</a></li>
                 <li><a href="/users/me/addresses">내 주소 관리</a></li>
@@ -35,7 +35,7 @@
                 <p class="empty-text">작성한 리뷰가 없습니다.</p>
             </div>
 
-            <div th:each="review : ${reviews}" class="dashboard-card review-item">
+            <div class="dashboard-card review-item" th:each="review : ${reviews}">
                 <h3 th:text="${review.bookTitle}"></h3>
                 <p th:text="${review.content}"></p>
                 <span class="review-rating" th:text="'★ ' + ${review.rating}"></span>

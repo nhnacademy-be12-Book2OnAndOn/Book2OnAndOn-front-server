@@ -251,12 +251,12 @@ img {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 18px;
 }
 
 .icon-buttons {
     display: flex;
-    gap: 0.65rem;
+    gap: 18px;
 }
 
 .icon-btn {
@@ -291,9 +291,9 @@ img {
     background-repeat: no-repeat;
 }
 
-.fi-rs-user {
-    background-image: url('/images/fi-rs-user.svg');
-}
+/*.fi-rs-user {*/
+/*    background-image: url('/images/fi-rs-user.svg');*/
+/*}*/
 
 .fi-rs-cart {
     background-image: url('/images/fi-rs-cart.svg');
@@ -330,6 +330,29 @@ img {
 }
 
 .text-link:hover, .solid-link:hover {
+    background: var(--green-500);
+}
+
+.text-link.logout {
+    border-color: transparent;
+    background-color: #f55c52;
+    /*border: 1px solid var(--white);*/
+    color: var(--white);
+}
+
+.text-link.logout:hover {
+    background: #ff6659;
+    /*color: #ff6659;*/
+}
+
+.user-name-btn {
+    border: 1px solid var(--white);
+    background: transparent;
+    color: var(--white);
+    font-weight: 700;
+}
+
+.user-name-btn:hover {
     background: var(--green-500);
 }
 
