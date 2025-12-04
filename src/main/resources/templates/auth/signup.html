@@ -1,139 +1,110 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>회원가입 - Book2OnAndOn</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/auth.css}">
 
-    <style>
-        .error-text {
-            color: #c62828;
-            font-size: 0.85rem;
-            margin-top: 4px;
-        }
-
-        /* 인증 버튼 스타일 */
-        .btn-small {
-            padding: 0.8rem 1rem;
-            background: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            white-space: nowrap;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-
-        .btn-small:hover {
-            background: #5a6268;
-        }
-
-        .btn-small:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-    </style>
 </head>
-<body>
-<header>
-    <div class="header-content">
-        <div class="header-left">
-            <a th:href="@{/}" class="logo">Book2OnAndOn</a>
-        </div>
-        <ul class="header-nav">
-            <li><a th:href="@{/books/bestseller}">베스트셀러</a></li>
-        </ul>
-        <div class="header-right">
-            <button class="btn-login" th:onclick="|location.href='@{/login}'|">로그인</button>
-        </div>
-    </div>
-</header>
+<body class="auth-page">
+<th:block th:replace="~{fragments/layout :: commonHeader(${user}, ${cartCount}, null, null, false)}"></th:block>
 
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h1>회원가입</h1>
-            <p>Book2OnAndOn의 멤버가 되어주세요</p>
-        </div>
-
-        <div th:if="${error}" class="alert alert-error">
-            <p th:text="${error}"></p>
-        </div>
-
-        <form th:action="@{/signup}" th:object="${signupForm}" method="post" class="auth-form"
-              onsubmit="return validateForm()">
-
-            <div class="form-group">
-                <label for="userLoginId">아이디</label>
-                <input type="text" id="userLoginId" th:field="*{userLoginId}" placeholder="4~30자 이내" required>
-                <div class="error-text" th:if="${#fields.hasErrors('userLoginId')}" th:errors="*{userLoginId}">Error
+<main>
+    <section class="hero auth-hero">
+        <div class="container hero-inner">
+            <div class="hero-text">
+                <p class="hero-badge">Book2OnAndOn과 끝없는 발견</p>
+                <h1>당신의 문장을 <br> 찾아드립니다.</h1>
+                <p class="hero-desc">신간부터 오래 사랑받아온 책까지, <br> 당신에게 필요한 책을 가장 먼저 전해드립니다. <br> 지금, 멤버가 되어 더 가까이 느껴보세요.</p>
+                <div class="hero-actions">
+                    <a class="btn secondary" th:href="@{/books/new}">신간 둘러보기</a>
+                    <a class="btn ghost" th:href="@{/books/bestseller}">베스트셀러 둘러보기</a>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="password">비밀번호</label>
-                <input type="password" id="password" th:field="*{password}" placeholder="영문, 숫자, 특수문자 포함 8~16자"
-                       required>
-                <div class="error-text" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Error</div>
-            </div>
+            <form class="auth-form" method="post" onsubmit="return validateForm()" th:action="@{/signup}"
+                  th:object="${signupForm}">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1>회원가입</h1>
+                        <p>Book2OnAndOn의 멤버가 되어주세요</p>
+                    </div>
 
-            <div class="form-group">
-                <label for="name">이름</label>
-                <input type="text" id="name" th:field="*{name}" placeholder="이름을 입력하세요" required>
-                <div class="error-text" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Error</div>
-            </div>
+                    <div class="alert alert-error" th:if="${error}">
+                        <p th:text="${error}"></p>
+                    </div>
 
-            <div class="form-group">
-                <label for="email">이메일</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="email" id="email" th:field="*{email}" placeholder="example@email.com" required
-                           style="flex: 1;">
-                    <button type="button" id="btn-send" class="btn-small" onclick="sendVerification()">인증번호 전송</button>
+                    <div class="form-group">
+                        <label for="userLoginId">아이디</label>
+                        <input id="userLoginId" placeholder="4~30자 이내" required th:field="*{userLoginId}" type="text">
+                        <div class="error-text" th:errors="*{userLoginId}" th:if="${#fields.hasErrors('userLoginId')}">
+                            Error
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">비밀번호</label>
+                        <input id="password" placeholder="영문, 숫자, 특수문자 포함 8~16자" required th:field="*{password}"
+                               type="password">
+                        <div class="error-text" th:errors="*{password}" th:if="${#fields.hasErrors('password')}">Error
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">이름</label>
+                        <input id="name" placeholder="이름을 입력하세요" required th:field="*{name}" type="text">
+                        <div class="error-text" th:errors="*{name}" th:if="${#fields.hasErrors('name')}">Error</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">이메일</label>
+                        <div class="input-inline">
+                            <input id="email" placeholder="example@email.com" required th:field="*{email}" type="email">
+                            <button class="btn-small" id="btn-send" onclick="sendVerification()" type="button">인증번호 전송
+                            </button>
+                        </div>
+                        <div class="error-text" th:errors="*{email}" th:if="${#fields.hasErrors('email')}">Error</div>
+                    </div>
+
+                    <div class="form-group" id="verification-group" style="display: none;">
+                        <label for="verifyCode">인증번호</label>
+                        <div class="input-inline">
+                            <input id="verifyCode" placeholder="6자리 코드 입력" type="text">
+                            <button class="btn-small" id="btn-verify" onclick="checkVerification()" type="button">확인
+                            </button>
+                        </div>
+                        <p id="verify-message" style="font-size: 0.85rem; margin-top: 5px;"></p>
+                        <input id="isEmailVerified" type="hidden" value="false">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">휴대폰 번호</label>
+                        <input id="phone" placeholder="01012345678 (하이픈 없이)" required th:field="*{phone}" type="text">
+                        <div class="error-text" th:errors="*{phone}" th:if="${#fields.hasErrors('phone')}">Error</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birth">생년월일</label>
+                        <input id="birth" required th:field="*{birth}" type="date">
+                        <div class="error-text" th:errors="*{birth}" th:if="${#fields.hasErrors('birth')}">Error</div>
+                    </div>
+
+                    <button class="btn primary" type="submit">가입하기</button>
+
+                    <div class="auth-footer">
+                        <p>이미 계정이 있으신가요?
+                            <a class="link-primary" th:href="@{/login}">로그인</a>
+                        </p>
+                    </div>
                 </div>
-                <div class="error-text" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</div>
-            </div>
+            </form>
+        </div> <!-- container -->
+    </section>
+</main>
 
-            <div class="form-group" id="verification-group" style="display: none;">
-                <label for="verifyCode">인증번호</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="verifyCode" placeholder="6자리 코드 입력" style="flex: 1;">
-                    <button type="button" id="btn-verify" class="btn-small" onclick="checkVerification()">확인</button>
-                </div>
-                <p id="verify-message" style="font-size: 0.85rem; margin-top: 5px;"></p>
-                <input type="hidden" id="isEmailVerified" value="false">
-            </div>
-
-            <div class="form-group">
-                <label for="phone">휴대폰 번호</label>
-                <input type="text" id="phone" th:field="*{phone}" placeholder="01012345678 (하이픈 없이)" required>
-                <div class="error-text" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Error</div>
-            </div>
-
-            <div class="form-group">
-                <label for="birth">생년월일</label>
-                <input type="date" id="birth" th:field="*{birth}" required>
-                <div class="error-text" th:if="${#fields.hasErrors('birth')}" th:errors="*{birth}">Error</div>
-            </div>
-
-            <button type="submit" class="btn-primary">가입하기</button>
-        </form>
-
-        <div class="auth-footer">
-            <p>이미 계정이 있으신가요?
-                <a th:href="@{/login}" class="link-primary">로그인</a>
-            </p>
-        </div>
-    </div>
-</div>
-
-<footer>
-    <div class="footer-content">
-        <p>© 2025 Book2OnAndOn. All rights reserved.</p>
-    </div>
-</footer>
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 <script>
     // (기존 자바스크립트 로직 그대로 유지)

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,14 +21,17 @@ public class MemberCouponViewController {
     private final MemberCouponClient memberCouponClient;
 
     @GetMapping
-    public String myCouponList(@RequestParam(defaultValue = "0") int page,
+    public String myCouponList(@CookieValue(value = "accessToken", required = false) String accessToken,
+                               @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "10") int size,
                                @RequestParam(required = false) MemberCouponStatus status,
                                Model model) {
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
 
-        //test
-        Long userId = 2L;
-        Page<MemberCouponDto> myCouponPage = memberCouponClient.getMyCoupon(userId, page, size, status);
+        Page<MemberCouponDto> myCouponPage = memberCouponClient.getMyCoupon("Bearer " + accessToken, page, size,
+                status);
 
         model.addAttribute("myCoupons", myCouponPage.getContent());
         model.addAttribute("currentPage", page);

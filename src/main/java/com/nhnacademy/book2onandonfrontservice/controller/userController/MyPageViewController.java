@@ -5,6 +5,7 @@ import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PasswordChangeRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressCreateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserUpdateRequest;
@@ -62,7 +63,8 @@ public class MyPageViewController {
             }
 
             try {
-                Page<MemberCouponDto> memberCouponPage = memberCouponClient.getMyCoupon(myUserId, 0, 1, MemberCouponStatus.NOT_USED);
+                Page<MemberCouponDto> memberCouponPage = memberCouponClient.getMyCoupon("Bearer " + accessToken, 0, 1,
+                        MemberCouponStatus.NOT_USED);
 
                 model.addAttribute("couponCount", memberCouponPage.getTotalElements());
             } catch (Exception e) {
@@ -114,13 +116,20 @@ public class MyPageViewController {
         try {
             UserResponseDto user = userClient.getMyInfo("Bearer " + accessToken);
 
-            UserUpdateRequest updateRequest = new UserUpdateRequest(
-                    user.getName(), user.getEmail(), user.getPhone(), user.getNickname()
-            );
+            log.info("내 정보 조회 결과: name={}, email={}, phone={}", user.getName(), user.getEmail(), user.getPhone());
+
+            UserUpdateRequest updateRequest = UserUpdateRequest.builder()
+                    .name(user.getName())
+                    .email(user.getEmail())
+                    .phone(user.getPhone())
+                    .nickname(user.getNickname())
+                    .build();
+
             model.addAttribute("userUpdateRequest", updateRequest);
 
             return "user/mypage/edit";
         } catch (Exception e) {
+            log.error("내 정보 조회 실패", e);
             return "redirect:/users/me";
         }
     }
@@ -140,8 +149,48 @@ public class MyPageViewController {
         } catch (Exception e) {
             log.error("정보 수정 실패", e);
             model.addAttribute("error", "정보 수정에 실패했습니다. (" + e.getMessage() + ")");
-            model.addAttribute("userUpdateRequest", updateRequest); // 입력값 유지
+            model.addAttribute("userUpdateRequest", updateRequest);
             return "user/mypage/edit";
+        }
+    }
+
+    //비밀번호 변경 페이지
+    @GetMapping("/password")
+    public String passwordForm(HttpServletRequest request, Model model) {
+        if (CookieUtils.getCookieValue(request, "accessToken") == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("passwordRequest", new PasswordChangeRequest());
+        return "user/mypage/password-change";
+    }
+
+    //비밀번호 변경
+    @PostMapping("/password")
+    public String changePassword(HttpServletRequest request,
+                                 @ModelAttribute PasswordChangeRequest passwordRequest,
+                                 Model model) {
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+
+        if (passwordRequest.getCurrentPassword().equals(passwordRequest.getNewPassword())) {
+            model.addAttribute("error", "새 비밀번호는 현재 비밀번호와 다르게 설정해야 합니다.");
+            return "user/mypage/password-change";
+        }
+
+        if (!passwordRequest.getNewPassword().equals(passwordRequest.getNewPasswordConfirm())) {
+            model.addAttribute("error", "새 비밀번호가 일치하지 않습니다.");
+            return "user/mypage/password-change";
+        }
+
+        try {
+            userClient.changePassword("Bearer " + accessToken, passwordRequest);
+
+            // 3. 성공 시 로그아웃 시키거나(보안 강화), 대시보드로 이동
+            return "redirect:/users/me?success=pw_changed";
+
+        } catch (Exception e) {
+            log.error("비밀번호 변경 실패", e);
+            model.addAttribute("error", "현재 비밀번호가 일치하지 않거나 변경에 실패했습니다.");
+            return "user/mypage/password-change";
         }
     }
 

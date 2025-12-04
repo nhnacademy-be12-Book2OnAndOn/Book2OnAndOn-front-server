@@ -6,6 +6,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindIdRequest
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindPasswordRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LocalSignUpRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LoginRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PasswordChangeRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressCreateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserUpdateRequest;
@@ -35,7 +36,7 @@ public interface UserClient {
 
     // [Auth] 회원가입
     @PostMapping("/api/auth/signup")
-    void signUp(@RequestBody LocalSignUpRequest request);
+    UserResponseDto signUp(@RequestBody LocalSignUpRequest request);
 
     //[Auth] 이메일 인증번호 전송
     @PostMapping("/api/auth/email/send")
@@ -78,6 +79,13 @@ public interface UserClient {
     void updateMyInfo(
             @RequestHeader("Authorization") String accessToken,
             @RequestBody UserUpdateRequest request
+    );
+
+    // [User] 비밀번호 변경
+    @PutMapping("/api/users/me/password")
+    void changePassword(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestBody PasswordChangeRequest request
     );
 
     //[Admin] 전체 회원 목록 조회

@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="layout/mypage-layout :: layout(
+<html lang="ko" th:replace="~{layout/mypage-layout :: layout(
         title = ~{::title},
         sidebarActive = 'dashboard',
         content = ~{::content}
-      )">
+      )}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>마이페이지 대시보드</title>
+    <!--    <title>마이페이지 대시보드</title>-->
 </head>
 
 <body>
@@ -41,13 +41,13 @@
             <p style="color:#666;">최근 작성한 리뷰가 없습니다.</p>
         </div>
 
-        <div th:each="review : ${recentReviews}" class="review-list-item">
+        <div class="review-list-item" th:each="review : ${recentReviews}">
             <strong th:text="${review.bookTitle}"></strong>
             <p th:text="${review.content}"></p>
             <span th:text="'★ ' + ${review.rating}"></span>
         </div>
 
-        <a href="/users/me/reviews" class="view-all">전체 리뷰 보기 →</a>
+        <a class="view-all" href="/users/me/reviews">전체 리뷰 보기 →</a>
     </div>
 
 </div>

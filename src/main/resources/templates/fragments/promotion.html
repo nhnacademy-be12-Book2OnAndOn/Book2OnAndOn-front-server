@@ -1,0 +1,16 @@
+<section class="membership-cta">
+    <div class="container cta-inner">
+        <div>
+            <p class="cta-eyebrow" th:text="${promotionTitle} ?: '회원 전용 혜택'">회원 전용 혜택</p>
+            <h3 th:text="${promotionHeadline} ?: '지금 가입하고 첫 구매 시 15% 할인 혜택'">지금 가입하고 첫 구매 시 15% 할인을 받아보세요</h3>
+            <p th:text="${promotionDescription} ?: '새로운 취향을 발견할 준비가 되셨나요? 매주 업데이트되는 큐레이션을 이메일로 받아보세요.'">
+                새로운 취향을 발견할 준비가 되셨나요? 매주 업데이트되는 큐레이션을 이메일로 받아보세요.
+            </p>
+        </div>
+        <button class="btn primary" type="button"
+                th:text="${promotionButton} ?: '회원가입하기'"
+                th:onclick="${promotionButtonLink != null} ? 'location.href=\'' + @{${promotionButtonLink}} + '\'' : 'location.href=\'' + @{/signup} + '\''">
+            회원가입하기
+        </button>
+    </div>
+</section>
