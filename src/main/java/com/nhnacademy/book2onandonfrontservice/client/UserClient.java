@@ -36,7 +36,7 @@ public interface UserClient {
 
     // [Auth] 회원가입
     @PostMapping("/api/auth/signup")
-    void signUp(@RequestBody LocalSignUpRequest request);
+    UserResponseDto signUp(@RequestBody LocalSignUpRequest request);
 
     //[Auth] 이메일 인증번호 전송
     @PostMapping("/api/auth/email/send")

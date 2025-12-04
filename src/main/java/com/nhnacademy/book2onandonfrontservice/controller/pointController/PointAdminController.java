@@ -8,7 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/admin/points")
@@ -18,7 +23,8 @@ public class PointAdminController {
     private final PointAdminClient pointAdminClient;
 
     @GetMapping
-    public String listUserPointHistory(@RequestParam Long userId,
+    public String listUserPointHistory(@CookieValue(value = "accessToken", required = false) String accessToken,
+                                       @RequestParam Long userId,
                                        @RequestParam(defaultValue = "0") int page,
                                        @RequestParam(defaultValue = "10") int size,
                                        Model model) {
@@ -28,11 +34,11 @@ public class PointAdminController {
 
         // 1) 포인트 이력 페이지 조회
         Page<PointHistoryResponseDto> historyPage =
-                pointAdminClient.getUserPointHistory(userId, page, size);
+                pointAdminClient.getUserPointHistory("Bearer " + accessToken, userId, page, size);
 
         // 2) 현재 보유 포인트 조회
         CurrentPointResponseDto currentPoint =
-                pointAdminClient.getUserCurrentPoint(userId);
+                pointAdminClient.getUserCurrentPoint("Bearer " + accessToken, userId);
 
         // 3) 뷰에 전달
         model.addAttribute("userId", userId);
@@ -45,19 +51,29 @@ public class PointAdminController {
     }
 
     @PostMapping("/adjust")
-    public String adjustUserPoint(@ModelAttribute PointHistoryAdminAdjustRequestDto requestDto) {
+    public String adjustUserPoint(
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @ModelAttribute PointHistoryAdminAdjustRequestDto requestDto) {
 
-        // 실제 포인트 조정 호출
-        pointAdminClient.adjustPointByAdmin(requestDto);
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
 
-        // 조정 후 다시 해당 회원 이력 화면으로 리다이렉트
+        pointAdminClient.adjustPointByAdmin("Bearer " + accessToken, requestDto);
+
         return "redirect:/admin/points?userId=" + requestDto.getUserId();
     }
 
     @PostMapping("/expire")
-    public String expireUserPoints(@RequestParam Long userId) {
+    public String expireUserPoints(
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @RequestParam Long userId) {
 
-        pointAdminClient.expirePoints(userId);
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+
+        pointAdminClient.expirePoints("Bearer " + accessToken);
 
         return "redirect:/admin/points?userId=" + userId;
     }

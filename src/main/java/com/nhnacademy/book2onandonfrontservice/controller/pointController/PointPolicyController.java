@@ -4,12 +4,16 @@ import com.nhnacademy.book2onandonfrontservice.client.PointPolicyAdminClient;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointPolicy.PointPolicyActiveUpdateRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointPolicy.PointPolicyResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointPolicy.PointPolicyUpdateRequestDto;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/admin/point-policies")
@@ -19,8 +23,8 @@ public class PointPolicyController {
     private final PointPolicyAdminClient pointPolicyAdminClient;
 
     @GetMapping
-    public String listPolicies(@RequestHeader("X-USER-ID") Long userId, Model model) {
-        List<PointPolicyResponseDto> policies = pointPolicyAdminClient.getAllPolicies(userId);
+    public String listPolicies(@CookieValue(value = "accessToken", required = false) String accessToken, Model model) {
+        List<PointPolicyResponseDto> policies = pointPolicyAdminClient.getAllPolicies("Bearer " + accessToken);
 
         model.addAttribute("policies", policies);
         return "admin/point-policy"; // 리스트 템플릿
@@ -28,9 +32,9 @@ public class PointPolicyController {
 
     @GetMapping("/{policyName}")
     public String viewPolicy(@PathVariable String policyName,
-                             @RequestHeader("X-USER-ID") Long userId,
+                             @CookieValue(value = "accessToken", required = false) String accessToken,
                              Model model) {
-        PointPolicyResponseDto policy = pointPolicyAdminClient.getPolicy(policyName, userId);
+        PointPolicyResponseDto policy = pointPolicyAdminClient.getPolicy(policyName, "Bearer " + accessToken);
 
         model.addAttribute("policy", policy);
         return "admin/point-policy"; // 상세 템플릿
@@ -39,9 +43,9 @@ public class PointPolicyController {
     @PostMapping("/{policyId}")
     public String updatePolicy(@PathVariable Integer policyId,
                                @ModelAttribute PointPolicyUpdateRequestDto requestDto,
-                               @RequestHeader("X-USER-ID") Long userId) {
+                               @CookieValue(value = "accessToken", required = false) String accessToken) {
 
-        pointPolicyAdminClient.updatePolicy(policyId, requestDto, userId);
+        pointPolicyAdminClient.updatePolicy(policyId, requestDto, "Bearer " + accessToken);
 
         // 수정 후 해당 정책 상세 페이지로 이동
         return "redirect:/admin/point-policies/" + policyId;
@@ -50,9 +54,9 @@ public class PointPolicyController {
     @PostMapping("/{policyId}/active")
     public String updatePolicyActive(@PathVariable Integer policyId,
                                      @ModelAttribute PointPolicyActiveUpdateRequestDto requestDto,
-                                     @RequestHeader("X-USER-ID") Long userId) {
+                                     @CookieValue(value = "accessToken", required = false) String accessToken) {
 
-        pointPolicyAdminClient.updatePolicyActive(policyId, requestDto, userId);
+        pointPolicyAdminClient.updatePolicyActive(policyId, requestDto, "Bearer " + accessToken);
 
         return "redirect:/admin/point-policies/" + policyId;
     }
