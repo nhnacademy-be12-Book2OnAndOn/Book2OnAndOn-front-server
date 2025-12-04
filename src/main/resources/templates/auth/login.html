@@ -24,9 +24,17 @@
                     <i aria-hidden="true" class="fi fi-rs-cart"></i>
                 </a>
             </div>
-            <button class="text-link" th:onclick="|location.href='@{/signup}'|"
-                    type="button">회원가입
-            </button>
+            <th:block th:if="${session.user == null}">
+                <button class="text-link" th:onclick="|location.href='@{/login}'|"
+                        type="button">로그인</button>
+                <button class="text-link" th:onclick="|location.href='@{/signup}'|"
+                        type="button">회원가입</button>
+            </th:block>
+            <th:block th:if="${session.user != null}">
+                <span class="user-name" th:text="${session.user.name} + '님'">사용자님</span>
+                <button class="text-link" th:onclick="|location.href='@{/logout}'|"
+                        type="button">로그아웃</button>
+            </th:block>
         </div>
     </div>
 </header>

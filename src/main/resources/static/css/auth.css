@@ -31,7 +31,7 @@
 
 /* ===== 베이스 ===== */
 body {
-    background: linear-gradient(180deg, #f7faf5 0%, #eef5ed 60%, #f7faf5 100%);
+    background: var(--ivory);
     color: var(--green-900);
     line-height: 1.5;
     min-height: auto;

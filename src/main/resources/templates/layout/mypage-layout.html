@@ -1,41 +1,114 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:fragment="layout (title, sidebarActive, content)">
+<html th:fragment="layout (title, sidebarActive, content)"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:replace="${title}">마이페이지</title>
+    <!--    <title th:replace="${title}">마이페이지</title>-->
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
 </head>
 
-<body>
+<body class="mypage-page">
+
+<header class="main-header">
+    <div class="header-bar container">
+        <div class="logo-wrap">
+            <a class="logo-link" th:href="@{/}">
+                <img alt="Book2OnAndOn logo" class="logo-mark" src="/images/logo.png"
+                     th:src="@{/images/logo.png}">
+                <span class="brand-name">Book2OnAndOn</span>
+            </a>
+        </div>
+        <div class="header-actions">
+            <div class="icon-buttons">
+                <a aria-label="장바구니" class="icon-btn cart" th:href="@{/cart}">
+                    <i aria-hidden="true" class="fi fi-rs-cart"></i>
+                </a>
+            </div>
+            <th:block th:if="${session.user == null}">
+                <button class="text-link" th:onclick="|location.href='@{/login}'|" type="button">로그인</button>
+                <button class="text-link" th:onclick="|location.href='@{/signup}'|" type="button">회원가입</button>
+            </th:block>
+            <th:block th:if="${session.user != null}">
+                <span class="user-name" th:text="${session.user.name} + '님'">사용자님</span>
+                <button class="text-link" th:onclick="|location.href='@{/logout}'|" type="button">로그아웃</button>
+            </th:block>
+        </div>
+    </div>
+</header>
 
 <main>
-    <div class="dashboard-wrapper">
+    <section class="mypage-shell">
+        <div class="container">
+            <div class="dashboard-wrapper">
 
-        <aside class="dashboard-sidebar">
-            <h3>마이페이지</h3>
+                <aside class="dashboard-sidebar">
+                    <h3>마이페이지</h3>
 
-            <ul class="dashboard-menu">
-                <li><a href="/users/me" th:classappend="${sidebarActive=='dashboard'} ? 'active'">대시보드</a></li>
-                <li><a href="/users/me/reviews" th:classappend="${sidebarActive=='reviews'} ? 'active'">내 리뷰</a></li>
-                <li><a href="/orders/me" th:classappend="${sidebarActive=='orders'} ? 'active'">주문 내역</a></li>
-                <li><a href="/users/me/coupons" th:classappend="${sidebarActive=='coupons'} ? 'active'">쿠폰함</a></li>
-                <li><a href="/users/me/addresses" th:classappend="${sidebarActive=='addresses'} ? 'active'">내 주소 관리</a>
-                </li>
-                <li><a href="/users/me/edit" th:classappend="${sidebarActive=='edit'} ? 'active'">내 정보 수정</a></li>
-                <li><a href="/users/me/password" th:classappend="${sidebarActive=='password'} ? 'active'">비밀번호 변경</a>
-                </li>
-                <li><a href="/logout" style="color:#d9534f;">로그아웃</a></li>
-            </ul>
-        </aside>
+                    <ul class="dashboard-menu">
+                        <li><a href="/users/me" th:classappend="${sidebarActive=='dashboard'} ? 'active'">대시보드</a></li>
+                        <li><a href="/users/me/reviews" th:classappend="${sidebarActive=='reviews'} ? 'active'">내 리뷰</a>
+                        </li>
+                        <li><a href="/orders/me" th:classappend="${sidebarActive=='orders'} ? 'active'">주문 내역</a></li>
+                        <li><a href="/users/me/coupons" th:classappend="${sidebarActive=='coupons'} ? 'active'">쿠폰함</a>
+                        </li>
+                        <li><a href="/users/me/addresses" th:classappend="${sidebarActive=='addresses'} ? 'active'">내 주소
+                            관리</a>
+                        </li>
+                        <li><a href="/users/me/edit" th:classappend="${sidebarActive=='edit'} ? 'active'">내 정보 수정</a>
+                        </li>
+                        <li><a href="/users/me/password" th:classappend="${sidebarActive=='password'} ? 'active'">비밀번호
+                            변경</a>
+                        </li>
+                        <li><a class="logout-link" href="/logout">로그아웃</a></li>
+                    </ul>
+                </aside>
 
-        <section class="dashboard-main">
-            <div th:replace="${content}"></div>
-        </section>
+                <section class="dashboard-main">
+                    <div th:replace="${content}"></div>
+                </section>
 
-    </div>
+            </div>
+        </div>
+    </section>
 </main>
+
+<footer class="site-footer">
+    <div class="container footer-grid">
+        <div>
+            <div class="logo-wrap light">
+                <a class="logo-link" th:href="@{/}">
+                    <img alt="Book2OnAndOn logo" class="logo-mark" src="/images/logo.png"
+                         th:src="@{/images/logo.png}">
+                    <span class="brand-name">Book2OnAndOn</span>
+                </a>
+            </div>
+            <p>책으로 떠나는 무한한 여행, <br> 당신의 서재를 채워보세요.</p>
+        </div>
+        <div>
+            <h4>고객센터</h4>
+            <a th:href="@{/support}">자주 묻는 질문</a>
+            <a th:href="@{/support/guide}">이용 안내</a>
+            <a th:href="@{/support/exchange}">반품/교환 안내</a>
+            <a th:href="@{/notice}">공지사항</a>
+        </div>
+        <div>
+            <h4>카테고리</h4>
+            <a th:href="@{/books/bestseller}">베스트셀러</a>
+            <a th:href="@{/books/new}">신간 도서</a>
+            <a th:href="@{/books/literature}">문학</a>
+            <a th:href="@{/books/self}">자기계발</a>
+        </div>
+        <div>
+            <h4>회사 정보</h4>
+            <a th:href="@{/company/about}">회사 소개</a>
+            <a th:href="@{/terms}">이용약관</a>
+            <a th:href="@{/privacy}">개인정보처리방침</a>
+            <a th:href="@{/contact}">제휴 문의</a>
+        </div>
+    </div>
+    <p class="copyright">© 2025 Book2OnAndOn. All rights reserved. <br> 도서 DB 제공 : 알라딘 인터넷서점(www.aladin.co.kr)</p>
+</footer>
 
 </body>
 </html>
