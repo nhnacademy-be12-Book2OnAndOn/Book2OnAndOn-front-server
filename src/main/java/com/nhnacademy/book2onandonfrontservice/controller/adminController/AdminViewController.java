@@ -2,18 +2,14 @@ package com.nhnacademy.book2onandonfrontservice.controller.adminController;
 
 import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
-import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
-import com.nhnacademy.book2onandonfrontservice.dto.userDto.UserGradeDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.AdminUserUpdateRequest;
-import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserGradeRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,7 +30,7 @@ public class AdminViewController {
 
     private final UserClient userClient;
     private final CouponClient couponClient;
-    private final UserGradeClient userGradeClient;
+//    private final UserGradeClient userGradeClient;
 
     //관리자 대시보드
     @GetMapping
@@ -150,25 +146,25 @@ public class AdminViewController {
         return "redirect:/admin/coupons";
     }
 
-    // 등급 목록 조회 페이지
-    @GetMapping("/grades")
-    public String gradeList(Model model) {
-        List<UserGradeDto> grades = userGradeClient.getAllGrades();
-        model.addAttribute("grades", grades);
-        return "admin/grades/list";
-    }
-
-    // 새 등급 생성
-    @PostMapping("/grades")
-    public String createGrade(@ModelAttribute UserGradeRequestDto request) {
-        userGradeClient.createGrade(request);
-        return "redirect:/admin/grades";
-    }
-
-    // 등급 정보 수정
-    @PostMapping("/grades/{gradeId}/update")
-    public String updateGrade(@PathVariable Long gradeId, @ModelAttribute UserGradeRequestDto request) {
-        userGradeClient.updateGrade(gradeId, request);
-        return "redirect:/admin/grades";
-    }
+//    // 등급 목록 조회 페이지
+//    @GetMapping("/grades")
+//    public String gradeList(Model model) {
+//        List<UserGradeDto> grades = userGradeClient.getAllGrades();
+//        model.addAttribute("grades", grades);
+//        return "admin/grades/list";
+//    }
+//
+//    // 새 등급 생성
+//    @PostMapping("/grades")
+//    public String createGrade(@ModelAttribute UserGradeRequestDto request) {
+//        userGradeClient.createGrade(request);
+//        return "redirect:/admin/grades";
+//    }
+//
+//    // 등급 정보 수정
+//    @PostMapping("/grades/{gradeId}/update")
+//    public String updateGrade(@PathVariable Long gradeId, @ModelAttribute UserGradeRequestDto request) {
+//        userGradeClient.updateGrade(gradeId, request);
+//        return "redirect:/admin/grades";
+//    }
 }

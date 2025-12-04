@@ -9,32 +9,7 @@
 
 </head>
 <body class="auth-page">
-<header class="main-header">
-    <div class="header-bar container">
-        <div class="logo-wrap">
-            <a class="logo-link" th:href="@{/}">
-                <img alt="Book2OnAndOn logo" class="logo-mark" src="/images/logo.png"
-                     th:src="@{/images/logo.png}">
-                <span class="brand-name">Book2OnAndOn</span>
-            </a>
-        </div>
-        <div class="header-actions">
-            <div class="icon-buttons">
-                <a aria-label="장바구니" class="icon-btn cart" th:href="@{/cart}">
-                    <i aria-hidden="true" class="fi fi-rs-cart"></i>
-                </a>
-            </div>
-            <th:block th:if="${session.user == null}">
-                <button class="text-link" th:onclick="|location.href='@{/login}'|" type="button">로그인</button>
-                <button class="text-link" th:onclick="|location.href='@{/signup}'|" type="button">회원가입</button>
-            </th:block>
-            <th:block th:if="${session.user != null}">
-                <span class="user-name" th:text="${session.user.name} + '님'">사용자님</span>
-                <button class="text-link" th:onclick="|location.href='@{/logout}'|" type="button">로그아웃</button>
-            </th:block>
-        </div>
-    </div>
-</header>
+<th:block th:replace="~{fragments/layout :: commonHeader(${user}, ${cartCount}, null, null, false)}"></th:block>
 
 <main>
     <section class="hero auth-hero">
@@ -129,42 +104,7 @@
     </section>
 </main>
 
-<footer class="site-footer">
-    <div class="container footer-grid">
-        <div>
-            <div class="logo-wrap light">
-                <a class="logo-link" th:href="@{/}">
-                    <img alt="Book2OnAndOn logo" class="logo-mark" src="/images/logo.png"
-                         th:src="@{/images/logo.png}">
-                    <span class="brand-name">Book2OnAndOn</span>
-                </a>
-            </div>
-            <p>책으로 떠나는 무한한 여행, <br> 당신의 서재를 채워보세요.</p>
-        </div>
-        <div>
-            <h4>고객센터</h4>
-            <a th:href="@{/support}">자주 묻는 질문</a>
-            <a th:href="@{/support/guide}">이용 안내</a>
-            <a th:href="@{/support/exchange}">반품/교환 안내</a>
-            <a th:href="@{/notice}">공지사항</a>
-        </div>
-        <div>
-            <h4>카테고리</h4>
-            <a th:href="@{/books/bestseller}">베스트셀러</a>
-            <a th:href="@{/books/new}">신간 도서</a>
-            <a th:href="@{/books/literature}">문학</a>
-            <a th:href="@{/books/self}">자기계발</a>
-        </div>
-        <div>
-            <h4>회사 정보</h4>
-            <a th:href="@{/company/about}">회사 소개</a>
-            <a th:href="@{/terms}">이용약관</a>
-            <a th:href="@{/privacy}">개인정보처리방침</a>
-            <a th:href="@{/contact}">제휴 문의</a>
-        </div>
-    </div>
-    <p class="copyright">© 2025 Book2OnAndOn. All rights reserved. <br> 도서 DB 제공 : 알라딘 인터넷서점(www.aladin.co.kr)</p>
-</footer>
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 <script>
     // (기존 자바스크립트 로직 그대로 유지)

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko" th:replace="layout/mypage-layout :: layout(
+<html lang="ko" th:replace="~{layout/mypage-layout :: layout(
         title = ~{::title},
         sidebarActive = 'dashboard',
         content = ~{::content}
-      )"
+      )}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <!--    <title>마이페이지 대시보드</title>-->
