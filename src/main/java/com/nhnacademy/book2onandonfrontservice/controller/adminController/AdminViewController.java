@@ -1,13 +1,22 @@
 package com.nhnacademy.book2onandonfrontservice.controller.adminController;
 
+import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
+import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
+import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.UserGradeDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.AdminUserUpdateRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserGradeRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class AdminViewController {
 
     private final UserClient userClient;
+    private final CouponClient couponClient;
+    private final UserGradeClient userGradeClient;
 
     //관리자 대시보드
     @GetMapping
@@ -110,5 +121,54 @@ public class AdminViewController {
             log.error("회원 삭제 실패", e);
             return "redirect:/admin/users?error=delete_failed";
         }
+    }
+
+    @GetMapping("/coupons")
+    public String listCoupons(@RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "10") int size,
+                              @RequestParam(required = false) String status,
+                              Model model) {
+
+        Page<CouponDto> couponPage = couponClient.getCoupons(page, size, status);
+
+        model.addAttribute("coupons", couponPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPage", couponPage.getTotalPages());
+        model.addAttribute("searchStatus", status);
+        model.addAttribute("today", LocalDate.now());
+
+        return "admin/coupon/list";
+    }
+
+    @PostMapping("/coupons/{couponId}/update-quantity")
+    public String updateQuantity(@PathVariable("couponId") Long couponId,
+                                 @RequestParam(required = false) Integer quantity) {
+
+        CouponUpdateDto updateDto = new CouponUpdateDto(quantity);
+        couponClient.updateCouponQuantity(couponId, updateDto);
+
+        return "redirect:/admin/coupons";
+    }
+
+    // 등급 목록 조회 페이지
+    @GetMapping("/grades")
+    public String gradeList(Model model) {
+        List<UserGradeDto> grades = userGradeClient.getAllGrades();
+        model.addAttribute("grades", grades);
+        return "admin/grades/list";
+    }
+
+    // 새 등급 생성
+    @PostMapping("/grades")
+    public String createGrade(@ModelAttribute UserGradeRequestDto request) {
+        userGradeClient.createGrade(request);
+        return "redirect:/admin/grades";
+    }
+
+    // 등급 정보 수정
+    @PostMapping("/grades/{gradeId}/update")
+    public String updateGrade(@PathVariable Long gradeId, @ModelAttribute UserGradeRequestDto request) {
+        userGradeClient.updateGrade(gradeId, request);
+        return "redirect:/admin/grades";
     }
 }
