@@ -19,7 +19,7 @@ let cartSummaryData = null;
 // ============================
 
 function buildAuthHeaders(baseHeaders = {}) {
-    const headers = {...baseHeaders};
+    const headers = { ...baseHeaders };
 
     if (accessToken) {
         headers['Authorization'] = `Bearer ${accessToken}`;
@@ -200,7 +200,7 @@ async function toggleSelectAll() {
     // 실제 API 모드
     try {
         let url;
-        const body = JSON.stringify({selected: selectAll});
+        const body = JSON.stringify({ selected: selectAll });
         const baseHeaders = {
             'Content-Type': 'application/json'
         };
@@ -712,6 +712,8 @@ async function mergeGuestCart(isAuto = false) {
         alert('장바구니 병합 중 오류가 발생했습니다.');
     }
 }
+
+
 
 
 // ============================

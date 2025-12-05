@@ -514,8 +514,9 @@ img {
 .hero-image {
     border-radius: var(--radius-lg);
     overflow: hidden;
-    margin-bottom: 1rem;
+    /*margin-bottom: 1rem;*/
     box-shadow: var(--shadow-soft);
+    align-content: center;
 }
 
 .hero-price .label {

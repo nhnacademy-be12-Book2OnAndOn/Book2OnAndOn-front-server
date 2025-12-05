@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/cartpage")
+// 화면(View) 반환용.
 public class CartController {
 
     @GetMapping

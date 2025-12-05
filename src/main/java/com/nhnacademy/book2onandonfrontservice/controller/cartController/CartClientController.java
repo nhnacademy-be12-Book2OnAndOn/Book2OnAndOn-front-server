@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/cart")
 @RequiredArgsConstructor
+// REST API + BFF(Backend for Frontend) 역할.
 public class CartClientController {
 
     // 브라우저에서 보내주는 헤더 이름
@@ -63,7 +64,7 @@ public class CartClientController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @Valid @RequestBody CartItemQuantityUpdateRequestDto requestDto
     ) {
-        cartUserClient.updateUserItemQuantity("Bearer " + accessToken, requestDto);
+        cartUserClient.updateQuantityUserCartItem("Bearer " + accessToken, requestDto);
     }
 
     // 4. 회원 장바구니 단일 아이템 삭제
@@ -72,7 +73,7 @@ public class CartClientController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @PathVariable Long bookId
     ) {
-        cartUserClient.removeItemFromUserCart("Bearer " + accessToken, bookId);
+        cartUserClient.deleteUserCartItem("Bearer " + accessToken, bookId);
     }
 
     // 5. 회원 장바구니 전체 항목 삭제
@@ -110,7 +111,7 @@ public class CartClientController {
     }
 
     // 9. 아이콘용 장바구니 개수 조회 (회원)
-    @GetMapping("/user/count")
+    @GetMapping("/user/items/count")
     public CartItemCountResponseDto getUserCartCount(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
@@ -161,20 +162,20 @@ public class CartClientController {
 
     // 3. 비회원 장바구니 수량 변경
     @PatchMapping("/guest/items/quantity")
-    public void updateGuestItemQuantity(
+    public void updateQuantityGuestCartItem(
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemQuantityUpdateRequestDto requestDto
     ) {
-        cartGuestClient.updateGuestItemQuantity(uuid, requestDto);
+        cartGuestClient.updateQuantityGuestCartItem(uuid, requestDto);
     }
 
     // 4. 비회원 장바구니 단일 아이템 삭제
     @DeleteMapping("/guest/items/{bookId}")
-    public void removeItemFromGuestCart(
+    public void deleteGuestCartItem(
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @PathVariable Long bookId
     ) {
-        cartGuestClient.removeItemFromGuestCart(uuid, bookId);
+        cartGuestClient.deleteGuestCartItem(uuid, bookId);
     }
 
     // 5. 비회원 장바구니 전체 항목 삭제
@@ -212,7 +213,7 @@ public class CartClientController {
     }
 
     // 9. 아이콘용 장바구니 개수 조회 (비회원)
-    @GetMapping("/guest/count")
+    @GetMapping("/guest/items/count")
     public CartItemCountResponseDto getGuestCartCount(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {

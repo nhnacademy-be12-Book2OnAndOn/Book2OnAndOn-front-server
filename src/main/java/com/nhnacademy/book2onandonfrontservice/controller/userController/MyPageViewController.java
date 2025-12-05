@@ -68,6 +68,7 @@ public class MyPageViewController {
                 Page<MemberCouponDto> memberCouponPage = memberCouponClient.getMyCoupon("Bearer " + accessToken, 0, 1,
                         MemberCouponStatus.NOT_USED);
 
+                log.info("쿠폰 갯수: {}", memberCouponPage.getTotalElements());
                 model.addAttribute("couponCount", memberCouponPage.getTotalElements());
             } catch (Exception e) {
                 log.warn("쿠폰 개수 조회 실패", e);
