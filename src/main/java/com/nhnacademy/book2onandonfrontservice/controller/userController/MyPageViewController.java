@@ -14,7 +14,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserAddressR
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import com.nhnacademy.book2onandonfrontservice.util.JwtUtils;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -283,6 +285,33 @@ public class MyPageViewController {
         return "redirect:/users/me/addresses";
     }
 
+    // 회원 탈퇴 요청
+    @PostMapping("/withdraw")
+    public String withdraw(HttpServletRequest request,
+                           HttpServletResponse response,
+                           @RequestParam(required = false) String reason) {
+
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+
+        try {
+
+            String finalReason = (reason == null || reason.isBlank()) ? "사용자 요청에 의한 탈퇴" : reason;
+            userClient.withdrawUser("Bearer " + accessToken, finalReason);
+
+            expireCookie(response, "accessToken");
+            expireCookie(response, "refreshToken");
+            
+            return "redirect:/?message=withdrawn";
+
+        } catch (Exception e) {
+            log.error("회원 탈퇴 실패", e);
+            return "redirect:/users/me?error=withdraw_failed";
+        }
+    }
+
     //헬퍼 메서드
     private Long getUserIdFromToken(HttpServletRequest request) {
         String token = CookieUtils.getCookieValue(request, "accessToken");
@@ -290,5 +319,12 @@ public class MyPageViewController {
             return null;
         }
         return JwtUtils.getUserId(token);
+    }
+
+    private void expireCookie(HttpServletResponse response, String cookieName) {
+        Cookie cookie = new Cookie(cookieName, null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
     }
 }
