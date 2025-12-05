@@ -19,69 +19,70 @@ import org.springframework.web.bind.annotation.RequestHeader;
         name = "gateway-service", contextId = "cartGuestClient", url = "${gateway.base-url}")
 public interface CartGuestClient {
 
+    String GUEST_ID_HEADER = "X-Guest-Id";
 
     // 1. 비회원 장바구니 조회
     @GetMapping("/api/cart/guest")
     CartItemsResponseDto getGuestCart(
-            @RequestHeader("X-Guest-Id") String uuid
+            @RequestHeader(GUEST_ID_HEADER) String uuid
     );
 
     // 2. 비회원 장바구니 담기
     @PostMapping("/api/cart/guest/items")
     void addItemToGuestCart(
-            @RequestHeader("X-Guest-Id") String uuid,
+            @RequestHeader(GUEST_ID_HEADER) String uuid,
             @RequestBody CartItemRequestDto requestDto
     );
 
     // 3. 비회원 장바구니 수량 변경
     @PatchMapping("/api/cart/guest/items/quantity")
-    void updateGuestItemQuantity(
-            @RequestHeader("X-Guest-Id") String uuid,
+    void updateQuantityGuestCartItem(
+            @RequestHeader(GUEST_ID_HEADER) String uuid,
             @RequestBody CartItemQuantityUpdateRequestDto requestDto
     );
 
     // 4. 비회원 장바구니 단일 아이템 삭제
     @DeleteMapping("/api/cart/guest/items/{bookId}")
-    void removeItemFromGuestCart(
-            @RequestHeader("X-Guest-Id") String uuid,
+    void deleteGuestCartItem(
+            @RequestHeader(GUEST_ID_HEADER) String uuid,
             @PathVariable("bookId") Long bookId
     );
 
     // 5. 비회원 장바구니 전체 삭제
     @DeleteMapping("/api/cart/guest/items")
     void clearGuestCart(
-            @RequestHeader("X-Guest-Id") String uuid
+            @RequestHeader(GUEST_ID_HEADER) String uuid
     );
 
     // 6. 비회원 장바구니 선택 항목 삭제
     @DeleteMapping("/api/cart/guest/items/selected")
     void deleteSelectedGuestCartItems(
-            @RequestHeader("X-Guest-Id") String uuid
+            @RequestHeader(GUEST_ID_HEADER) String uuid
     );
 
     // 7. 비회원 장바구니 단건 선택/해제
     @PatchMapping("/api/cart/guest/items/select")
     void selectGuestCartItem(
-            @RequestHeader("Cookie") String guestCookie,
+            @RequestHeader(GUEST_ID_HEADER) String uuid,
             @RequestBody CartItemSelectRequestDto requestDto
     );
 
     // 8. 비회원 장바구니 전체 선택/해제
     @PatchMapping("/api/cart/guest/items/select-all")
     void selectAllGuestCartItems(
-            @RequestHeader("X-Guest-Id") String uuid,
+            @RequestHeader(GUEST_ID_HEADER) String uuid,
             @RequestBody CartItemSelectAllRequestDto requestDto
     );
 
     // 9. 비회원 장바구니 개수 조회
-    @GetMapping("/api/cart/guest/count")
+    @GetMapping("/api/cart/guest/items/count")
     CartItemCountResponseDto getGuestCartCount(
-            @RequestHeader("X-Guest-Id") String uuid
+            @RequestHeader(GUEST_ID_HEADER) String uuid
     );
 
     // 10. 비회원 장바구니 중 선택 + 구매 가능 항목만 조회
-    @GetMapping("/api/cart/guest/selected")
+    @GetMapping("/api/cart/guest/items/selected")
     CartItemsResponseDto getGuestSelectedCart(
-            @RequestHeader("X-Guest-Id") String uuid
+            @RequestHeader(GUEST_ID_HEADER) String uuid
     );
 }
