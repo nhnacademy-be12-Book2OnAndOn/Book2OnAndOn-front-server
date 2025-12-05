@@ -1,15 +1,24 @@
 package com.nhnacademy.book2onandonfrontservice.controller.adminController;
 
 import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
+import com.nhnacademy.book2onandonfrontservice.client.DeliveryClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+//import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
+import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryCompany;
+import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryDto;
+import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryWaybillUpdateDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.OrderStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
+//import com.nhnacademy.book2onandonfrontservice.dto.userDto.UserGradeDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.AdminUserUpdateRequest;
+//import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserGradeRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,6 +40,7 @@ public class AdminViewController {
     private final UserClient userClient;
     private final CouponClient couponClient;
 //    private final UserGradeClient userGradeClient;
+    private final DeliveryClient deliveryClient;
 
     //관리자 대시보드
     @GetMapping
@@ -167,4 +177,51 @@ public class AdminViewController {
 //        userGradeClient.updateGrade(gradeId, request);
 //        return "redirect:/admin/grades";
 //    }
+
+    @GetMapping("/deliveries")
+    public String listDeliveries(@RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "10") int size,
+                                 @RequestParam(required = false) OrderStatus status,
+                                 Model model) {
+
+        Page<DeliveryDto> deliveryPage = deliveryClient.getDeliveries(page, size, status);
+
+        model.addAttribute("deliveries", deliveryPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", deliveryPage.getTotalPages());
+        model.addAttribute("searchStatus", status);
+
+        // 필터용 Enum 데이터 (주문 상태, 택배사 목록)
+        model.addAttribute("orderStatuses", OrderStatus.values());
+        model.addAttribute("deliveryCompanies", DeliveryCompany.values());
+
+        // 페이지네이션 범위 계산
+        int startPage = Math.max(0, page - 2);
+        int endPage = Math.min(Math.max(0, deliveryPage.getTotalPages() - 1), page + 2);
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
+
+        return "admin/delivery/list"; // templates/admin/delivery/list.html
+    }
+
+    //운송장 등록 처리 (배송 시작)
+    @PostMapping("/deliveries/{deliveryId}/waybill")
+    public String registerWaybill(@PathVariable Long deliveryId,
+                                  @ModelAttribute DeliveryWaybillUpdateDto requestDto) {
+
+        deliveryClient.registerWaybill(deliveryId, requestDto);
+
+        return "redirect:/admin/deliveries?status=PREPARING";
+    }
+
+
+    //운송장 정보 수정 처리
+    @PostMapping("/deliveries/{deliveryId}/info")
+    public String updateDeliveryInfo(@PathVariable Long deliveryId,
+                                     @ModelAttribute DeliveryWaybillUpdateDto requestDto) {
+
+        deliveryClient.updateDeliveryInfo(deliveryId, requestDto);
+
+        return "redirect:/admin/deliveries";
+    }
 }
