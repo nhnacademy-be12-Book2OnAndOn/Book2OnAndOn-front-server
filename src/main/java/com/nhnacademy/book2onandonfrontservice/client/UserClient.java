@@ -88,6 +88,13 @@ public interface UserClient {
             @RequestBody PasswordChangeRequest request
     );
 
+    // [User] 회원 탈퇴 요청
+    @DeleteMapping("/api/users/me")
+    void withdrawUser(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestBody(required = false) String reason
+    );
+
     //[Admin] 전체 회원 목록 조회
     @GetMapping("/api/admin/users")
     RestPage<UserResponseDto> getUsers(
