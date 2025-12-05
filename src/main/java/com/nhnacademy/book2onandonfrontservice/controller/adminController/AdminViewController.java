@@ -185,7 +185,7 @@ public class AdminViewController {
                                  Model model) {
 
         Page<DeliveryDto> deliveryPage = deliveryClient.getDeliveries(page, size, status);
-
+        log.info("배송: {}", deliveryPage.getTotalElements());
         model.addAttribute("deliveries", deliveryPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", deliveryPage.getTotalPages());
