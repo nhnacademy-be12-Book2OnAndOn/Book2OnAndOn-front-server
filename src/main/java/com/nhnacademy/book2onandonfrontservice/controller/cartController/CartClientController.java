@@ -147,7 +147,7 @@ public class CartClientController {
     public CartItemsResponseDto getGuestCart(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        return cartGuestClient.getGuestCart("GUEST_ID=" + uuid);
+        return cartGuestClient.getGuestCart(uuid);
     }
 
     // 2. 비회원 장바구니 담기
@@ -156,7 +156,7 @@ public class CartClientController {
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemRequestDto requestDto
     ) {
-        cartGuestClient.addItemToGuestCart("GUEST_ID=" + uuid, requestDto);
+        cartGuestClient.addItemToGuestCart(uuid, requestDto);
     }
 
     // 3. 비회원 장바구니 수량 변경
@@ -165,7 +165,7 @@ public class CartClientController {
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemQuantityUpdateRequestDto requestDto
     ) {
-        cartGuestClient.updateGuestItemQuantity("GUEST_ID=" + uuid, requestDto);
+        cartGuestClient.updateGuestItemQuantity(uuid, requestDto);
     }
 
     // 4. 비회원 장바구니 단일 아이템 삭제
@@ -174,7 +174,7 @@ public class CartClientController {
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @PathVariable Long bookId
     ) {
-        cartGuestClient.removeItemFromGuestCart("GUEST_ID=" + uuid, bookId);
+        cartGuestClient.removeItemFromGuestCart(uuid, bookId);
     }
 
     // 5. 비회원 장바구니 전체 항목 삭제
@@ -182,7 +182,7 @@ public class CartClientController {
     public void clearGuestCart(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        cartGuestClient.clearGuestCart("GUEST_ID=" + uuid);
+        cartGuestClient.clearGuestCart(uuid);
     }
 
     // 6. 비회원 장바구니 "선택된" 항목 삭제
@@ -190,7 +190,7 @@ public class CartClientController {
     public void deleteSelectedGuestCartItems(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        cartGuestClient.deleteSelectedGuestCartItems("GUEST_ID=" + uuid);
+        cartGuestClient.deleteSelectedGuestCartItems(uuid);
     }
 
     // 7. 비회원 장바구니 단건 선택/해제
@@ -199,7 +199,7 @@ public class CartClientController {
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemSelectRequestDto requestDto
     ) {
-        cartGuestClient.selectGuestCartItem("GUEST_ID=" + uuid, requestDto);
+        cartGuestClient.selectGuestCartItem(uuid, requestDto);
     }
 
     // 8. 비회원 장바구니 전체 선택/해제
@@ -208,7 +208,7 @@ public class CartClientController {
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemSelectAllRequestDto requestDto
     ) {
-        cartGuestClient.selectAllGuestCartItems("GUEST_ID=" + uuid, requestDto);
+        cartGuestClient.selectAllGuestCartItems(uuid, requestDto);
     }
 
     // 9. 아이콘용 장바구니 개수 조회 (비회원)
@@ -216,7 +216,7 @@ public class CartClientController {
     public CartItemCountResponseDto getGuestCartCount(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        return cartGuestClient.getGuestCartCount("GUEST_ID=" + uuid);
+        return cartGuestClient.getGuestCartCount(uuid);
     }
 
     // 10. 비회원 장바구니 중 "선택된 + 구매 가능한" 항목만 조회 (주문용)
@@ -224,6 +224,6 @@ public class CartClientController {
     public CartItemsResponseDto getGuestSelectedCart(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        return cartGuestClient.getGuestSelectedCart("GUEST_ID=" + uuid);
+        return cartGuestClient.getGuestSelectedCart(uuid);
     }
 }
