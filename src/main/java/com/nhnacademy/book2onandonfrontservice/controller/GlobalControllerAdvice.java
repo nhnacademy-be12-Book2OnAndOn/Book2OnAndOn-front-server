@@ -2,6 +2,7 @@ package com.nhnacademy.book2onandonfrontservice.controller;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
@@ -38,6 +39,24 @@ public class GlobalControllerAdvice {
         try {
             return bookClient.getCategories();
         } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    /*
+    최근 본 상품 플로팅 바에 사용됨
+     */
+    @ModelAttribute("recentBooks")
+    public List<BookDto> addRecentViews(HttpServletRequest request){
+        try{
+            String guestId = CookieUtils.getCookieValue(request, "guestId");
+            String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+
+            if(guestId == null && accessToken==null){
+                return Collections.emptyList();
+            }
+            return bookClient.getRecentViews();
+        }catch (Exception e){
             return Collections.emptyList();
         }
     }

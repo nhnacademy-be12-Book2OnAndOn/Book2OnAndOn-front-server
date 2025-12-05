@@ -90,8 +90,17 @@
                                           th:text="${#numbers.formatInteger(book.originalPrice, 0, 'COMMA')} + '원'">25,000원</span>
                                 </div>
                             </div>
-                            <p class="linked-discount" th:if="${book.discountRate != null}"
-                               th:text="${book.discountRate} + '% 할인'">13% 할인</p>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                                <button class="like-btn"
+                                        th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
+                                        th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
+                                        type="button">
+                                    <span class="heart-icon"></span>
+                                    <span class="like-count" th:text="${book.likeCount}">0</span>
+                                </button>
+                                <p class="linked-discount" th:if="${book.discountRate != null}"
+                                   th:text="${book.discountRate} + '% 할인'" style="margin:0;">13% 할인</p>
+                            </div>
                             <button class="linked-cart" th:onclick="'addToCart(' + ${book.id} + ')'">장바구니</button>
                         </div>
                     </article>
@@ -155,9 +164,17 @@
                                               th:text="${#numbers.formatInteger(book.originalPrice, 0, 'COMMA')} + '원'">25,000원</span>
                                     </div>
                                 </div>
-                                <p class="linked-discount" th:if="${book.discountRate != null}"
-                                   th:text="${book.discountRate} + '% 할인'">13% 할인</p>
-                                <button class="linked-cart" th:onclick="'addToCart(' + ${book.id} + ')'">장바구니</button>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                                    <button class="like-btn"
+                                            th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
+                                            th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
+                                            type="button">
+                                        <span class="heart-icon"></span>
+                                        <span class="like-count" th:text="${book.likeCount}">0</span>
+                                    </button>
+                                    <p class="linked-discount" th:if="${book.discountRate != null}"
+                                       th:text="${book.discountRate} + '% 할인'" style="margin:0;">13% 할인</p>
+                                </div>
                             </div>
                         </article>
                     </div>
@@ -205,12 +222,21 @@
                                 <span>★</span>
                                 <span th:text="${book.rating}">4.8</span>
                             </div>
+
                             <div class="price-info">
                                 <span class="price"
                                       th:text="${book.priceSales != null} ? '₩' + ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} : '가격 준비중'">₩79,800</span>
                                 <span class="origin" th:if="${book.priceStandard != null}"
                                       th:text="'₩' + ${#numbers.formatInteger(book.priceStandard, 0, 'COMMA')}">₩99,000</span>
+
                             </div>
+                            <button class="like-btn"
+                                    th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
+                                    th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
+                                    type="button">
+                                <span class="heart-icon"></span>
+                                <span class="like-count" th:text="${book.likeCount}">0</span>
+                            </button>
                         </div>
                     </div>
                     <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
@@ -287,6 +313,14 @@
                                 <span class="origin" th:if="${book.originalPrice != null}"
                                       th:text="'₩' + ${#numbers.formatInteger(book.originalPrice, 0, 'COMMA')}">₩99,000</span>
                             </div>
+
+                            <button class="like-btn"
+                                    th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
+                                    th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
+                                    type="button">
+                                <span class="heart-icon"></span>
+                                <span class="like-count" th:text="${book.likeCount}">0</span>
+                            </button>
                         </div>
                     </div>
                     <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
@@ -378,6 +412,13 @@
                             <span class="price"
                                   th:text="${book.priceSales != null} ? '₩' + ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} : '가격 미정'">₩0</span>
                         </div>
+                        <button class="like-btn"
+                                th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
+                                th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
+                                type="button">
+                            <span class="heart-icon"></span>
+                            <span class="like-count" th:text="${book.likeCount}">0</span>
+                        </button>
                     </div>
                 </div>
 
@@ -433,6 +474,50 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('오류가 발생했습니다.');
+            });
+    }
+    function toggleLike(btnElement, bookId) {
+        fetch(`/api/front/books/${bookId}/likes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(async response => {
+                if (response.ok) return response.json();
+
+                // 401 Unauth 처리
+                if (response.status === 401) {
+                    throw new Error('UNAUTHORIZED');
+                }
+
+                const errorText = await response.text();
+                throw new Error(errorText || 'FAILED');
+            })
+            .then(data => {
+                // 성공 시 UI 업데이트 (하트 색상 및 카운트)
+                const countSpan = btnElement.querySelector('.like-count');
+
+                if (data.liked) {
+                    btnElement.classList.add('active'); // 빨간 하트
+                } else {
+                    btnElement.classList.remove('active'); // 회색 하트
+                }
+
+                // 숫자 업데이트
+                if (countSpan) {
+                    countSpan.textContent = data.likeCount;
+                }
+            })
+            .catch(error => {
+                console.error('Like Error:', error);
+                if (error.message === 'UNAUTHORIZED') {
+                    if (confirm('로그인이 필요한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?')) {
+                        location.href = '/login';
+                    }
+                } else {
+                    alert('좋아요 처리에 실패했습니다. 다시 시도해주세요.');
+                }
             });
     }
 

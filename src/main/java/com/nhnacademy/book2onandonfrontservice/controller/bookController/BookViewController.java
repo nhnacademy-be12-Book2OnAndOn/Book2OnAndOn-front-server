@@ -1,6 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.controller.bookController;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -20,7 +22,7 @@ public class BookViewController {
 
     private final BookClient bookClient;
 
-    // 메인 페이지 (대시보드)
+    /// 메인 페이지 (대시보드)
     @GetMapping("/")
     public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
         Page<BookDto> response = bookClient.getNewArrivals(null, page,8);
@@ -41,6 +43,17 @@ public class BookViewController {
             model.addAttribute("likeBest", likeBest);
         }
         return "dashboard";
+    }
+
+    /// 도서 상세조회
+    @GetMapping("/books/{bookId}")
+    public String getBookDetail(@PathVariable Long bookId, Model model){
+        BookDetailResponse bookDetail = bookClient.getBookDetail(bookId);
+        if(bookDetail!=null){
+            model.addAttribute("bookDetail", bookDetail);
+        }
+        //TODO: 북 상세조회 페이지 만들기
+        return "민서가 작성하시오";
     }
 
 
