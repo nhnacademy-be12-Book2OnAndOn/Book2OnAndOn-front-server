@@ -23,40 +23,40 @@ public interface CartGuestClient {
     // 1. 비회원 장바구니 조회
     @GetMapping("/api/cart/guest")
     CartItemsResponseDto getGuestCart(
-            @RequestHeader("Cookie") String guestCookie
+            @RequestHeader("X-Guest-Id") String uuid
     );
 
     // 2. 비회원 장바구니 담기
     @PostMapping("/api/cart/guest/items")
     void addItemToGuestCart(
-            @RequestHeader("Cookie") String guestCookie,
+            @RequestHeader("X-Guest-Id") String uuid,
             @RequestBody CartItemRequestDto requestDto
     );
 
     // 3. 비회원 장바구니 수량 변경
     @PatchMapping("/api/cart/guest/items/quantity")
     void updateGuestItemQuantity(
-            @RequestHeader("Cookie") String guestCookie,
+            @RequestHeader("X-Guest-Id") String uuid,
             @RequestBody CartItemQuantityUpdateRequestDto requestDto
     );
 
     // 4. 비회원 장바구니 단일 아이템 삭제
     @DeleteMapping("/api/cart/guest/items/{bookId}")
     void removeItemFromGuestCart(
-            @RequestHeader("Cookie") String guestCookie,
+            @RequestHeader("X-Guest-Id") String uuid,
             @PathVariable("bookId") Long bookId
     );
 
     // 5. 비회원 장바구니 전체 삭제
     @DeleteMapping("/api/cart/guest/items")
     void clearGuestCart(
-            @RequestHeader("Cookie") String guestCookie
+            @RequestHeader("X-Guest-Id") String uuid
     );
 
     // 6. 비회원 장바구니 선택 항목 삭제
     @DeleteMapping("/api/cart/guest/items/selected")
     void deleteSelectedGuestCartItems(
-            @RequestHeader("Cookie") String guestCookie
+            @RequestHeader("X-Guest-Id") String uuid
     );
 
     // 7. 비회원 장바구니 단건 선택/해제
@@ -69,19 +69,19 @@ public interface CartGuestClient {
     // 8. 비회원 장바구니 전체 선택/해제
     @PatchMapping("/api/cart/guest/items/select-all")
     void selectAllGuestCartItems(
-            @RequestHeader("Cookie") String guestCookie,
+            @RequestHeader("X-Guest-Id") String uuid,
             @RequestBody CartItemSelectAllRequestDto requestDto
     );
 
     // 9. 비회원 장바구니 개수 조회
     @GetMapping("/api/cart/guest/count")
     CartItemCountResponseDto getGuestCartCount(
-            @RequestHeader("Cookie") String guestCookie
+            @RequestHeader("X-Guest-Id") String uuid
     );
 
     // 10. 비회원 장바구니 중 선택 + 구매 가능 항목만 조회
     @GetMapping("/api/cart/guest/selected")
     CartItemsResponseDto getGuestSelectedCart(
-            @RequestHeader("Cookie") String guestCookie
+            @RequestHeader("X-Guest-Id") String uuid
     );
 }
