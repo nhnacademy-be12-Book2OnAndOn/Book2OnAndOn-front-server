@@ -1,5 +1,6 @@
 package com.nhnacademy.book2onandonfrontservice.controller.userController;
 
+import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindIdRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindPasswordRequest;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class AuthViewController {
 
     private final UserClient userClient;
+    private final BookClient bookClient;
 
 
     //로그인 페이지
@@ -42,7 +44,8 @@ public class AuthViewController {
     //로그인 처리
     @PostMapping("/login")
     public String login(@ModelAttribute LoginRequest loginRequest,
-                        HttpServletResponse response) {
+                        HttpServletResponse response,
+                        HttpServletRequest request) {
         try {
             TokenResponseDto token = userClient.login(loginRequest);
 
@@ -60,6 +63,17 @@ public class AuthViewController {
             refreshCookie.setMaxAge(604800);
             response.addCookie(refreshCookie);
 
+            try{
+                String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
+
+                String bearerToken = "Bearer "+token.getAccessToken();
+
+                if(guestId != null){
+                    bookClient.mergeRecentViews(bearerToken, guestId);
+                }
+            } catch (Exception e) {
+                return "redirect:/login?error=true";
+            }
             return "redirect:/";
 
         } catch (Exception e) {
