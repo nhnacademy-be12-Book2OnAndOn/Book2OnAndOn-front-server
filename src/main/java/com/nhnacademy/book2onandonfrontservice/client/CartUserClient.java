@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "gateway-service", contextId = "cartUserClient", url = "${gateway.base-url}")
 public interface CartUserClient {
@@ -92,7 +91,7 @@ public interface CartUserClient {
     @PostMapping("/api/cart/user/merge")
     CartMergeResultResponseDto mergeGuestCartToUserCart(
             @RequestHeader("Authorization") String accessToken,
-            @RequestParam(GUEST_ID_HEADER) String uuid
+            @RequestHeader(GUEST_ID_HEADER) String uuid
     );
 
     // 12. 머지 체크용
