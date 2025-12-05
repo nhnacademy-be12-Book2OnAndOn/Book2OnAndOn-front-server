@@ -16,8 +16,12 @@ body {
 
 .container {
     max-width: 1200px;
+    /*min-height: 75vh;*/
     margin: 0 auto;
     padding: 20px;
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    /*gap: 20px;*/
 }
 
 header {
@@ -40,7 +44,7 @@ header h1 {
     padding: 15px;
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .select-all {
@@ -99,7 +103,7 @@ header h1 {
 .cart-items {
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
 }
 
@@ -298,7 +302,7 @@ header h1 {
 .cart-summary {
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 30px;
     position: sticky;
     bottom: 20px;
@@ -343,7 +347,7 @@ header h1 {
     padding: 60px 20px;
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .empty-cart-icon {

@@ -97,14 +97,16 @@ async function loadCartFromServer() {
             'Content-Type': 'application/json',
         };
 
-        if (userId) {
-            // 회원 장바구니 조회: GET /cart/user
+        const accessToken = getCookie('accessToken');
+
+        if (accessToken) {
             url = `${API_BASE}/user`;
-            headers['X-User-Id'] = userId;
+            headers['Authorization'] = `Bearer ${accessToken}`; // Gateway가 이걸 보고 User-Id를 만듦
         } else {
-            // 비회원 장바구니 조회: GET /cart/guest
             url = `${API_BASE}/guest`;
-            headers['X-Guest-Id'] = uuid;
+            if (uuid) {
+                headers['X-Guest-Id'] = uuid; // (또는 getCookie('GUEST_ID'))
+            }
         }
 
         const response = await fetch(url, {
