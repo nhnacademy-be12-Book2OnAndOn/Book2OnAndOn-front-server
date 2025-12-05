@@ -1,5 +1,6 @@
 package com.nhnacademy.book2onandonfrontservice.dto.bookdto;
 
+import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,8 +18,10 @@ public class BookDto {
 
     private Long priceStandard; // 도서 정가
     private Long priceSales; // 도서 판매가
+    private Double rating; // 평점
 
     private String imagePath;   // 도서 이미지
+    private LocalDate publisherDate; //출간일
 
     private List<String> contributorNames;  // 기여자 정보
     private List<String> publisherNames;    // 출판사
