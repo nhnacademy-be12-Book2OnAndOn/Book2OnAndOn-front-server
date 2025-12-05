@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "gateway-service", contextId = "cartUserClient", url = "${gateway.base-url}")
 public interface CartUserClient {
@@ -38,14 +37,14 @@ public interface CartUserClient {
 
     // 3. 회원 장바구니 수량 변경
     @PatchMapping("/api/cart/user/items/quantity")
-    void updateUserItemQuantity(
+    void updateQuantityUserCartItem(
             @RequestHeader("Authorization") String accessToken,
             @RequestBody CartItemQuantityUpdateRequestDto requestDto
     );
 
     // 4. 회원 장바구니 단일 아이템 삭제
     @DeleteMapping("/api/cart/user/items/{bookId}")
-    void removeItemFromUserCart(
+    void deleteUserCartItem(
             @RequestHeader("Authorization") String accessToken,
             @PathVariable("bookId") Long bookId
     );
@@ -77,13 +76,13 @@ public interface CartUserClient {
     );
 
     // 9. 아이콘용 개수 조회
-    @GetMapping("/api/cart/user/count")
+    @GetMapping("/api/cart/user/items/count")
     CartItemCountResponseDto getUserCartCount(
             @RequestHeader("Authorization") String accessToken
     );
 
     // 10. 선택 + 구매 가능 항목만 조회 (주문용)
-    @GetMapping("/api/cart/user/selected")
+    @GetMapping("/api/cart/user/items/selected")
     CartItemsResponseDto getUserSelectedCart(
             @RequestHeader("Authorization") String accessToken
     );
@@ -92,7 +91,7 @@ public interface CartUserClient {
     @PostMapping("/api/cart/user/merge")
     CartMergeResultResponseDto mergeGuestCartToUserCart(
             @RequestHeader("Authorization") String accessToken,
-            @RequestParam(GUEST_ID_HEADER) String uuid
+            @RequestHeader(GUEST_ID_HEADER) String uuid
     );
 
     // 12. 머지 체크용
