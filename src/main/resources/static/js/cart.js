@@ -45,7 +45,6 @@ async function loadCartFromServer() {
             // 회원 장바구니 조회: GET /cart/user
             url = `${API_BASE}/user`;
         } else {
-            // 비회원 장바구니 조회: GET /cart/guest
             url = `${API_BASE}/guest`;
         }
 
@@ -604,6 +603,118 @@ async function mergeGuestCart(isAuto = false) {
         alert('장바구니 병합 중 오류가 발생했습니다.');
     }
 }
+
+async function initCartPage() {
+    if (USE_DUMMY) {
+        renderCart();
+        return;
+    }
+
+    await loadCartFromServer(); // 기존 장바구니 렌더링
+
+    // 로그인 상태 + uuid가 있는 경우에만 merge-status 조회
+    if (userId && uuid) {
+        await checkMergeStatusAndMaybeOpenModal();
+    }
+}
+
+async function checkMergeStatusAndMaybeOpenModal() {
+    try {
+        const res = await fetch('/cart/user/merge-status', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Id': userId,
+                'X-Guest-Id': uuid
+            }
+        });
+
+        if (!res.ok) {
+            console.error('merge-status 조회 실패', res.status);
+            return;
+        }
+
+        const data = await res.json(); // CartMergeStatusResponseDto
+
+        // 1) 게스트 카트가 아예 없으면 아무것도 안 함
+        if (!data.hasGuestCart) {
+            return;
+        }
+
+        // 2) 게스트 O + 회원 X → 자동 병합
+        if (data.hasGuestCart && !data.hasUserCart) {
+            // 자동 병합 후 간단 안내만 띄우고 끝
+            await mergeGuestCart(true); // true = autoMergeFlag 정도로
+            return;
+        }
+
+        // 3) 게스트 O + 회원 O → 모달 띄워서 선택형 병합
+        if (data.hasGuestCart && data.hasUserCart) {
+            openMergeModal(data.guestItemCount);
+        }
+    } catch (e) {
+        console.error('merge-status 조회 중 오류', e);
+    }
+}
+
+
+function openMergeModal(guestItemCount) {
+    const confirmMerge = confirm(
+        `비회원 장바구니에 ${guestItemCount}개의 상품이 있습니다.\n` +
+        `현재 회원 장바구니와 병합하시겠습니까?`
+    );
+
+    if (confirmMerge) {
+        mergeGuestCart();
+    } else {
+        // 정책에 따라:
+        // 1) 그냥 아무것도 안 하기 (게스트 카트 유지)
+        // 2) 게스트 카트 바로 삭제
+        //   fetch('/cart/user/guest-clear', ...) 같은 API 만들어서 처리
+    }
+}
+
+async function mergeGuestCart(isAuto = false) {
+    try {
+        const res = await fetch('/cart/user/merge', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Id': userId,
+                'X-Guest-Id': uuid
+            }
+        });
+
+        if (!res.ok) {
+            alert('장바구니 병합 중 오류가 발생했습니다.');
+            return;
+        }
+
+        const mergeResult = await res.json();
+
+        // 병합 성공 시 uuid 정리할지 정책에 따라 선택
+        // if (mergeResult.mergeSucceeded) {
+        //     localStorage.removeItem('uuid');
+        //     uuid = null;
+        // }
+
+        if (isAuto) {
+            // 자동 병합 케이스라면 살짝 안내 한 줄 정도
+            alert('비회원 장바구니를 회원 장바구니로 자동 병합했습니다.');
+        } else {
+            // 모달에서 사용자가 "예"를 누른 병합 케이스
+            alert('장바구니 병합이 완료되었습니다.');
+        }
+
+        await loadCartFromServer();
+    } catch (e) {
+        console.error('merge 호출 중 오류', e);
+        alert('장바구니 병합 중 오류가 발생했습니다.');
+    }
+}
+
+
+
 
 // ============================
 // 초기화
