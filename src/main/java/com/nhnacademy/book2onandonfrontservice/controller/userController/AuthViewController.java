@@ -1,6 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.controller.userController;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindIdRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindPasswordRequest;
@@ -9,10 +10,12 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LoginRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.FindIdResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.TokenResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
+import feign.FeignException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -104,9 +107,30 @@ public class AuthViewController {
             userClient.signUp(signupForm);
             return "redirect:/login";
 
+        } catch (FeignException e) {
+            log.error("회원가입 API 호출 에러", e);
+
+            String errorMessage = "회원가입에 실패했습니다.";
+
+            try {
+                // JSON 본문에서 message 추출 로직
+                String responseBody = e.contentUTF8();
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> errorMap = objectMapper.readValue(responseBody, Map.class);
+
+                if (errorMap != null && errorMap.containsKey("message")) {
+                    errorMessage += " (" + errorMap.get("message") + ")";
+                }
+            } catch (Exception parsingEx) {
+                log.error("에러 메시지 파싱 실패", parsingEx);
+            }
+
+            model.addAttribute("error", errorMessage);
+            return "auth/signup";
+
         } catch (Exception e) {
-            log.error("회원가입 실패", e);
-            model.addAttribute("error", "회원가입에 실패했습니다. (" + e.getMessage() + ")");
+            log.error("회원가입 중 알 수 없는 오류", e);
+            model.addAttribute("error", "회원가입에 실패했습니다. (시스템 오류)");
             return "auth/signup";
         }
     }
