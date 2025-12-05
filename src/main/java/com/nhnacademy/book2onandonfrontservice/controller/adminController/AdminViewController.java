@@ -1,7 +1,10 @@
 package com.nhnacademy.book2onandonfrontservice.controller.adminController;
 
+import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
@@ -10,6 +13,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponse
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -19,8 +23,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Controller
@@ -30,6 +36,7 @@ public class AdminViewController {
 
     private final UserClient userClient;
     private final CouponClient couponClient;
+    private final BookClient bookClient;
 //    private final UserGradeClient userGradeClient;
 
     //관리자 대시보드
@@ -144,6 +151,23 @@ public class AdminViewController {
         couponClient.updateCouponQuantity(couponId, updateDto);
 
         return "redirect:/admin/coupons";
+    }
+
+    /// 도서 등록
+    @PostMapping("/books/create")
+    public String createBook(@ModelAttribute BookSaveRequest req,
+                             @RequestParam(value="imageFile", required = false) List<MultipartFile> image){
+        bookClient.createBook(req, image);
+        return "redirect:/admin/books";
+    }
+
+    /// 도서 수정
+    @PutMapping("/books/{bookId}")
+    public String updateBook(@ModelAttribute BookUpdateRequest req,
+                             @PathVariable Long bookId,
+                             @RequestParam(value="imageFile", required = false) List<MultipartFile> image){
+        bookClient.updateBook(bookId,req, image);
+        return "redirect:/admin/books";
     }
 
 //    // 등급 목록 조회 페이지
