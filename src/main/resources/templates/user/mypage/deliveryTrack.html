@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>배송 조회</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .track-container {
+            width: 100%;
+            max-width: 800px; /* 아이프레임이 들어갈 공간 확보 */
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 헤더 스타일 */
+        .track-header {
+            border-bottom: 2px solid #2d5016;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .track-header h2 { margin: 0; color: #333; font-size: 1.5rem; }
+
+        /* 상태 배지 (OrderStatus 기준) */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: white;
+        }
+        /* 주문 상태별 색상 매핑 */
+        .status-PREPARING { background-color: #ff9800; } /* 배송준비중 (주황) */
+        .status-SHIPPING { background-color: #2196f3; }  /* 배송중 (파랑) */
+        .status-DELIVERED { background-color: #4caf50; } /* 배송완료 (초록) */
+        .status-DEFAULT { background-color: #9e9e9e; }   /* 기타 (회색) */
+
+        /* 정보 테이블 */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        .info-table th, .info-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .info-table th { width: 120px; color: #666; font-weight: 600; background: #fafafa; }
+        .info-table td { color: #333; font-weight: 500; }
+
+        /* 아이프레임 영역 */
+        .tracking-section {
+            margin-top: 2rem;
+            border-top: 1px solid #eee;
+            padding-top: 1.5rem;
+        }
+
+        .tracking-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2d5016;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .iframe-wrapper {
+            position: relative;
+            width: 100%;
+            height: 600px; /* 스마트택배 화면 높이 */
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .tracking-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* 로딩 오버레이 */
+        .loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column;
+            color: #666;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+
+        /* 운송장 없을 때 */
+        .no-info {
+            text-align: center;
+            padding: 3rem 0;
+            color: #999;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 1px dashed #ddd;
+        }
+
+        .btn-close {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: #555;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: background 0.2s;
+        }
+        .btn-close:hover { background: #333; }
+    </style>
+</head>
+<body>
+
+<div class="track-container">
+
+    <div class="track-header">
+        <h2>📦 배송 정보</h2>
+
+        <span class="badge"
+              th:classappend="|status-${delivery.orderStatus}|"
+              th:switch="${delivery.orderStatus}">
+            <span th:case="'PREPARING'">배송준비중</span>
+            <span th:case="'SHIPPING'">배송중</span>
+            <span th:case="'DELIVERED'">배송완료</span>
+            <span th:case="*">[[${delivery.orderStatus}]]</span> </span>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <th>주문 번호</th>
+            <td th:text="${delivery.orderId}"></td>
+        </tr>
+        <tr>
+            <th>택배사</th>
+            <td th:text="${delivery.deliveryCompany != null ? delivery.deliveryCompany : '-'}"></td>
+        </tr>
+        <tr>
+            <th>운송장 번호</th>
+            <td th:text="${delivery.waybill != null ? delivery.waybill : '등록 대기 중'}"></td>
+        </tr>
+        <tr>
+            <th>발송 일자</th>
+            <td th:text="${delivery.deliveryStartedAt != null ? #temporals.format(delivery.deliveryStartedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+        </tr>
+    </table>
+
+    <div th:if="${delivery.trackingUrl != null && !#strings.isEmpty(delivery.trackingUrl)}" class="tracking-section">
+        <div class="tracking-title">
+            🔍 상세 배송 흐름
+        </div>
+
+        <div class="iframe-wrapper">
+            <div id="loadingMsg" class="loading-overlay">
+                <div class="spinner" style="font-size: 2rem; margin-bottom: 10px;">⏳</div>
+                <div>택배사 정보를 불러오는 중입니다...</div>
+            </div>
+
+            <iframe class="tracking-frame"
+                    th:src="${delivery.trackingUrl}"
+                    onload="document.getElementById('loadingMsg').style.opacity='0'; setTimeout(()=>document.getElementById('loadingMsg').style.display='none', 300);">
+            </iframe>
+        </div>
+    </div>
+
+    <div th:if="${delivery.trackingUrl == null}" class="no-info">
+        <div style="font-size: 3rem; margin-bottom: 10px;">🚚</div>
+        <p>아직 운송장이 등록되지 않았습니다.<br>판매자가 발송 처리를 하면 배송 조회가 가능합니다.</p>
+    </div>
+
+    <button type="button" class="btn-close" onclick="window.close()">닫기</button>
+
+</div>
+
+</body>
+</html>
