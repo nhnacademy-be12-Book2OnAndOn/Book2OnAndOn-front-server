@@ -10,7 +10,7 @@
 <body>
 
 <th:block
-        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+        th:replace="~{fragments/layout :: commonHeader(${nickname}, ${cartCount}, null, null, false)}"></th:block>
 
 <div class="admin-container">
     <th:block th:replace="~{fragments/admin :: adminSidebar('couponpolicies')}"></th:block>
@@ -23,8 +23,10 @@
                 <p class="muted">Policy ID: <span th:text="${policy.couponPolicyId}">101</span></p>
             </div>
             <div class="table-actions justify-end">
-                <span th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}" class="status-chip status-delivered">사용중</span>
-                <span th:if="${policy.couponPolicyStatus?.name() == 'DEACTIVE'}" class="status-chip status-pending">비활성</span>
+                <span class="status-chip status-delivered"
+                      th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}">사용중</span>
+                <span class="status-chip status-pending"
+                      th:if="${policy.couponPolicyStatus?.name() == 'DEACTIVE'}">비활성</span>
                 <span class="badge badge-type" th:text="${policy.couponPolicyType}">WELCOME</span>
             </div>
         </div>
@@ -76,14 +78,15 @@
                 <div>
                     <div class="info-label">최소 주문 금액</div>
                     <div class="info-value"
-                         th:text="|${#numbers.formatInteger(policy.minPrice, 0, 'COMMA')}원 이상|">0원 이상</div>
+                         th:text="|${#numbers.formatInteger(policy.minPrice, 0, 'COMMA')}원 이상|">0원 이상
+                    </div>
                 </div>
                 <div>
                     <div class="info-label">최대 할인 한도</div>
                     <div class="info-value">
                         <span th:if="${policy.maxPrice != null}"
                               th:text="|최대 ${#numbers.formatInteger(policy.maxPrice, 0, 'COMMA')}원|">최대 5,000원</span>
-                        <span th:if="${policy.maxPrice == null}" class="empty-text">제한 없음</span>
+                        <span class="empty-text" th:if="${policy.maxPrice == null}">제한 없음</span>
                     </div>
                 </div>
             </div>
@@ -100,7 +103,8 @@
                                 📕 <span th:text="${bookId}">1001</span>
                             </span>
                         </div>
-                        <div th:if="${#lists.isEmpty(policy.targetBookIds)}" class="empty-text">지정된 도서 없음 (전체 도서 가능)</div>
+                        <div class="empty-text" th:if="${#lists.isEmpty(policy.targetBookIds)}">지정된 도서 없음 (전체 도서 가능)
+                        </div>
                     </div>
                 </div>
 
@@ -112,7 +116,7 @@
                                 📂 <span th:text="${catId}">10</span>
                             </span>
                         </div>
-                        <div th:if="${#lists.isEmpty(policy.targetCategoryIds)}" class="empty-text">지정된 카테고리 없음</div>
+                        <div class="empty-text" th:if="${#lists.isEmpty(policy.targetCategoryIds)}">지정된 카테고리 없음</div>
                     </div>
                 </div>
             </div>
@@ -120,49 +124,51 @@
 
         <div class="admin-detail-card">
             <div class="table-actions justify-end">
-                <a th:href="@{/admin/policies}" class="btn-ghost">목록으로</a>
+                <a class="btn-ghost" th:href="@{/admin/policies}">목록으로</a>
 
-                <button type="button" class="btn-accent"
+                <button class="btn-accent" onclick="openCouponModal()"
                         th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}"
-                        onclick="openCouponModal()">
+                        type="button">
                     쿠폰 발행
                 </button>
 
-                <a th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}" class="btn-primary">정책 수정</a>
+                <a class="btn-primary" th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}">정책 수정</a>
 
-                <form th:action="@{/admin/policies/delete/{id}(id=${policy.couponPolicyId})}" method="post">
-                    <button type="submit" class="btn-danger"
-                            onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');">비활성</button>
+                <form method="post" th:action="@{/admin/policies/delete/{id}(id=${policy.couponPolicyId})}">
+                    <button class="btn-danger" onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');"
+                            type="submit">비활성
+                    </button>
                 </form>
             </div>
         </div>
     </main>
 </div>
 
-<div id="couponModal" class="modal-overlay">
+<div class="modal-overlay" id="couponModal">
     <div class="modal-card">
         <h3 style="margin-top: 0;">쿠폰 발행</h3>
         <p class="muted" style="margin-bottom: 16px;">
             선택한 정책(<b>[[${policy.couponPolicyName}]]</b>)을 기반으로<br>실제 발급 가능한 쿠폰을 생성합니다.
         </p>
 
-        <form th:action="@{/admin/policies/{id}/create-coupon(id=${policy.couponPolicyId})}" method="post">
+        <form method="post" th:action="@{/admin/policies/{id}/create-coupon(id=${policy.couponPolicyId})}">
             <div class="form-field">
                 <label for="quantity">발행 수량</label>
 
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="number" id="quantity" name="quantity" class="form-control" placeholder="수량을 입력하세요 (예: 100)" min="1">
+                    <input class="form-control" id="quantity" min="1" name="quantity"
+                           placeholder="수량을 입력하세요 (예: 100)" type="number">
 
                     <label class="checkbox-label">
-                        <input type="checkbox" id="unlimitedCheck" onchange="toggleQuantityInput()">
+                        <input id="unlimitedCheck" onchange="toggleQuantityInput()" type="checkbox">
                         <span>무제한</span>
                     </label>
                 </div>
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn-ghost" onclick="closeCouponModal()">취소</button>
-                <button type="submit" class="btn-accent">확인 (발행)</button>
+                <button class="btn-ghost" onclick="closeCouponModal()" type="button">취소</button>
+                <button class="btn-accent" type="submit">확인 (발행)</button>
             </div>
         </form>
     </div>
