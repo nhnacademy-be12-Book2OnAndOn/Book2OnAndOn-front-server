@@ -90,6 +90,18 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.focus();
         });
     }
+
+    const hamburger = document.querySelector('.hamburger');
+    const closeBtn = document.querySelector('.close-sidebar');
+    if (hamburger) {
+        hamburger.addEventListener('click', toggleSidebar);
+    }
+    if (overlay) {
+        overlay.addEventListener('click', toggleSidebar);
+    }
+    if (closeBtn) {
+        closeBtn.addEventListener('click', toggleSidebar);
+    }
 });
 
 window.toggleSidebar = toggleSidebar;

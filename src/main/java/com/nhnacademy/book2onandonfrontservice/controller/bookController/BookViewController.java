@@ -25,6 +25,7 @@ public class BookViewController {
     /// 메인 페이지 (대시보드)
     @GetMapping("/")
     public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
+        commonData(model);
         Page<BookDto> response = bookClient.getNewArrivals(null, page,8);
 //        List<BookDto> bestsellerDaily = bookClient.getBestsellers("DAILY");
 //        List<BookDto> bestsellerWeek = bookClient.getBestsellers("WEEK");
@@ -48,6 +49,7 @@ public class BookViewController {
     /// 도서 상세조회
     @GetMapping("/books/{bookId}")
     public String getBookDetail(@PathVariable Long bookId, Model model){
+        commonData(model);
         BookDetailResponse bookDetail = bookClient.getBookDetail(bookId);
         if(bookDetail!=null){
             model.addAttribute("bookDetail", bookDetail);

@@ -2,7 +2,7 @@
           xmlns:th="http://www.thymeleaf.org">
     <header class="main-header">
         <div class="header-bar container">
-            <button aria-label="카테고리 열기" class="hamburger" onclick="toggleSidebar()" type="button">
+            <button aria-label="카테고리 열기" class="hamburger" type="button">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -82,11 +82,11 @@
 </th:block>
 
 <th:block th:fragment="categorySidebar(categories)" xmlns:th="http://www.thymeleaf.org">
-    <div class="overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="overlay" id="sidebarOverlay"></div>
     <aside class="category-sidebar" id="categorySidebar">
         <div class="sidebar-header">
             <h3>카테고리</h3>
-            <button class="close-sidebar" onclick="toggleSidebar()" type="button">×</button>
+            <button class="close-sidebar" type="button">×</button>
         </div>
         <ul class="category-list">
             <th:block th:each="category : ${categories}">

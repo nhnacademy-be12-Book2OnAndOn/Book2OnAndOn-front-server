@@ -115,7 +115,8 @@
                 </div>
             </div>
         </section>
-        <section class="membership-cta" id="section-membership">
+        <section class="membership-cta" id="section-membership"
+                 th:if="${sectionBlocks != null and #lists.isNotEmpty(sectionBlocks)}">
             <div class="container cta-inner">
                 <div>
                     <p class="cta-eyebrow">회원 전용 혜택</p>

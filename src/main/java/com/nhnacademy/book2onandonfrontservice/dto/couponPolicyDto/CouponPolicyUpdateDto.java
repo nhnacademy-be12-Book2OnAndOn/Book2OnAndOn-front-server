@@ -14,6 +14,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
+@Setter
 public class CouponPolicyUpdateDto {
 
     private Long couponPolicyId; // 정책 id
