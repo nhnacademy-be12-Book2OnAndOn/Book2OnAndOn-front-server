@@ -129,17 +129,23 @@
     <title>관리자 - 쿠폰 정책 등록/수정</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <style>
+        /* 체크박스 레이블 스타일 */
+        .remove-option {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85rem;
+            color: #666;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 
 <th:block
         th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 <body>
-<div class="admin-container">
-    <h2 th:text="${pageTitle}">쿠폰 정책 등록</h2>
-    <hr style="margin-bottom: 2rem; border: 0; border-top: 1px solid #eee;">
-
-    <form th:action="${policy.couponPolicyId == null ? '/admin/policies/create' : '/admin/policies/update/' + policy.couponPolicyId}"
-          th:object="${policy}" method="post">
 
 <div class="admin-container">
     <th:block th:replace="~{fragments/admin :: adminSidebar('couponpolicies')}"></th:block>
@@ -149,19 +155,6 @@
             <div>
                 <p class="eyebrow">쿠폰 정책</p>
                 <h2 th:text="${pageTitle}">쿠폰 정책 등록</h2>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="couponPolicyType">쿠폰 타입</label>
-                <select id="couponPolicyType" th:field="*{couponPolicyType}" class="form-control">
-                    <option th:each="type : ${policyTypes}" th:value="${type}" th:text="${type}"></option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="couponPolicyDiscountType">할인 방식</label>
-                <select id="couponPolicyDiscountType" th:field="*{couponPolicyDiscountType}" class="form-control">
-                    <option th:each="dtype : ${discountTypes}" th:value="${dtype}" th:text="${dtype}"></option>
-                </select>
             </div>
             <a th:href="@{/admin/policies}" class="btn-ghost">← 목록으로</a>
         </div>
@@ -201,23 +194,36 @@
                     </div>
                     <div class="form-field">
                         <label for="maxPrice">최대 할인 금액 (정률 할인 시)</label>
-                        <input type="number" id="maxPrice" th:field="*{maxPrice}" class="form-control">
+                        <div style="display:flex; gap:8px;">
+                            <input type="number" id="maxPrice" th:field="*{maxPrice}" class="form-control">
+                            <label class="remove-option">
+                                <input type="checkbox" th:field="*{removeMaxPrice}"> 제거
+                            </label>
+                        </div>
                     </div>
                 </div>
 
-                <div class="admin-detail-card" style="background:#f6f9f7; border-style:dashed; border-color:#d5ddd6;">
+                <div class="admin-detail-card" style="background:#f6f9f7; border-style:dashed; border-color:#d5ddd6; margin-top:1rem;">
                     <div class="form-field">
                         <label>유효 기간 설정 (둘 중 하나만 입력)</label>
                         <div class="form-grid">
                             <div class="form-field">
                                 <label for="durationDays">발급 후 유효 일수</label>
-                                <input type="number" id="durationDays" th:field="*{durationDays}" class="form-control" placeholder="예: 30">
+                                <div style="display:flex; gap:8px;">
+                                    <input type="number" id="durationDays" th:field="*{durationDays}" class="form-control" placeholder="예: 30">
+                                    <label class="remove-option">
+                                        <input type="checkbox" th:field="*{removeDurationDays}"> 제거
+                                    </label>
+                                </div>
                             </div>
                             <div class="form-field">
                                 <label>고정 기간 (시작 ~ 종료)</label>
-                                <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
-                                    <input type="date" th:field="*{fixedStartDate}" class="form-control">
-                                    <input type="date" th:field="*{fixedEndDate}" class="form-control">
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <input type="date" th:field="*{fixedStartDate}" class="form-control" style="flex:1;">
+                                    <input type="date" th:field="*{fixedEndDate}" class="form-control" style="flex:1;">
+                                    <label class="remove-option">
+                                        <input type="checkbox" th:field="*{removeFixedDate}"> 제거
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -225,31 +231,36 @@
                     </div>
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" style="margin-top:1rem;">
                     <label for="targetBookIds">적용 대상 도서 ID (쉼표로 구분)</label>
-                    <input type="text" id="targetBookIds" th:field="*{targetBookIds}" class="form-control" placeholder="예: 101, 102, 103">
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="targetBookIds" th:field="*{targetBookIds}" class="form-control" placeholder="예: 101, 102, 103">
+                        <label class="remove-option">
+                            <input type="checkbox" th:field="*{removeTargetBook}"> 제거
+                        </label>
+                    </div>
                 </div>
 
                 <div class="form-field">
                     <label>적용 대상 카테고리</label>
-                    <div class="checkbox-box">
-
+                    <div class="checkbox-box" style="border:1px solid #ddd; padding:10px; border-radius:4px; max-height:150px; overflow-y:auto;">
                         <div th:if="${#lists.isEmpty(categoryList)}" class="muted">
                             등록된 카테고리가 없습니다.
                         </div>
-
-                        <div th:each="cat : ${categoryList}" style="margin-bottom: 6px;">
+                        <div th:each="cat : ${categoryList}" style="margin-bottom: 5px;">
                             <input type="checkbox"
                                    th:field="*{targetCategoryIds}"
                                    th:value="${cat.id}"
                                    th:id="${'cat_' + cat.id}">
-                            <label th:for="${'cat_' + cat.id}" th:text="${cat.name}">국내도서</label>
+                            <label th:for="${'cat_' + cat.id}" th:text="${cat.name}">카테고리</label>
                         </div>
                     </div>
-                    <p class="helper-text" style="margin-top:6px;">여러 개 선택 가능합니다.</p>
+                    <label class="remove-option" style="margin-top:5px;">
+                        <input type="checkbox" th:field="*{removeTargetCategory}"> 전체 제거
+                    </label>
                 </div>
 
-                <div class="form-field" th:if="${policy.couponPolicyId != null}">
+                <div class="form-field" th:if="${policy.couponPolicyId != null}" style="margin-top:1rem;">
                     <label for="couponPolicyStatus">정책 상태</label>
                     <select id="couponPolicyStatus" th:field="*{couponPolicyStatus}" class="form-control">
                         <option th:each="status : ${statuses}"
@@ -258,7 +269,7 @@
                     </select>
                 </div>
 
-                <div class="modal-actions" style="margin-top: 16px;">
+                <div class="modal-actions" style="margin-top: 2rem; display:flex; justify-content:flex-end; gap:10px;">
                     <a th:href="@{/admin/policies}" class="btn-ghost">취소</a>
                     <button type="submit" class="btn-primary">저장하기</button>
                 </div>
@@ -267,111 +278,5 @@
     </main>
 </div>
 
-<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
-
-        <div class="form-row">
-            <div class="form-group">
-                <label for="couponDiscountValue">할인값 (원/%)</label>
-                <input type="number" id="couponDiscountValue" th:field="*{couponDiscountValue}" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label for="minPrice">최소 주문 금액</label>
-                <input type="number" id="minPrice" th:field="*{minPrice}" class="form-control" value="0">
-            </div>
-
-            <div class="form-group">
-                <label for="maxPrice">최대 할인 금액 (정률 할인 시)</label>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <input type="number" id="maxPrice" th:field="*{maxPrice}" class="form-control">
-
-                    <!-- [추가] null 처리 옵션 - 체크 시 maxPrice 값을 null로 설정해 서버로 전달 -->
-                    <label class="remove-option">
-                        <input type="checkbox" th:field="*{removeMaxPrice}">
-                        제거
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group" style="background: #f9f9f9; padding: 1rem; border-radius: 4px;">
-            <label>유효 기간 설정 (둘 중 하나만 입력)</label>
-            <div class="form-row">
-
-                <div class="form-group">
-                    <label for="durationDays">발급 후 유효 일수</label>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <input type="number" id="durationDays" th:field="*{durationDays}" class="form-control" placeholder="예: 30">
-
-                        <!-- [추가] null 처리 옵션 -->
-                        <label class="remove-option">
-                            <input type="checkbox" th:field="*{removeDurationDays}">
-                            제거
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>고정 기간 (시작 ~ 종료)</label>
-                    <div style="display:flex; align-items:center; gap:5px;">
-                        <input type="date" th:field="*{fixedStartDate}" class="form-control">
-                        <input type="date" th:field="*{fixedEndDate}" class="form-control">
-
-                        <!-- [추가] null 처리 옵션 -->
-                        <label class="remove-option">
-                            <input type="checkbox" th:field="*{removeFixedDate}">
-                            제거
-                        </label>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label for="targetBookIds">적용 대상 도서 ID (쉼표로 구분)</label>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <input type="text" id="targetBookIds" th:field="*{targetBookIds}" class="form-control" placeholder="예: 101, 102, 103">
-
-                <!-- [추가] null 처리 옵션 -->
-                <label class="remove-option">
-                    <input type="checkbox" th:field="*{removeTargetBook}">
-                    제거
-                </label>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>적용 대상 카테고리</label>
-            <div class="checkbox-container" style="border:1px solid #ddd; padding:10px; border-radius:4px; max-height:150px; overflow-y:auto;">
-                <div th:if="${#lists.isEmpty(categoryList)}" style="color:#888;">등록된 카테고리가 없습니다.</div>
-
-                <div th:each="cat : ${categoryList}" style="margin-bottom:5px;">
-                    <input type="checkbox" th:field="*{targetCategoryIds}" th:value="${cat.id}" th:id="${'cat_' + cat.id}">
-                    <label th:for="${'cat_' + cat.id}" th:text="${cat.name}"></label>
-                </div>
-            </div>
-
-            <!-- [추가] null 처리 옵션 -->
-            <label class="remove-option" style="margin-top:5px;">
-                <input type="checkbox" th:field="*{removeTargetCategory}">
-                전체 제거
-            </label>
-        </div>
-
-        <div class="form-group" th:if="${policy.couponPolicyId != null}">
-            <label for="couponPolicyStatus">정책 상태</label>
-            <select id="couponPolicyStatus" th:field="*{couponPolicyStatus}" class="form-control">
-                <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}"></option>
-            </select>
-        </div>
-
-        <div class="btn-group">
-            <a href="/admin/policies" class="btn-cancel">취소</a>
-            <button type="submit" class="btn-save">저장하기</button>
-        </div>
-
-    </form>
-</div>
 </body>
 </html>

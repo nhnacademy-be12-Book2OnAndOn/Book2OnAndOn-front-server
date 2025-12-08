@@ -89,6 +89,7 @@ public class CouponPolicyViewController {
         List<CategoryDto> categories = bookClient.getCategories();
         // UpdateDto로 변환
         CouponPolicyUpdateDto updateDto = new CouponPolicyUpdateDto(
+                policy.getCouponPolicyId(),
                 policy.getCouponPolicyName(),
                 policy.getCouponPolicyType(),
                 policy.getCouponPolicyDiscountType(),

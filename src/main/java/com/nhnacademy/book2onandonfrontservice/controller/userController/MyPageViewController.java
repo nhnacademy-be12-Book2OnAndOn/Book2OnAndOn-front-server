@@ -1,10 +1,10 @@
 package com.nhnacademy.book2onandonfrontservice.controller.userController;
 
-import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.MemberCouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.MyLikedBookResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
@@ -115,17 +115,28 @@ public class MyPageViewController {
 
     // 내 좋아요 목록
     @GetMapping("/likes")
-    public String myLikes(@RequestParam(defaultValue = "0") int page, Model model){
-        try{
-            RestPage<BookDto> res = bookClient.getMyLikedBooks(page, 12);
-            model.addAttribute("books",res.getContent());
-            model.addAttribute("currentPage", page);
-            model.addAttribute("totalPages", res.getTotalPages());
-        } catch (Exception e) {
+    public String myLikes(@RequestParam(defaultValue = "0") int page,
+                          HttpServletRequest request,
+                          Model model) {
+
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        if (accessToken == null) {
             return "redirect:/login";
         }
-        //TODO: 페이지 바꾸세여!
-        return "mypage/my-likes";
+
+        try {
+            RestPage<MyLikedBookResponseDto> rest = userClient.getMyLikedBooks("Bearer " + accessToken, page, 12);
+
+            model.addAttribute("books", rest.getContent());
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", rest.getTotalPages());
+
+        } catch (Exception e) {
+            log.error("좋아요 목록 조회 실패", e);
+            return "redirect:/users/me";
+        }
+
+        return "user/mypage/likes";
     }
 
     //내 정보 수정 페이지

@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public class CouponPolicyUpdateDto {
 
+    private Long couponPolicyId; // 정책 id
     private String couponPolicyName;
     private CouponPolicyType couponPolicyType;
     private CouponPolicyDiscountType couponPolicyDiscountType;
