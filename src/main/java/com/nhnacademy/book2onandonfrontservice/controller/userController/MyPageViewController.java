@@ -1,8 +1,10 @@
 package com.nhnacademy.book2onandonfrontservice.controller.userController;
 
+import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.book2onandonfrontservice.client.MemberCouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
@@ -42,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class MyPageViewController {
 
     private final UserClient userClient;
+    private final BookClient bookClient;
     private final MemberCouponClient memberCouponClient;
 
     //마이페이지
@@ -108,6 +111,21 @@ public class MyPageViewController {
         model.addAttribute("isOwner", true);
 
         return "user/mypage/reviews";
+    }
+
+    // 내 좋아요 목록
+    @GetMapping("/likes")
+    public String myLikes(@RequestParam(defaultValue = "0") int page, Model model){
+        try{
+            RestPage<BookDto> res = bookClient.getMyLikedBooks(page, 12);
+            model.addAttribute("books",res.getContent());
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", res.getTotalPages());
+        } catch (Exception e) {
+            return "redirect:/login";
+        }
+        //TODO: 페이지 바꾸세여!
+        return "mypage/my-likes";
     }
 
     //내 정보 수정 페이지

@@ -5,6 +5,8 @@ import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.DeliveryClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatusUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
 //import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
@@ -27,8 +29,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -162,11 +166,13 @@ public class AdminViewController {
         return "redirect:/admin/coupons";
     }
 
+    /// --------------------------Book Admin ------------------------------------
+
     /// 도서 등록
     @PostMapping("/books/create")
     public String createBook(@ModelAttribute BookSaveRequest req,
-                             @RequestParam(value="imageFile", required = false) List<MultipartFile> image){
-        bookClient.createBook(req, image);
+                             @RequestParam(value="images", required = false) List<MultipartFile> images){
+        bookClient.createBook(req, images);
         return "redirect:/admin/books";
     }
 
@@ -174,8 +180,25 @@ public class AdminViewController {
     @PutMapping("/books/{bookId}")
     public String updateBook(@ModelAttribute BookUpdateRequest req,
                              @PathVariable Long bookId,
-                             @RequestParam(value="imageFile", required = false) List<MultipartFile> image){
-        bookClient.updateBook(bookId,req, image);
+                             @RequestParam(value="images", required = false) List<MultipartFile> images){
+        bookClient.updateBook(bookId,req, images);
+        return "redirect:/admin/books";
+    }
+
+    /// 도서 삭제
+    @DeleteMapping("/books/{bookId}")
+    public String deleteBook(@PathVariable Long bookId){
+        bookClient.deleteBook(bookId);
+        return "redirect:/admin/books";
+    }
+
+    /// 도서 상태변경
+    @PatchMapping("/books/{bookId}/status")
+    public String updateStatus(@PathVariable Long bookId, @RequestParam("status")BookStatus status){
+        BookStatusUpdateRequest request = new BookStatusUpdateRequest(status);
+
+        bookClient.updateBookStatus(bookId, request);
+
         return "redirect:/admin/books";
     }
 
@@ -200,6 +223,8 @@ public class AdminViewController {
 //        userGradeClient.updateGrade(gradeId, request);
 //        return "redirect:/admin/grades";
 //    }
+
+    ///  -------------------------- Deliveries Admin --------------------------------------
 
     @GetMapping("/deliveries")
     public String listDeliveries(@RequestParam(defaultValue = "0") int page,

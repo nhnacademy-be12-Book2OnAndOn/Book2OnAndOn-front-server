@@ -1,18 +1,26 @@
 package com.nhnacademy.book2onandonfrontservice.client;
 
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookLikeToggleResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatusUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
+import jakarta.ws.rs.Path;
 import org.hibernate.validator.constraints.pl.REGON;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -44,11 +52,38 @@ public interface BookClient {
     ///도서등록
     @PostMapping(value = "/api/books", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     Long createBook(@RequestParam("book") BookSaveRequest request,
-                    @RequestParam(value="image", required = false) List<MultipartFile> image);
+                    @RequestParam(value="images", required = false) List<MultipartFile> images);
 
     /// 도서 수정
     @PutMapping(value="/api/books/{bookId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     void updateBook(@PathVariable("bookId") Long bookId,
                 @RequestParam("book") BookUpdateRequest request,
-                    @RequestPart(value="image",required = false) List<MultipartFile> image);
+                    @RequestPart(value="images",required = false) List<MultipartFile> images);
+
+    /// 도서 상세 정보
+    @GetMapping("/api/books/{bookId}")
+    BookDetailResponse getBookDetail(@PathVariable Long bookId);
+
+    /// 도서 삭제
+    @DeleteMapping("/api/books/{bookId}")
+    void deleteBook(@PathVariable Long bookId);
+
+    /// 도서 상태 변경
+    @PatchMapping("/api/books/{bookId}/status")
+    void updateBookStatus(@PathVariable Long bookId, @RequestBody BookStatusUpdateRequest req);
+
+    /// 도서 최근 본 상품 조회
+    @GetMapping("/api/books/recent-views")
+    List<BookDto> getRecentViews();
+
+    /// 최근 본 상품 로그인시 병합
+    @GetMapping("/api/books/recent-views/merge")
+    void mergeRecentViews(String token, String guestId);
+
+    /// 좋아요 토글 요청
+    @PostMapping("/api/books/{bookId}/likes")
+    BookLikeToggleResponse toggleLike(@PathVariable("bookId")Long bookId);
+
+    @GetMapping("/api/books/my-likes")
+    RestPage<BookDto> getMyLikedBooks(@RequestParam("page") int page, @RequestParam("size") int size);
 }
