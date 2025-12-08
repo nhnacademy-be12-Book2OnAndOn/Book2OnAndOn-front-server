@@ -3,6 +3,7 @@ package com.nhnacademy.book2onandonfrontservice.controller;
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
@@ -60,4 +61,11 @@ public class GlobalControllerAdvice {
             return Collections.emptyList();
         }
     }
+
+    /// 검색 엔진
+    @ModelAttribute("condition")
+    public BookSearchCondition addSearchCondition(){
+        return new BookSearchCondition();
+    }
+
 }

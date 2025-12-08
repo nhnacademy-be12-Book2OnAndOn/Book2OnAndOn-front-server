@@ -3,15 +3,19 @@ package com.nhnacademy.book2onandonfrontservice.controller.bookController;
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -47,7 +51,7 @@ public class BookViewController {
     }
 
     /// 도서 상세조회
-    @GetMapping("/books/{bookId}")
+    @GetMapping("/books/{bookId:[0-9]+}")
     public String getBookDetail(@PathVariable Long bookId, Model model){
         commonData(model);
         BookDetailResponse bookDetail = bookClient.getBookDetail(bookId);
@@ -63,5 +67,25 @@ public class BookViewController {
     private void commonData(Model model) {
         model.addAttribute("categories", bookClient.getCategories());
 //        model.addAttribute("popularTags", bookClient.getPopularTags());
+    }
+
+    @GetMapping("/books/search")
+    public String searchBooks(@ModelAttribute BookSearchCondition condition,
+                              @PageableDefault(size=20) Pageable pageable,
+                              Model model){
+        RestPage<BookDto> result = bookClient.searchBooks(condition, pageable);
+        model.addAttribute("books", result.getContent());
+        model.addAttribute("page", result);
+        model.addAttribute("condition", condition);
+
+        /**
+         * <form action="/books/search" method="get" class="search-form">
+         *     <input type="text" name="keyword" placeholder="책 제목, 저자, ISBN 검색..." required>
+         *
+         *     <button type="submit">검색</button>
+         * </form>
+         */
+        //TODO: 밍서가 작성하시오.
+        return "books/search-result";
     }
 }

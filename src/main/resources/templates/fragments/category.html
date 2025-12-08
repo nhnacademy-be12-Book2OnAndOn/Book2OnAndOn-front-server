@@ -1,17 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
 <th:block th:fragment="categoryBranch(cat, depth)">
     <li class="category-item" th:classappend="' depth-' + ${depth}">
-        <div class="category-row" onclick="toggleSubcategory(this)"
-             th:data-has-children="${cat.children != null and !#lists.isEmpty(cat.children) and depth < 2} ? 'true' : 'false'"
+
+        <div class="category-row"
+             onclick="toggleSubcategory(this)"
+             th:data-has-children="${cat.children != null and !#lists.isEmpty(cat.children)}"
              th:data-depth="${depth}">
-            <a th:href="@{/books/category/{id}(id=${cat.id})}" th:text="${cat.name}">카테고리명</a>
+
+            <a th:href="@{/books(categoryId=${cat.id})}"
+               onclick="event.stopPropagation()"
+               th:text="${cat.name}">카테고리명</a>
+
             <span class="subcategory-toggle"
-                  th:if="${cat.children != null and !#lists.isEmpty(cat.children) and depth < 2}"></span>
+                  th:if="${cat.children != null and !#lists.isEmpty(cat.children)}">
+                  ▼ </span>
         </div>
+
         <ul class="subcategory-list"
-            th:if="${cat.children != null and !#lists.isEmpty(cat.children) and depth < 2}">
+            th:if="${cat.children != null and !#lists.isEmpty(cat.children)}"
+            style="display: none;">
+
             <th:block th:each="child : ${cat.children}">
-                <th:block th:replace="~{fragments/category :: categoryBranch(${child}, ${depth} + 1)}"></th:block>
+                <th:block th:replace="~{fragments/category :: categoryBranch(${child}, ${depth} + 1)}">
+                </th:block>
             </th:block>
         </ul>
     </li>
 </th:block>
+</html>

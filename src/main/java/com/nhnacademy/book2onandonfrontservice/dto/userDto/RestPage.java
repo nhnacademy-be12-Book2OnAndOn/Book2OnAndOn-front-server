@@ -25,7 +25,7 @@ public class RestPage<T> extends PageImpl<T> {
                     @JsonProperty("first") boolean first,
                     @JsonProperty("numberOfElements") int numberOfElements
     ) {
-        super(content, PageRequest.of(page, size), totalElements);
+        super(content, PageRequest.of(page, (size>0)? size:10), totalElements);
     }
 
     public RestPage(List<T> content, Pageable pageable, long total) {
