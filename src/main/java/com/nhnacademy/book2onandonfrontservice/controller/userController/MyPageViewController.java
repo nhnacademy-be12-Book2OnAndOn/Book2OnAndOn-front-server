@@ -132,8 +132,12 @@ public class MyPageViewController {
             model.addAttribute("totalPages", rest.getTotalPages());
 
         } catch (Exception e) {
-            log.error("좋아요 목록 조회 실패", e);
-            return "redirect:/users/me";
+            log.error("좋아요 목록 조회 중 오류 발생 (Book Service 문제 가능성): {}", e.getMessage());
+
+            model.addAttribute("books", List.of());
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("totalPages", 0);
+            model.addAttribute("error", "시스템 오류로 인해 좋아요 목록을 불러올 수 없습니다.");
         }
 
         return "user/mypage/likes";
