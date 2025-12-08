@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko"
-      th:replace="~{layout/mypage-layout :: layout(
+<html lang="ko" th:replace="~{layout/mypage-layout :: layout(
         title = ~{::title},
         sidebarActive = 'edit',
         content = ~{::content}
-      )}">
+      )}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>내 정보 수정</title>
 </head>
@@ -15,51 +15,52 @@
     <div class="address-form-container no-card">
         <h2>⚙️ 회원 정보 수정</h2>
 
-        <div th:if="${error}" class="error-box" th:text="${error}"></div>
+        <div class="error-box" th:if="${error}" th:text="${error}"></div>
 
-        <form th:action="@{/users/me/edit}" th:object="${userUpdateRequest}" method="post"
-              onsubmit="return validateForm()">
+        <form method="post" onsubmit="return validateForm()" th:action="@{/users/me/edit}"
+              th:object="${userUpdateRequest}">
 
             <div class="form-field">
                 <label for="name">이름</label>
-                <input type="text" id="name" th:field="*{name}" required>
+                <input id="name" required th:field="*{name}" type="text">
             </div>
 
             <div class="form-field">
                 <label for="nickname">닉네임</label>
-                <input type="text" id="nickname" th:field="*{nickname}" required>
+                <input id="nickname" required th:field="*{nickname}" type="text">
             </div>
 
             <div class="form-field">
                 <label for="email">이메일</label>
                 <div class="input-group">
-                    <input type="email" id="email" th:field="*{email}" required oninput="checkEmailChanged()"
-                           style="flex: 1;">
-                    <button type="button" id="btnSendCode" class="btn-verify" onclick="sendVerification()" disabled>
+                    <input id="email" oninput="checkEmailChanged()" required style="flex: 1;" th:field="*{email}"
+                           type="email">
+                    <button class="btn-verify" disabled id="btnSendCode" onclick="sendVerification()" type="button">
                         인증번호 전송
                     </button>
                 </div>
 
-                <div id="verificationArea" class="mt-2" style="display: none;">
+                <div class="mt-2" id="verificationArea" style="display: none;">
                     <div class="input-group">
-                        <input type="text" id="verifyCode" placeholder="인증번호 6자리"
-                               style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-                        <button type="button" class="btn-verify" onclick="confirmVerification()">확인</button>
+                        <input id="verifyCode" placeholder="인증번호 6자리"
+                               style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 12px;"
+                               type="text">
+                        <button class="btn-verify" onclick="confirmVerification()" type="button">확인</button>
                     </div>
-                    <small id="verifyMessage" class="mt-2" style="display: block;"></small>
+                    <small class="mt-2" id="verifyMessage" style="display: block; color: #d9534f; font-weight: 700;"></small>
                 </div>
 
-                <input type="hidden" id="originalEmail" th:value="*{email}">
+                <input id="originalEmail" th:value="*{email}" type="hidden">
             </div>
 
             <div class="form-field">
                 <label for="phone">휴대폰 번호</label>
-                <input type="text" id="phone" th:field="*{phone}" placeholder="01000000000" required>
+                <input id="phone" placeholder="01000000000" required th:field="*{phone}" type="text">
             </div>
 
             <div class="form-actions">
-                <a href="/users/me" class="btn-cancel">취소</a>
-                <button type="submit" class="submit-btn">수정 저장</button>
+                <a class="btn-cancel" href="/users/me">취소</a>
+                <button class="submit-btn" type="submit">수정 저장</button>
             </div>
 
         </form>
