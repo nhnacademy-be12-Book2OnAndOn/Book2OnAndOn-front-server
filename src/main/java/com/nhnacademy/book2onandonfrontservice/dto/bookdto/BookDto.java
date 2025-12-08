@@ -27,4 +27,8 @@ public class BookDto {
     private List<String> publisherNames;    // 출판사
     private List<String> categoryIds;   // 카테고리
     private List<String> tagNames; // 태그
+
+    // 좋아요 UI용
+    private Boolean likedByCurrentUser = false;
+    private Long likeCount = 0L;
 }
