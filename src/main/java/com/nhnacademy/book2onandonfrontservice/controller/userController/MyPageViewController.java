@@ -342,6 +342,12 @@ public class MyPageViewController {
         return "redirect:/users/me/addresses";
     }
 
+    // 회원 탈퇴페이지
+    @GetMapping("/withdraw")
+    public String withdrawPage(Model model) {
+        return "user/mypage/withdraw";
+    }
+
     // 회원 탈퇴 요청
     @PostMapping("/withdraw")
     public String withdraw(HttpServletRequest request,
