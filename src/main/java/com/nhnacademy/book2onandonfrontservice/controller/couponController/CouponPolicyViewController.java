@@ -6,6 +6,7 @@ import com.nhnacademy.book2onandonfrontservice.client.CouponPolicyClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponCreateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyDto;
+import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyDiscountType;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyType;
@@ -81,15 +82,36 @@ public class CouponPolicyViewController {
     public String updateForm(@PathVariable Long id, Model model) {
         CouponPolicyDto policy = couponPolicyClient.getPolicy(id);
         List<CategoryDto> categories = bookClient.getCategories();
+        // UpdateDto로 변환
+        CouponPolicyUpdateDto updateDto = new CouponPolicyUpdateDto(
+                policy.getCouponPolicyName(),
+                policy.getCouponPolicyType(),
+                policy.getCouponPolicyDiscountType(),
+                policy.getCouponDiscountValue(),
+                policy.getMinPrice(),
+                policy.getMaxPrice(),
+                false,                       // removeMaxPrice 기본값 false
+                policy.getDurationDays(),
+                false,                       // removeDurationDays 기본값 false
+                policy.getFixedStartDate(),
+                policy.getFixedEndDate(),
+                false,                       // removeFixedDate 기본값 false
+                policy.getTargetBookIds(),
+                false,                       // removeTargetBook 기본값 false
+                policy.getTargetCategoryIds(),
+                false,                        // removeTargetCategory 기본값 false
+                policy.getCouponPolicyStatus()
+        );
+
         model.addAttribute("categoryList", categories);
-        model.addAttribute("policy", policy);
+        model.addAttribute("policy", updateDto);
         model.addAttribute("pageTitle", "쿠폰 정책 수정");
         return "admin/couponPolicy/form";
     }
 
      // 정책 수정 처리
     @PostMapping("/update/{id}")
-    public String updatePolicy(@PathVariable Long id, @ModelAttribute CouponPolicyDto requestDto) {
+    public String updatePolicy(@PathVariable Long id, @ModelAttribute CouponPolicyUpdateDto requestDto) {
         couponPolicyClient.updatePolicy(id, requestDto);
         return "redirect:/admin/policies";
     }
