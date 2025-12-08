@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -78,7 +79,7 @@ public interface BookClient {
 
     /// 최근 본 상품 로그인시 병합
     @GetMapping("/api/books/recent-views/merge")
-    void mergeRecentViews(String token, String guestId);
+    void mergeRecentViews(@RequestHeader("Authorization") String accessToken, @RequestHeader("X-Guest-Id") String guestId);
 
     /// 좋아요 토글 요청
     @PostMapping("/api/books/{bookId}/likes")
