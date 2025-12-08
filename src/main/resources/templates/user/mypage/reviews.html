@@ -16,13 +16,14 @@
             <h3>마이페이지</h3>
 
             <ul class="dashboard-menu">
-                <li><a href="/users/me">대시보드</a></li>
-                <li><a class="active" href="/internal/users/">내 리뷰</a></li>
-                <li><a href="/orders/me">주문 내역</a></li>
-                <li><a href="/coupons/me">쿠폰함</a></li>
-                <li><a href="/users/me/addresses">내 주소 관리</a></li>
-                <li><a href="/users/me/edit">내 정보 수정</a></li>
-                <li><a href="/logout" style="color:#d9534f;">로그아웃</a></li>
+                <li><a th:href="@{/users/me}">대시보드</a></li>
+                <li><a class="active" th:href="@{/users/me/reviews}">내 리뷰</a></li>
+                <li><a th:href="@{/users/me/likes}">내 좋아요</a></li>
+                <li><a th:href="@{/orders/me}">주문 내역</a></li>
+                <li><a th:href="@{/coupons/me}">쿠폰함</a></li>
+                <li><a th:href="@{/users/me/addresses}">내 주소 관리</a></li>
+                <li><a th:href="@{/users/me/edit}">내 정보 수정</a></li>
+                <li><a th:href="@{/logout}" style="color:#d9534f;">로그아웃</a></li>
             </ul>
         </aside>
 
