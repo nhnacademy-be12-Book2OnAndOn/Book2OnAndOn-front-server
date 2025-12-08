@@ -280,20 +280,9 @@ img {
     display: inline-block;
     width: 24px;
     height: 24px;
-}
-
-
-.icon-btn .fi {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
     background-size: contain;
     background-repeat: no-repeat;
 }
-
-/*.fi-rs-user {*/
-/*    background-image: url('/images/fi-rs-user.svg');*/
-/*}*/
 
 .fi-rs-cart {
     background-image: url('/images/fi-rs-cart.svg');

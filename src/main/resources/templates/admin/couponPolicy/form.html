@@ -142,6 +142,9 @@
         }
     </style>
 </head>
+
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 <body>
 
 <div class="admin-container">
