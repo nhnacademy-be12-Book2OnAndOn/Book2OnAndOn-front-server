@@ -1,6 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.client;
 
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyDto;
+import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyDiscountType;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyType;
@@ -34,7 +35,7 @@ public interface CouponPolicyClient {
     // 정책 수정
     @PutMapping("/api/admin/coupon-policies/{couponPolicyId}")
     void updatePolicy(@PathVariable("couponPolicyId") Long couponPolicyId,
-                      @RequestBody CouponPolicyDto requestDto);
+                      @RequestBody CouponPolicyUpdateDto requestDto);
 
     // 정책 비활성화 (삭제)
     @DeleteMapping("/api/admin/coupon-policies/{couponPolicyId}")

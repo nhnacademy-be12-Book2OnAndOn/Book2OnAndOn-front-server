@@ -1,5 +1,6 @@
 package com.nhnacademy.book2onandonfrontservice.controller.userController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.book2onandonfrontservice.client.MemberCouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
@@ -14,10 +15,12 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserAddressR
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import com.nhnacademy.book2onandonfrontservice.util.JwtUtils;
+import feign.FeignException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -44,12 +47,11 @@ public class MyPageViewController {
     //마이페이지
     @GetMapping
     public String myPageHome(HttpServletRequest request, Model model) {
-        // 1. 토큰 및 ID 추출
         String accessToken = CookieUtils.getCookieValue(request, "accessToken");
         Long myUserId = JwtUtils.getUserId(accessToken);
 
         if (myUserId == null) {
-            return "redirect:/login"; // 로그인 안 했으면 튕겨냄
+            return "redirect:/login";
         }
 
         try {
@@ -146,12 +148,33 @@ public class MyPageViewController {
 
         try {
             userClient.updateMyInfo("Bearer " + accessToken, updateRequest);
-
             return "redirect:/users/me?success=update";
 
+        } catch (FeignException e) {
+            log.error("정보 수정 API 호출 에러", e);
+
+            String errorMessage = "정보 수정에 실패했습니다.";
+
+            try {
+                String responseBody = e.contentUTF8();
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> errorMap = objectMapper.readValue(responseBody, Map.class);
+
+                if (errorMap != null && errorMap.containsKey("message")) {
+                    errorMessage += " (" + errorMap.get("message") + ")";
+                }
+            } catch (Exception parsingEx) {
+                log.error("에러 메시지 파싱 실패", parsingEx);
+            }
+
+            model.addAttribute("error", errorMessage);
+            model.addAttribute("userUpdateRequest", updateRequest);
+            return "user/mypage/edit";
+
         } catch (Exception e) {
-            log.error("정보 수정 실패", e);
-            model.addAttribute("error", "정보 수정에 실패했습니다. (" + e.getMessage() + ")");
+            log.error("정보 수정 중 알 수 없는 오류", e);
+            model.addAttribute("error", "정보 수정에 실패했습니다. (시스템 오류)");
             model.addAttribute("userUpdateRequest", updateRequest);
             return "user/mypage/edit";
         }
@@ -304,7 +327,7 @@ public class MyPageViewController {
 
             expireCookie(response, "accessToken");
             expireCookie(response, "refreshToken");
-            
+
             return "redirect:/?message=withdrawn";
 
         } catch (Exception e) {

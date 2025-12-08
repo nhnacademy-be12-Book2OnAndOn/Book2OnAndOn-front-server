@@ -12,7 +12,7 @@ public interface DeliveryClient {
 
     //주문 번호로 배송정보 조회
     @GetMapping("/api/deliveries")
-    DeliveryDto getDeliveryByOrder(@RequestParam("orderId") Long orderId);
+    DeliveryDto getDeliveryByOrder(@RequestParam("orderId") Long orderId, @RequestHeader("Authorization") String accessToken);
 
 
     // admin 배송 목록 조회 (페이징 + 상태 필터링)
