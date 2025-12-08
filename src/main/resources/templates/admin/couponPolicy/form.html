@@ -277,6 +277,36 @@
         </section>
     </main>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 모든 '제거' 체크박스를 찾습니다.
+        const removeCheckboxes = document.querySelectorAll('.remove-option input[type="checkbox"]');
 
+        removeCheckboxes.forEach(checkbox => {
+            // 1. 페이지 로드 시 초기 상태 설정
+            toggleInput(checkbox);
+
+            // 2. 클릭 시 상태 변경
+            checkbox.addEventListener('change', function() {
+                toggleInput(this);
+            });
+        });
+
+        function toggleInput(checkbox) {
+            const inputField = checkbox.closest('label').previousElementSibling;
+
+            if (inputField && (inputField.tagName === 'INPUT' || inputField.tagName === 'SELECT')) {
+                if (checkbox.checked) {
+                    inputField.value = '';
+                    inputField.disabled = true;
+                    inputField.style.backgroundColor = "#e9ecef";
+                } else {
+                    inputField.disabled = false;
+                    inputField.style.backgroundColor = "";
+                }
+            }
+        }
+    });
+</script>
 </body>
 </html>

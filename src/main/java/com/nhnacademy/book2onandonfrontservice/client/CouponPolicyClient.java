@@ -24,7 +24,7 @@ public interface CouponPolicyClient {
 
     // 정책 상세 조회 (단건)
     @GetMapping("/api/admin/coupon-policies/{couponPolicyId}")
-    CouponPolicyDto getPolicy(@PathVariable("couponPolicyId") Long couponPolicyId);
+    CouponPolicyUpdateDto getPolicy(@PathVariable("couponPolicyId") Long couponPolicyId);
 
 
     //정책 생성
