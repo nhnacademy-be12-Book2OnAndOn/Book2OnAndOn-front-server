@@ -9,7 +9,7 @@
 <body>
 
 <th:block
-        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+        th:replace="~{fragments/layout :: commonHeader(${nickname}, ${cartCount}, null, null, false)}"></th:block>
 
 <div class="admin-container">
     <th:block th:replace="~{fragments/admin :: adminSidebar('coupons')}"></th:block>
@@ -19,18 +19,20 @@
             <div>
                 <p class="eyebrow">쿠폰 센터</p>
                 <h2>쿠폰 발급 관리</h2>
-                <p class="muted" th:text="${searchStatus == null} ? '모든 쿠폰' : (searchStatus == 'ACTIVE' ? '활성 쿠폰' : '비활성 쿠폰')">모든 쿠폰</p>
+                <p class="muted"
+                   th:text="${searchStatus == null} ? '모든 쿠폰' : (searchStatus == 'ACTIVE' ? '활성 쿠폰' : '비활성 쿠폰')">모든
+                    쿠폰</p>
             </div>
             <a class="btn-ghost" th:href="@{/admin/policies}">정책으로 이동</a>
         </div>
 
         <div class="chip-tabs">
-            <a th:href="@{/admin/coupons}" class="chip-tab"
-               th:classappend="${searchStatus == null} ? 'active'">전체</a>
-            <a th:href="@{/admin/coupons(status='ACTIVE')}" class="chip-tab"
-               th:classappend="${searchStatus == 'ACTIVE'} ? 'active'">활성</a>
-            <a th:href="@{/admin/coupons(status='DEACTIVE')}" class="chip-tab"
-               th:classappend="${searchStatus == 'DEACTIVE'} ? 'active'">비활성</a>
+            <a class="chip-tab" th:classappend="${searchStatus == null} ? 'active'"
+               th:href="@{/admin/coupons}">전체</a>
+            <a class="chip-tab" th:classappend="${searchStatus == 'ACTIVE'} ? 'active'"
+               th:href="@{/admin/coupons(status='ACTIVE')}">활성</a>
+            <a class="chip-tab" th:classappend="${searchStatus == 'DEACTIVE'} ? 'active'"
+               th:href="@{/admin/coupons(status='DEACTIVE')}">비활성</a>
         </div>
 
         <div class="table-card">
@@ -50,7 +52,7 @@
                 <tr th:each="coupon : ${coupons}">
                     <td th:text="${coupon.couponId}">1</td>
                     <td>
-                        <span th:text="${coupon.couponName}" style="font-weight: bold;"></span>
+                        <span style="font-weight: bold;" th:text="${coupon.couponName}"></span>
                         <br><span class="muted" th:text="${coupon.discountDescription}"></span>
                     </td>
 
@@ -58,16 +60,16 @@
 
                     <td>
                         <span th:if="${coupon.endDate != null}"
-                              th:text="|~ ${coupon.endDate} 까지|"
-                              th:style="${coupon.endDate.isBefore(today) ? 'color: #d73a3a;' : ''}"></span>
+                              th:style="${coupon.endDate.isBefore(today) ? 'color: #d73a3a;' : ''}"
+                              th:text="|~ ${coupon.endDate} 까지|"></span>
 
                         <span th:if="${coupon.durationDays != null}"
                               th:text="|발급 후 ${coupon.durationDays}일|"></span>
                     </td>
 
                     <td>
-                        <span th:if="${coupon.status.name() == 'ACTIVE'}" class="status-chip status-delivered">활성</span>
-                        <span th:if="${coupon.status.name() != 'ACTIVE'}" class="status-chip status-pending">비활성</span>
+                        <span class="status-chip status-delivered" th:if="${coupon.status.name() == 'ACTIVE'}">활성</span>
+                        <span class="status-chip status-pending" th:if="${coupon.status.name() != 'ACTIVE'}">비활성</span>
                     </td>
 
                     <td style="font-weight: bold; color: #2d5f3f;">
@@ -77,14 +79,14 @@
                     </td>
 
                     <td class="table-actions">
-                        <button type="button" class="btn-small"
-                                th:if="${coupon.status.name() == 'ACTIVE' and (coupon.endDate == null or !coupon.endDate.isBefore(today))}"
-                                th:onclick="openQuantityModal([[${coupon.couponId}]], [[${coupon.couponRemainingQuantity}]])">
+                        <button class="btn-small" th:if="${coupon.status.name() == 'ACTIVE' and (coupon.endDate == null or !coupon.endDate.isBefore(today))}"
+                                th:onclick="openQuantityModal([[${coupon.couponId}]], [[${coupon.couponRemainingQuantity}]])"
+                                type="button">
                             수량 수정
                         </button>
 
-                        <span th:if="${coupon.endDate != null and coupon.endDate.isBefore(today)}"
-                              class="muted" style="color: #e53935; font-weight: 700;">만료됨</span>
+                        <span class="muted"
+                              style="color: #e53935; font-weight: 700;" th:if="${coupon.endDate != null and coupon.endDate.isBefore(today)}">만료됨</span>
                     </td>
                 </tr>
 
@@ -99,24 +101,25 @@
     </main>
 </div>
 
-<div id="quantityModal" class="modal-overlay">
+<div class="modal-overlay" id="quantityModal">
     <div class="modal-card">
         <h3 style="margin-top: 0;">재고 수량 수정</h3>
         <p class="muted" style="margin-top: 6px;">현재 발급 가능한 쿠폰 수량을 변경합니다.</p>
 
         <form id="quantityForm" method="post" style="margin-top: 16px;">
             <div class="form-field" style="margin-bottom: 10px;">
-                <input type="number" id="modalQuantity" name="quantity" placeholder="수량 입력"
-                       class="form-control">
+                <input class="form-control" id="modalQuantity" name="quantity" placeholder="수량 입력"
+                       type="number">
             </div>
 
             <label class="muted" style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
-                <input type="checkbox" id="modalUnlimited" onchange="toggleModalInput()" style="width: 18px; height: 18px;"> 무제한
+                <input id="modalUnlimited" onchange="toggleModalInput()" style="width: 18px; height: 18px;"
+                       type="checkbox"> 무제한
             </label>
 
             <div class="modal-actions">
-                <button type="button" class="btn-ghost" onclick="closeQuantityModal()">취소</button>
-                <button type="submit" class="btn-primary">수정 완료</button>
+                <button class="btn-ghost" onclick="closeQuantityModal()" type="button">취소</button>
+                <button class="btn-primary" type="submit">수정 완료</button>
             </div>
         </form>
     </div>
@@ -168,7 +171,7 @@
     }
 
     // 배경 클릭 시 닫기
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target == modal) {
             closeQuantityModal();
         }

@@ -8,7 +8,7 @@
 </head>
 <body>
 <th:block
-        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${user}, ${cartCount}, ${sectionBlocks}, ${featuredSections}, true)}"></th:block>
+        th:replace="~{fragments/layout :: commonHeader(${nickname}, ${cartCount}, null, null, false)}"></th:block>
 
 <main>
     <section class="hero">
@@ -98,8 +98,8 @@
                                     <span class="heart-icon"></span>
                                     <span class="like-count" th:text="${book.likeCount}">0</span>
                                 </button>
-                                <p class="linked-discount" th:if="${book.discountRate != null}"
-                                   th:text="${book.discountRate} + '% 할인'" style="margin:0;">13% 할인</p>
+                                <p class="linked-discount" style="margin:0;"
+                                   th:if="${book.discountRate != null}" th:text="${book.discountRate} + '% 할인'">13% 할인</p>
                             </div>
                             <button class="linked-cart" th:onclick="'addToCart(' + ${book.id} + ')'">장바구니</button>
                         </div>
@@ -172,8 +172,8 @@
                                         <span class="heart-icon"></span>
                                         <span class="like-count" th:text="${book.likeCount}">0</span>
                                     </button>
-                                    <p class="linked-discount" th:if="${book.discountRate != null}"
-                                       th:text="${book.discountRate} + '% 할인'" style="margin:0;">13% 할인</p>
+                                    <p class="linked-discount" style="margin:0;"
+                                       th:if="${book.discountRate != null}" th:text="${book.discountRate} + '% 할인'">13% 할인</p>
                                 </div>
                             </div>
                         </article>
@@ -201,7 +201,8 @@
                     <h2 th:text="${sectionTitle} ?: '신간 도서'">신간 도서</h2>
                 </div>
                 <div class="section-actions">
-                    <span class="count" th:text="${newBooks != null} ? '총 ' + ${newBooks.size()} + '건' : ''">총 42건</span>
+                    <span class="count"
+                          th:text="${newBooks != null} ? '총 ' + ${newBooks.size()} + '건' : ''">총 42건</span>
                     <a class="view-all" th:href="@{/books/new}">전체보기 →</a>
                 </div>
             </div>
@@ -378,54 +379,55 @@
     </section>
 
     <section class="book-collection" id="section-popular"
-             th:if="${likeBest != null and !likeBest.isEmpty()}"
-             style="background-color: #f1f3f5; padding: 60px 0;"> <div class="container">
-        <div class="section-header">
-            <div>
-                <p class="section-eyebrow">독자들이 선택한</p>
-                <h2>인기 도서</h2>
+             style="background-color: #f1f3f5; padding: 60px 0;"
+             th:if="${likeBest != null and !likeBest.isEmpty()}">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <p class="section-eyebrow">독자들이 선택한</p>
+                    <h2>인기 도서</h2>
+                </div>
             </div>
-        </div>
 
-        <div class="book-grid">
-            <div class="book-card" th:each="book : ${likeBest}">
-                <span class="book-badge" style="background-color: #7950f2; color: white;">POPULAR</span>
+            <div class="book-grid">
+                <div class="book-card" th:each="book : ${likeBest}">
+                    <span class="book-badge" style="background-color: #7950f2; color: white;">POPULAR</span>
 
-                <a class="book-cover" th:href="@{/books/{id}(id=${book.id})}">
-                    <img class="book-image" th:alt="${book.title}"
-                         th:if="${book.imagePath != null}" th:src="${book.imagePath}">
-                    <div class="thumb-fallback" th:unless="${book.imagePath != null}">표지 준비중</div>
-                </a>
+                    <a class="book-cover" th:href="@{/books/{id}(id=${book.id})}">
+                        <img class="book-image" th:alt="${book.title}"
+                             th:if="${book.imagePath != null}" th:src="${book.imagePath}">
+                        <div class="thumb-fallback" th:unless="${book.imagePath != null}">표지 준비중</div>
+                    </a>
 
-                <div class="book-details">
-                    <p class="book-title" th:text="${book.title}">도서 제목</p>
-                    <p class="book-author"
-                       th:text="${book.contributorNames != null and !#lists.isEmpty(book.contributorNames)} ? ${book.contributorNames[0]} : '저자 정보 없음'">
-                        저자명</p>
+                    <div class="book-details">
+                        <p class="book-title" th:text="${book.title}">도서 제목</p>
+                        <p class="book-author"
+                           th:text="${book.contributorNames != null and !#lists.isEmpty(book.contributorNames)} ? ${book.contributorNames[0]} : '저자 정보 없음'">
+                            저자명</p>
 
-                    <div class="book-meta">
-                        <div class="rating" th:if="${book.rating != null}">
-                            <span>★</span>
-                            <span th:text="${book.rating}">0.0</span>
-                        </div>
-                        <div class="price-info">
+                        <div class="book-meta">
+                            <div class="rating" th:if="${book.rating != null}">
+                                <span>★</span>
+                                <span th:text="${book.rating}">0.0</span>
+                            </div>
+                            <div class="price-info">
                             <span class="price"
                                   th:text="${book.priceSales != null} ? '₩' + ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} : '가격 미정'">₩0</span>
+                            </div>
+                            <button class="like-btn"
+                                    th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
+                                    th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
+                                    type="button">
+                                <span class="heart-icon"></span>
+                                <span class="like-count" th:text="${book.likeCount}">0</span>
+                            </button>
                         </div>
-                        <button class="like-btn"
-                                th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
-                                th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
-                                type="button">
-                            <span class="heart-icon"></span>
-                            <span class="like-count" th:text="${book.likeCount}">0</span>
-                        </button>
                     </div>
-                </div>
 
-                <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
+                    <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
+                </div>
             </div>
         </div>
-    </div>
     </section>
 
     <section class="book-collection"
@@ -476,6 +478,7 @@
                 alert('오류가 발생했습니다.');
             });
     }
+
     function toggleLike(btnElement, bookId) {
         fetch(`/api/front/books/${bookId}/likes`, {
             method: 'POST',

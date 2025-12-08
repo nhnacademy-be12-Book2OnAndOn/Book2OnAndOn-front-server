@@ -9,7 +9,7 @@
 <body>
 
 <th:block
-        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+        th:replace="~{fragments/layout :: commonHeader(${nickname}, ${cartCount}, null, null, false)}"></th:block>
 
 <div class="admin-container">
     <th:block th:replace="~{fragments/admin :: adminSidebar('couponpolicies')}"></th:block>
@@ -21,33 +21,33 @@
                 <h2>쿠폰 정책 관리</h2>
                 <p class="muted">총 <b th:text="${policies != null ? policies.size() : 0}">0</b>개 정책</p>
             </div>
-            <a th:href="@{/admin/policies/create}" class="btn-accent">+ 정책 등록</a>
+            <a class="btn-accent" th:href="@{/admin/policies/create}">+ 정책 등록</a>
         </div>
 
-        <form action="/admin/policies" method="get" class="admin-toolbar">
+        <form action="/admin/policies" class="admin-toolbar" method="get">
             <label for="filterType">타입</label>
-            <select name="type" id="filterType">
+            <select id="filterType" name="type">
                 <option value="">전체 보기</option>
                 <option th:each="type : ${policyTypes}"
-                        th:value="${type}"
+                        th:selected="${type == searchType}"
                         th:text="${type}"
-                        th:selected="${type == searchType}">
+                        th:value="${type}">
                 </option>
             </select>
 
             <label for="filterStatus">상태</label>
-            <select name="status" id="filterStatus">
+            <select id="filterStatus" name="status">
                 <option value="">전체 보기</option>
                 <option th:each="status : ${statuses}"
-                        th:value="${status}"
+                        th:selected="${status == searchStatus}"
                         th:text="${status.name() == 'ACTIVE' ? '활성' : '비활성'}"
-                        th:selected="${status == searchStatus}">
+                        th:value="${status}">
                 </option>
             </select>
 
             <div class="spacer"></div>
-            <button type="submit" class="btn-primary">🔍 조회</button>
-            <a href="/admin/policies" class="btn-ghost">↺ 초기화</a>
+            <button class="btn-primary" type="submit">🔍 조회</button>
+            <a class="btn-ghost" href="/admin/policies">↺ 초기화</a>
         </form>
 
         <div class="table-card">
@@ -75,7 +75,8 @@
                     </td>
 
                     <td>
-                        <a th:href="@{/admin/policies/details/{id}(id=${policy.couponPolicyId})}" class="btn-ghost-link" style="padding: 6px 10px;">
+                        <a class="btn-ghost-link" style="padding: 6px 10px;"
+                           th:href="@{/admin/policies/details/{id}(id=${policy.couponPolicyId})}">
                             <span th:text="${policy.couponPolicyName}">정책 이름</span>
                         </a>
                     </td>
@@ -85,12 +86,13 @@
                             <strong th:text="${policy.couponDiscountValue}">15</strong>% 할인
                         </th:block>
                         <th:block th:if="${policy.couponPolicyDiscountType?.name() == 'FIXED'}">
-                            <strong th:text="${#numbers.formatInteger(policy.couponDiscountValue, 0, 'COMMA')}">5,000</strong>원 할인
+                            <strong th:text="${#numbers.formatInteger(policy.couponDiscountValue, 0, 'COMMA')}">5,000</strong>원
+                            할인
                         </th:block>
                     </td>
 
                     <td style="font-size: 0.9rem;">
-                        <div th:if="${policy.durationDays != null}" style="color: #0277bd;">
+                        <div style="color: #0277bd;" th:if="${policy.durationDays != null}">
                             📅 발급 후 <b th:text="${policy.durationDays}">30</b>일간
                         </div>
                         <div th:if="${policy.fixedStartDate != null}">
@@ -98,21 +100,26 @@
                             <span th:text="${policy.fixedEndDate}"></span>
                         </div>
                         <div class="muted" style="margin-top: 4px;">
-                            <span th:text="${#numbers.formatInteger(policy.minPrice, 0, 'COMMA')}">10,000</span>원 이상 구매 시
+                            <span th:text="${#numbers.formatInteger(policy.minPrice, 0, 'COMMA')}">10,000</span>원 이상 구매
+                            시
                         </div>
                     </td>
 
                     <td>
-                        <span th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}" class="status-chip status-delivered">활성</span>
-                        <span th:if="${policy.couponPolicyStatus?.name() != 'ACTIVE'}" class="status-chip status-pending">비활성</span>
+                        <span class="status-chip status-delivered"
+                              th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}">활성</span>
+                        <span class="status-chip status-pending"
+                              th:if="${policy.couponPolicyStatus?.name() != 'ACTIVE'}">비활성</span>
                     </td>
 
                     <td class="table-actions">
-                        <a th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}" class="btn-small">수정</a>
+                        <a class="btn-small"
+                           th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}">수정</a>
 
-                        <form th:action="@{/admin/policies/delete/{id}(id=${policy.couponPolicyId})}" method="post">
-                            <button type="submit" class="btn-small btn-danger"
-                                    onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');">중지</button>
+                        <form method="post" th:action="@{/admin/policies/delete/{id}(id=${policy.couponPolicyId})}">
+                            <button class="btn-small btn-danger" onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');"
+                                    type="submit">중지
+                            </button>
                         </form>
                     </td>
                 </tr>
@@ -127,20 +134,20 @@
         </div>
 
         <div class="pagination" th:if="${totalPages > 0}">
-            <a th:if="${currentPage > 0}"
+            <a class="page-link"
                th:href="@{/admin/policies(page=${currentPage - 1}, type=${searchType}, status=${searchStatus})}"
-               class="page-link">&lt;</a>
+               th:if="${currentPage > 0}">&lt;</a>
 
             <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
-                <a th:href="@{/admin/policies(page=${i}, type=${searchType}, status=${searchStatus})}"
-                   th:text="${i + 1}"
-                   class="page-link"
-                   th:classappend="${i == currentPage} ? 'active'">1</a>
+                <a class="page-link"
+                   th:classappend="${i == currentPage} ? 'active'"
+                   th:href="@{/admin/policies(page=${i}, type=${searchType}, status=${searchStatus})}"
+                   th:text="${i + 1}">1</a>
             </th:block>
 
-            <a th:if="${currentPage < totalPages - 1}"
+            <a class="page-link"
                th:href="@{/admin/policies(page=${currentPage + 1}, type=${searchType}, status=${searchStatus})}"
-               class="page-link">&gt;</a>
+               th:if="${currentPage < totalPages - 1}">&gt;</a>
         </div>
     </main>
 </div>

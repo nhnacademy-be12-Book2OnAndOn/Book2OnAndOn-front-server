@@ -8,7 +8,7 @@
 </head>
 <body>
 <th:block
-        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+        th:replace="~{fragments/layout :: commonHeader(${nickname}, ${cartCount}, null, null, false)}"></th:block>
 <main>
     <div class="admin-container">
         <th:block th:replace="~{fragments/admin :: adminSidebar('deliveries')}"></th:block>
@@ -18,23 +18,24 @@
                 <div>
                     <p class="eyebrow">주문 / 배송</p>
                     <h2>배송 관리</h2>
-                    <p class="muted" th:text="${searchStatus != null} ? searchStatus.description : '전체 배송 보기'">전체 배송 보기</p>
+                    <p class="muted" th:text="${searchStatus != null} ? searchStatus.description : '전체 배송 보기'">전체 배송
+                        보기</p>
                 </div>
             </div>
 
-            <form action="/admin/deliveries" method="get" class="admin-toolbar">
+            <form action="/admin/deliveries" class="admin-toolbar" method="get">
                 <label for="status">주문 상태</label>
-                <select name="status" id="status">
+                <select id="status" name="status">
                     <option value="">전체 보기</option>
                     <option th:each="st : ${orderStatuses}"
-                            th:value="${st}"
+                            th:selected="${st == searchStatus}"
                             th:text="${st.description != null ? st.description : st.name()}"
-                            th:selected="${st == searchStatus}">
+                            th:value="${st}">
                     </option>
                 </select>
                 <div class="spacer"></div>
-                <button type="submit" class="btn-primary">검색</button>
-                <a href="/admin/deliveries" class="btn-ghost">초기화</a>
+                <button class="btn-primary" type="submit">검색</button>
+                <a class="btn-ghost" href="/admin/deliveries">초기화</a>
             </form>
 
             <div class="table-card">
@@ -58,17 +59,17 @@
                         <td th:text="${delivery.deliveryStartedAt != null ? #temporals.format(delivery.deliveryStartedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
 
                         <td class="table-actions">
-                            <button th:if="${delivery.waybill == null}"
-                                    type="button"
-                                    class="btn-small"
-                                    th:attr="onclick=|openModal('REGISTER', '${delivery.deliveryId}', '', '')|">
+                            <button class="btn-small"
+                                    th:attr="onclick=|openModal('REGISTER', '${delivery.deliveryId}', '', '')|"
+                                    th:if="${delivery.waybill == null}"
+                                    type="button">
                                 🚚 운송장 등록
                             </button>
 
-                            <button th:if="${delivery.waybill != null}"
-                                    type="button"
-                                    class="btn-small"
-                                    th:attr="onclick=|openModal('UPDATE', '${delivery.deliveryId}', '${delivery.deliveryCompany}', '${delivery.waybill}')|">
+                            <button class="btn-small"
+                                    th:attr="onclick=|openModal('UPDATE', '${delivery.deliveryId}', '${delivery.deliveryCompany}', '${delivery.waybill}')|"
+                                    th:if="${delivery.waybill != null}"
+                                    type="button">
                                 ✏️ 정보 수정
                             </button>
                         </td>
@@ -84,49 +85,50 @@
             </div>
 
             <div class="pagination" th:if="${totalPages > 0}">
-                <a th:if="${currentPage > 0}"
+                <a class="page-link"
                    th:href="@{/admin/deliveries(page=${currentPage - 1}, status=${searchStatus})}"
-                   class="page-link">&lt;</a>
+                   th:if="${currentPage > 0}">&lt;</a>
 
                 <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
-                    <a th:href="@{/admin/deliveries(page=${i}, status=${searchStatus})}"
-                       th:text="${i + 1}"
-                       class="page-link"
-                       th:classappend="${i == currentPage} ? 'active'">1</a>
+                    <a class="page-link"
+                       th:classappend="${i == currentPage} ? 'active'"
+                       th:href="@{/admin/deliveries(page=${i}, status=${searchStatus})}"
+                       th:text="${i + 1}">1</a>
                 </th:block>
 
-                <a th:if="${currentPage < totalPages - 1}"
+                <a class="page-link"
                    th:href="@{/admin/deliveries(page=${currentPage + 1}, status=${searchStatus})}"
-                   class="page-link">&gt;</a>
+                   th:if="${currentPage < totalPages - 1}">&gt;</a>
             </div>
         </section>
     </div>
 </main>
 
-<div id="waybillModal" class="modal-overlay">
+<div class="modal-overlay" id="waybillModal">
     <div class="modal-card">
         <h3 id="modalTitle" style="margin-top: 0; margin-bottom: 18px;">운송장 등록</h3>
 
         <form id="waybillForm" method="post">
             <div class="form-field">
                 <label for="deliveryCompany">택배사</label>
-                <select name="deliveryCompany" id="deliveryCompany" required>
+                <select id="deliveryCompany" name="deliveryCompany" required>
                     <option value="">선택하세요</option>
                     <option th:each="comp : ${deliveryCompanies}"
-                            th:value="${comp.name}"
-                            th:text="${comp.name}">CJ대한통운</option>
+                            th:text="${comp.name}"
+                            th:value="${comp.name}">CJ대한통운
+                    </option>
                 </select>
             </div>
 
             <div class="form-field">
                 <label for="waybill">운송장 번호</label>
-                <input type="text" name="waybill" id="waybill"
-                       placeholder="숫자만 입력하세요" required pattern="[0-9]+">
+                <input id="waybill" name="waybill" pattern="[0-9]+"
+                       placeholder="숫자만 입력하세요" required type="text">
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn-ghost" onclick="closeModal()">취소</button>
-                <button type="submit" class="btn-primary">저장</button>
+                <button class="btn-ghost" onclick="closeModal()" type="button">취소</button>
+                <button class="btn-primary" type="submit">저장</button>
             </div>
         </form>
     </div>
@@ -169,7 +171,7 @@
     }
 
     // 모달 외부 클릭 시 닫기
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target === modal) closeModal();
     }
 </script>

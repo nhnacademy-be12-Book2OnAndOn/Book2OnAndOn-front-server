@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>포인트 관리 - Book2OnAndOn</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
@@ -10,7 +10,7 @@
 </head>
 <body>
 <th:block
-        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+        th:replace="~{fragments/layout :: commonHeader(${nickname}, ${cartCount}, null, null, false)}"></th:block>
 
 <div class="admin-container">
     <th:block th:replace="~{fragments/admin :: adminSidebar('points')}"></th:block>
@@ -27,13 +27,13 @@
             <label for="userIdInput">사용자 ID</label>
             <form class="search-form" onsubmit="searchUser(event)" style="display:flex; gap:10px; width:100%;">
                 <input
-                        type="number"
                         class="form-control"
                         id="userIdInput"
-                        placeholder="사용자 ID를 입력하세요"
                         min="1"
-                        required style="max-width: 240px;">
-                <button type="submit" class="btn-primary">조회</button>
+                        placeholder="사용자 ID를 입력하세요"
+                        required
+                        style="max-width: 240px;" type="number">
+                <button class="btn-primary" type="submit">조회</button>
             </form>
         </div>
 
@@ -67,7 +67,7 @@
                     </thead>
                     <tbody id="historyTableBody">
                     <tr>
-                        <td colspan="6" class="empty-state">
+                        <td class="empty-state" colspan="6">
                             <div class="empty-state-icon">📋</div>
                             <div>포인트 이력이 없습니다</div>
                         </td>
@@ -76,13 +76,13 @@
                 </table>
             </div>
 
-            <div id="pagination" class="pagination" style="margin-top: 16px;"></div>
+            <div class="pagination" id="pagination" style="margin-top: 16px;"></div>
         </div>
     </main>
 </div>
 
 <!-- 포인트 조정 모달 -->
-<div id="adjustModal" class="modal-overlay">
+<div class="modal-overlay" id="adjustModal">
     <div class="modal-card">
         <div class="modal-header">
             <h3 class="modal-title" id="adjustModalTitle">포인트 지급/차감</h3>
@@ -93,28 +93,28 @@
                 <label class="form-label">조정 유형</label>
                 <div class="radio-group">
                     <div class="radio-option">
-                        <input type="radio" name="adjustType" value="EARN" id="typeEarn" required>
+                        <input id="typeEarn" name="adjustType" required type="radio" value="EARN">
                         <label for="typeEarn">지급 (적립)</label>
                     </div>
                     <div class="radio-option">
-                        <input type="radio" name="adjustType" value="USE" id="typeUse">
+                        <input id="typeUse" name="adjustType" type="radio" value="USE">
                         <label for="typeUse">차감 (사용)</label>
                     </div>
                 </div>
             </div>
             <div class="form-group">
                 <label class="form-label">포인트</label>
-                <input type="number" id="adjustPoint" class="form-input" min="1" step="1" required>
+                <input class="form-input" id="adjustPoint" min="1" required step="1" type="number">
                 <div class="form-help">조정할 포인트를 입력하세요</div>
             </div>
             <div class="form-group">
                 <label class="form-label">사유</label>
-                <input type="text" id="adjustReason" class="form-input" maxlength="100" required>
+                <input class="form-input" id="adjustReason" maxlength="100" required type="text">
                 <div class="form-help">포인트 조정 사유를 입력하세요</div>
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeAdjustModal()">취소</button>
-                <button type="submit" class="btn btn-primary">확인</button>
+                <button class="btn btn-secondary" onclick="closeAdjustModal()" type="button">취소</button>
+                <button class="btn btn-primary" type="submit">확인</button>
             </div>
         </form>
     </div>
