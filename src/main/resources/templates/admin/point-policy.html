@@ -10,7 +10,7 @@
 </head>
 <body>
 <th:block
-        th:replace="~{fragments/layout :: commonHeader(${nickname}, ${cartCount}, null, null, false)}"></th:block>
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
 <div class="admin-container">
     <th:block th:replace="~{fragments/admin :: adminSidebar('pointpolicies')}"></th:block>

@@ -43,7 +43,7 @@
                 <th:block th:if="${currentUser != null}">
                     <button class="text-link user-name-btn"
                             th:onclick="|location.href='@{${#strings.contains(currentUser.role, 'ADMIN')} ? '/admin' : '/users/me'}'|"
-                            th:text="${currentUser.name} + '님'" type="button">사용자님
+                            th:text="${currentUser.nickname} + '님'" type="button">사용자님
                     </button>
                     <button class="text-link logout" th:onclick="|location.href='@{/logout}'|" type="button">로그아웃
                     </button>

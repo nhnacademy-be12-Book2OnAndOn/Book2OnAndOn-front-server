@@ -132,7 +132,7 @@
 </head>
 
 <th:block
-        th:replace="~{fragments/layout :: commonHeader(${nickname}, ${cartCount}, null, null, false)}"></th:block>
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 <body>
 <div class="admin-container">
     <h2 th:text="${pageTitle}">쿠폰 정책 등록</h2>

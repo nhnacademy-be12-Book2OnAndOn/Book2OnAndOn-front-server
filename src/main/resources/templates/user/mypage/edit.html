@@ -7,47 +7,12 @@
       )}">
 <head>
     <title>내 정보 수정</title>
-    <style>
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-verify {
-            padding: 10px 15px;
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .btn-verify:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .text-success {
-            color: green;
-            font-size: 0.9em;
-        }
-
-        .text-danger {
-            color: red;
-            font-size: 0.9em;
-        }
-
-        .mt-2 {
-            margin-top: 10px;
-        }
-    </style>
 </head>
 
 <body>
 <div th:fragment="content">
 
-    <div class="address-form-container">
+    <div class="address-form-container no-card">
         <h2>⚙️ 회원 정보 수정</h2>
 
         <div th:if="${error}" class="error-box" th:text="${error}"></div>
