@@ -3,175 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <title>관리자 - 배송 관리</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <style>
-        /* 관리자 컨테이너 스타일 */
-        .admin-container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
-
-        /* 헤더 */
-        .page-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #333;
-        }
-        .page-title h2 { margin: 0; font-size: 1.5rem; color: #333; }
-
-        /* 필터 툴바 */
-        .filter-toolbar {
-            background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;
-            display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-        }
-        .filter-label { font-weight: bold; color: #555; }
-        .filter-select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; min-width: 150px; }
-        .btn-search { background: #333; color: white; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
-        .btn-reset { text-decoration: none; color: #666; font-size: 0.9rem; margin-left: auto; padding: 8px; }
-
-        /* 테이블 */
-        .table-container { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #eee; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; }
-        th { background: #f8f9fa; font-weight: 600; color: #555; text-transform: uppercase; font-size: 0.85rem; }
-        tbody tr:hover { background-color: #f1f8e9; }
-
-        /* 상태 배지 */
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
-        .status-PREPARING { background: #fff3e0; color: #e65100; } /* 배송준비중 */
-        .status-SHIPPING { background: #e3f2fd; color: #1565c0; }  /* 배송중 */
-        .status-DELIVERED { background: #e8f5e9; color: #2e7d32; } /* 배송완료 */
-        .status-PENDING { background: #f5f5f5; color: #616161; }   /* 주문대기/결제완료 */
-
-        /* 버튼 스타일 */
-        .btn-action {
-            padding: 6px 12px; border: 1px solid #ddd; background: white;
-            border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
-            transition: all 0.2s;
-        }
-        .btn-register { color: #2d5016; border-color: #2d5016; }
-        .btn-register:hover { background: #2d5016; color: white; }
-        .btn-update { color: #555; border-color: #aaa; }
-        .btn-update:hover { background: #f5f5f5; color: #333; }
-
-        /* 모달 스타일 */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000;
-            justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: white; padding: 2rem; border-radius: 12px; width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        .modal-header h3 { margin: 0 0 1.5rem 0; color: #333; border-bottom: 2px solid #2d5016; padding-bottom: 10px; display: inline-block; }
-        .form-group { margin-bottom: 1.2rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555; font-size: 0.9rem; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 2rem; }
-        .btn-modal { padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn-close { background: #f1f3f5; border: 1px solid #ddd; color: #333; }
-        .btn-submit { background: #2d5016; border: none; color: white; }
-
-        /* 페이지네이션 */
-        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 2rem; }
-        .page-link { padding: 8px 12px; border: 1px solid #ddd; background: white; color: #333; text-decoration: none; border-radius: 4px; }
-        .page-link.active { background-color: #2d5016; color: white; border-color: #2d5016; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
 <body>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+<main>
+    <div class="admin-container">
+        <th:block th:replace="~{fragments/admin :: adminSidebar('deliveries')}"></th:block>
 
-<div class="admin-container">
+        <section class="admin-content">
+            <div class="admin-header">
+                <div>
+                    <p class="eyebrow">주문 / 배송</p>
+                    <h2>배송 관리</h2>
+                    <p class="muted" th:text="${searchStatus != null} ? searchStatus.description : '전체 배송 보기'">전체 배송 보기</p>
+                </div>
+            </div>
 
-    <div class="page-header">
-        <div class="page-title">
-            <h2>📦 배송 관리</h2>
-        </div>
+            <form action="/admin/deliveries" method="get" class="admin-toolbar">
+                <label for="status">주문 상태</label>
+                <select name="status" id="status">
+                    <option value="">전체 보기</option>
+                    <option th:each="st : ${orderStatuses}"
+                            th:value="${st}"
+                            th:text="${st.description != null ? st.description : st.name()}"
+                            th:selected="${st == searchStatus}">
+                    </option>
+                </select>
+                <div class="spacer"></div>
+                <button type="submit" class="btn-primary">검색</button>
+                <a href="/admin/deliveries" class="btn-ghost">초기화</a>
+            </form>
+
+            <div class="table-card">
+                <table class="admin-table">
+                    <thead>
+                    <tr>
+                        <th>배송 ID</th>
+                        <th>주문 번호</th>
+                        <th>택배사</th>
+                        <th>운송장 번호</th>
+                        <th>배송 시작일</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="delivery : ${deliveries}">
+                        <td th:text="${delivery.deliveryId}"></td>
+                        <td th:text="${delivery.orderId}"></td>
+                        <td th:text="${delivery.deliveryCompany != null ? delivery.deliveryCompany : '-'}"></td>
+                        <td th:text="${delivery.waybill != null ? delivery.waybill : '-'}"></td>
+                        <td th:text="${delivery.deliveryStartedAt != null ? #temporals.format(delivery.deliveryStartedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+
+                        <td class="table-actions">
+                            <button th:if="${delivery.waybill == null}"
+                                    type="button"
+                                    class="btn-small"
+                                    th:attr="onclick=|openModal('REGISTER', '${delivery.deliveryId}', '', '')|">
+                                🚚 운송장 등록
+                            </button>
+
+                            <button th:if="${delivery.waybill != null}"
+                                    type="button"
+                                    class="btn-small"
+                                    th:attr="onclick=|openModal('UPDATE', '${delivery.deliveryId}', '${delivery.deliveryCompany}', '${delivery.waybill}')|">
+                                ✏️ 정보 수정
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(deliveries)}">
+                        <td colspan="6" style="text-align: center; padding: 3rem; color: #999;">
+                            조회된 배송 내역이 없습니다.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" th:if="${totalPages > 0}">
+                <a th:if="${currentPage > 0}"
+                   th:href="@{/admin/deliveries(page=${currentPage - 1}, status=${searchStatus})}"
+                   class="page-link">&lt;</a>
+
+                <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                    <a th:href="@{/admin/deliveries(page=${i}, status=${searchStatus})}"
+                       th:text="${i + 1}"
+                       class="page-link"
+                       th:classappend="${i == currentPage} ? 'active'">1</a>
+                </th:block>
+
+                <a th:if="${currentPage < totalPages - 1}"
+                   th:href="@{/admin/deliveries(page=${currentPage + 1}, status=${searchStatus})}"
+                   class="page-link">&gt;</a>
+            </div>
+        </section>
     </div>
-
-    <form action="/admin/deliveries" method="get" class="filter-toolbar">
-        <span class="filter-label">주문 상태:</span>
-        <select name="status" class="filter-select">
-            <option value="">전체 보기</option>
-            <option th:each="st : ${orderStatuses}"
-                    th:value="${st}"
-                    th:text="${st.description != null ? st.description : st.name()}"
-                    th:selected="${st == searchStatus}">
-            </option>
-        </select>
-        <button type="submit" class="btn-search">검색</button>
-        <a href="/admin/deliveries" class="btn-reset">↺ 초기화</a>
-    </form>
-
-    <div class="table-container">
-        <table>
-            <thead>
-            <tr>
-                <th>배송 ID</th>
-                <th>주문 번호</th>
-                <th>택배사</th>
-                <th>운송장 번호</th>
-                <th>배송 시작일</th>
-                <th>관리</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="delivery : ${deliveries}">
-                <td th:text="${delivery.deliveryId}"></td>
-                <td th:text="${delivery.orderId}"></td>
-                <td th:text="${delivery.deliveryCompany != null ? delivery.deliveryCompany : '-'}"></td>
-                <td th:text="${delivery.waybill != null ? delivery.waybill : '-'}"></td>
-                <td th:text="${delivery.deliveryStartedAt != null ? #temporals.format(delivery.deliveryStartedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
-
-                <td>
-                    <button th:if="${delivery.waybill == null}"
-                            class="btn-action btn-register"
-                            th:onclick="openModal('REGISTER', [[${delivery.deliveryId}]], '', '')">
-                        🚚 운송장 등록
-                    </button>
-
-                    <button th:if="${delivery.waybill != null}"
-                            class="btn-action btn-update"
-                            th:onclick="openModal('UPDATE', [[${delivery.deliveryId}]], [[${delivery.deliveryCompany}]], [[${delivery.waybill}]])">
-                        ✏️ 정보 수정
-                    </button>
-                </td>
-            </tr>
-
-            <tr th:if="${#lists.isEmpty(deliveries)}">
-                <td colspan="6" style="text-align: center; padding: 3rem; color: #999;">
-                    조회된 배송 내역이 없습니다.
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="pagination" th:if="${totalPages > 0}">
-        <a th:if="${currentPage > 0}"
-           th:href="@{/admin/deliveries(page=${currentPage - 1}, status=${searchStatus})}"
-           class="page-link">&lt;</a>
-
-        <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
-            <a th:href="@{/admin/deliveries(page=${i}, status=${searchStatus})}"
-               th:text="${i + 1}"
-               class="page-link"
-               th:classappend="${i == currentPage} ? 'active'">1</a>
-        </th:block>
-
-        <a th:if="${currentPage < totalPages - 1}"
-           th:href="@{/admin/deliveries(page=${currentPage + 1}, status=${searchStatus})}"
-           class="page-link">&gt;</a>
-    </div>
-
-</div>
+</main>
 
 <div id="waybillModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="modalTitle">운송장 등록</h3>
-        </div>
+    <div class="modal-card">
+        <h3 id="modalTitle" style="margin-top: 0; margin-bottom: 18px;">운송장 등록</h3>
 
         <form id="waybillForm" method="post">
-            <div class="form-group">
+            <div class="form-field">
                 <label for="deliveryCompany">택배사</label>
-                <select name="deliveryCompany" id="deliveryCompany" class="form-control" required>
+                <select name="deliveryCompany" id="deliveryCompany" required>
                     <option value="">선택하세요</option>
                     <option th:each="comp : ${deliveryCompanies}"
                             th:value="${comp.name}"
@@ -179,19 +118,21 @@
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-field">
                 <label for="waybill">운송장 번호</label>
-                <input type="text" name="waybill" id="waybill" class="form-control"
+                <input type="text" name="waybill" id="waybill"
                        placeholder="숫자만 입력하세요" required pattern="[0-9]+">
             </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn-modal btn-close" onclick="closeModal()">취소</button>
-                <button type="submit" class="btn-modal btn-submit">저장</button>
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" onclick="closeModal()">취소</button>
+                <button type="submit" class="btn-primary">저장</button>
             </div>
         </form>
     </div>
 </div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 <script>
     const modal = document.getElementById('waybillModal');
@@ -205,23 +146,17 @@
      * mode: 'REGISTER' (등록) 또는 'UPDATE' (수정)
      */
     function openModal(mode, id, currentCompany, currentWaybill) {
-        modal.style.display = 'flex';
+        modal.classList.add('show');
 
         if (mode === 'REGISTER') {
             title.innerText = '운송장 등록 (배송 시작)';
-            // Controller: @PostMapping("/deliveries/{id}/waybill")
             form.action = `/admin/deliveries/${id}/waybill`;
-
-            // 초기화
             companySelect.value = '';
             waybillInput.value = '';
-
         } else {
-            title.innerText = '✏️ 배송 정보 수정';
-            // Controller: @PostMapping("/deliveries/{id}/info")
+            title.innerText = '배송 정보 수정';
             form.action = `/admin/deliveries/${id}/info`;
 
-            // 기존 값 채우기
             if (currentCompany) companySelect.value = currentCompany;
             if (currentWaybill) waybillInput.value = currentWaybill;
         }
@@ -230,12 +165,12 @@
     }
 
     function closeModal() {
-        modal.style.display = 'none';
+        modal.classList.remove('show');
     }
 
     // 모달 외부 클릭 시 닫기
     window.onclick = function(event) {
-        if (event.target == modal) closeModal();
+        if (event.target === modal) closeModal();
     }
 </script>
 
