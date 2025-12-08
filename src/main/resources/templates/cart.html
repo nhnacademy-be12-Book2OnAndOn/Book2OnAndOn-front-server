@@ -11,10 +11,13 @@
 <th:block
         th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 <main>
-    <section class="container">
-        <header class="cart-page-header">
-            <h1>장바구니</h1>
-        </header>
+    <section class="cart-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">장바구니</h1>
+                <p class="page-subtitle">담아둔 상품을 확인하고 한 번에 주문하세요.</p>
+            </div>
+        </div>
 
         <div class="cart-header">
             <div class="select-all">

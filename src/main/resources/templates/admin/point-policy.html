@@ -1,49 +1,57 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>포인트 정책 관리 - Book2OnAndOn</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
     <link rel="stylesheet" href="/css/pointPolicy.css">
 </head>
 <body>
-<header>
-    <h1>관리자 페이지</h1>
-</header>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
-<div class="container">
-    <div class="page-header">
-        <h2 class="page-title">포인트 정책 관리</h2>
-        <button class="btn btn-primary" onclick="loadPolicies()">🔄 새로고침</button>
-    </div>
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('pointpolicies')}"></th:block>
 
-    <div class="policies-table">
-        <table>
-            <thead>
-            <tr>
-                <th>정책 ID</th>
-                <th>정책명</th>
-                <th>적립 비율(%)</th>
-                <th>고정 포인트</th>
-                <th>상태</th>
-                <th>작업</th>
-            </tr>
-            </thead>
-            <tbody id="policiesTableBody">
-            <tr>
-                <td colspan="6" class="empty-state">
-                    <div class="empty-state-icon">⏳</div>
-                    <div>데이터를 불러오는 중...</div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">포인트 정책</p>
+                <h2>포인트 정책 관리</h2>
+            </div>
+            <button class="btn-primary" onclick="loadPolicies()">🔄 새로고침</button>
+        </div>
+
+        <div class="table-card policies-table">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>정책 ID</th>
+                    <th>정책명</th>
+                    <th>적립 비율(%)</th>
+                    <th>고정 포인트</th>
+                    <th>상태</th>
+                    <th>작업</th>
+                </tr>
+                </thead>
+                <tbody id="policiesTableBody">
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <div class="empty-state-icon">⏳</div>
+                        <div>데이터를 불러오는 중...</div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
 </div>
 
 <!-- 수정 모달 -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
+<div id="editModal" class="modal-overlay">
+    <div class="modal-card">
         <div class="modal-header">
             <h3 class="modal-title">포인트 정책 수정</h3>
             <button class="close-btn" onclick="closeEditModal()">&times;</button>
@@ -76,8 +84,8 @@
 </div>
 
 <!-- 활성화 상태 변경 모달 -->
-<div id="activeModal" class="modal">
-    <div class="modal-content">
+<div id="activeModal" class="modal-overlay">
+    <div class="modal-card">
         <div class="modal-header">
             <h3 class="modal-title">정책 상태 변경</h3>
             <button class="close-btn" onclick="closeActiveModal()">&times;</button>
@@ -101,6 +109,7 @@
     </div>
 </div>
 
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 <script src="/js/pointPolicy.js"></script>
 </body>
 </html>

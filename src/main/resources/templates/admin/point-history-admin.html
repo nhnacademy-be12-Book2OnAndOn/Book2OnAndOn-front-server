@@ -1,84 +1,89 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>포인트 관리 - Book2OnAndOn</title>
-    <link rel="stylesheet" href="/css/pointHistoryAdmin.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/pointHistoryAdmin.css}">
 </head>
 <body>
-<header>
-    <h1>관리자 페이지</h1>
-</header>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
-<div class="container">
-    <div class="page-header">
-        <h2 class="page-title">사용자 포인트 관리</h2>
-    </div>
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('points')}"></th:block>
 
-    <!-- 사용자 검색 -->
-    <div class="search-section">
-        <form class="search-form" onsubmit="searchUser(event)">
-            <input
-                    type="number"
-                    class="search-input"
-                    id="userIdInput"
-                    placeholder="사용자 ID를 입력하세요"
-                    min="1"
-                    required>
-            <button type="submit" class="btn btn-primary">조회</button>
-        </form>
-    </div>
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">포인트 센터</p>
+                <h2>사용자 포인트 관리</h2>
+            </div>
+        </div>
 
-    <!-- 현재 포인트 정보 -->
-    <div id="pointInfoSection" style="display: none;">
-        <div class="current-point-card">
-            <div class="point-info">
-                <div>
-                    <div class="point-label">사용자 ID: <strong id="currentUserId"></strong></div>
-                    <div class="point-label">현재 보유 포인트</div>
+        <div class="admin-toolbar">
+            <label for="userIdInput">사용자 ID</label>
+            <form class="search-form" onsubmit="searchUser(event)" style="display:flex; gap:10px; width:100%;">
+                <input
+                        type="number"
+                        class="form-control"
+                        id="userIdInput"
+                        placeholder="사용자 ID를 입력하세요"
+                        min="1"
+                        required style="max-width: 240px;">
+                <button type="submit" class="btn-primary">조회</button>
+            </form>
+        </div>
+
+        <div id="pointInfoSection" style="display: none;">
+            <div class="admin-detail-card">
+                <div class="point-info">
+                    <div>
+                        <div class="point-label">사용자 ID: <strong id="currentUserId"></strong></div>
+                        <div class="point-label">현재 보유 포인트</div>
+                    </div>
+                    <div class="point-value" id="currentPoint">0 P</div>
                 </div>
-                <div class="point-value" id="currentPoint">0 P</div>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="openAdjustModal('EARN')">포인트 지급</button>
+                    <button class="btn btn-danger" onclick="openAdjustModal('USE')">포인트 차감</button>
+                    <button class="btn btn-secondary" onclick="expirePoints()">만료 포인트 처리</button>
+                </div>
             </div>
-            <div class="action-buttons">
-                <button class="btn btn-success" onclick="openAdjustModal('EARN')">포인트 지급</button>
-                <button class="btn btn-danger" onclick="openAdjustModal('USE')">포인트 차감</button>
-                <button class="btn btn-secondary" onclick="expirePoints()">만료 포인트 처리</button>
+
+            <div class="table-card history-table">
+                <table class="admin-table">
+                    <thead>
+                    <tr>
+                        <th>일시</th>
+                        <th>구분</th>
+                        <th>포인트</th>
+                        <th>잔액</th>
+                        <th>설명</th>
+                        <th>만료일</th>
+                    </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <div>포인트 이력이 없습니다</div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
 
-        <!-- 포인트 이력 -->
-        <div class="history-table">
-            <table>
-                <thead>
-                <tr>
-                    <th>일시</th>
-                    <th>구분</th>
-                    <th>포인트</th>
-                    <th>잔액</th>
-                    <th>설명</th>
-                    <th>만료일</th>
-                </tr>
-                </thead>
-                <tbody id="historyTableBody">
-                <tr>
-                    <td colspan="6" class="empty-state">
-                        <div class="empty-state-icon">📋</div>
-                        <div>포인트 이력이 없습니다</div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <div id="pagination" class="pagination" style="margin-top: 16px;"></div>
         </div>
-
-        <!-- 페이지네이션 -->
-        <div id="pagination" class="pagination"></div>
-    </div>
+    </main>
 </div>
 
 <!-- 포인트 조정 모달 -->
-<div id="adjustModal" class="modal">
-    <div class="modal-content">
+<div id="adjustModal" class="modal-overlay">
+    <div class="modal-card">
         <div class="modal-header">
             <h3 class="modal-title" id="adjustModalTitle">포인트 지급/차감</h3>
             <button class="close-btn" onclick="closeAdjustModal()">&times;</button>
@@ -115,6 +120,7 @@
     </div>
 </div>
 
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 <script src="/js/pointHistoryAdmin.js"></script>
 </body>
 </html>

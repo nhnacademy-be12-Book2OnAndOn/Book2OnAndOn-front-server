@@ -16,7 +16,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Slf4j
 @Controller
@@ -29,7 +34,7 @@ public class CouponPolicyViewController {
     private final BookClient bookClient;
 
 
-     // 정책 목록 조회 페이지
+    // 정책 목록 조회 페이지
     @GetMapping
     public String listPolicies(@RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "10") int size,
@@ -54,22 +59,22 @@ public class CouponPolicyViewController {
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
 
-        return "admin/couponPolicy/list";
+        return "/admin/couponPolicy/list";
     }
 
 
-     // 정책 등록 폼
+    // 정책 등록 폼
     @GetMapping("/create")
     public String createForm(Model model) {
         model.addAttribute("policy", new CouponPolicyDto());
         List<CategoryDto> categories = bookClient.getCategories();
         model.addAttribute("categoryList", categories);
         model.addAttribute("pageTitle", "쿠폰 정책 등록");
-        return "admin/couponPolicy/form";
+        return "/admin/couponPolicy/form";
     }
 
 
-     // 정책 등록 처리
+    // 정책 등록 처리
     @PostMapping("/create")
     public String createPolicy(@ModelAttribute CouponPolicyDto requestDto) {
         couponPolicyClient.createPolicy(requestDto);
@@ -77,7 +82,7 @@ public class CouponPolicyViewController {
     }
 
 
-     // 정책 수정 폼
+    // 정책 수정 폼
     @GetMapping("/update/{id}")
     public String updateForm(@PathVariable Long id, Model model) {
         CouponPolicyDto policy = couponPolicyClient.getPolicy(id);
@@ -106,10 +111,10 @@ public class CouponPolicyViewController {
         model.addAttribute("categoryList", categories);
         model.addAttribute("policy", updateDto);
         model.addAttribute("pageTitle", "쿠폰 정책 수정");
-        return "admin/couponPolicy/form";
+        return "/admin/couponPolicy/form";
     }
 
-     // 정책 수정 처리
+    // 정책 수정 처리
     @PostMapping("/update/{id}")
     public String updatePolicy(@PathVariable Long id, @ModelAttribute CouponPolicyUpdateDto requestDto) {
         couponPolicyClient.updatePolicy(id, requestDto);
@@ -124,9 +129,8 @@ public class CouponPolicyViewController {
         model.addAttribute("policy", policy);
         model.addAttribute("pageTitle", "쿠폰 정책 상세 조회");
 
-        return "admin/couponPolicy/detail"; // detail 템플릿 반환
+        return "/admin/couponPolicy/detail"; // detail 템플릿 반환
     }
-
 
 
     // 정책 비활성화 (삭제)
@@ -144,7 +148,6 @@ public class CouponPolicyViewController {
         couponClient.createCoupon(requestDto);
         return "redirect:/admin/policies/details/" + id;
     }
-
 
     // --- 공통 데이터 (드롭다운 메뉴용) ---
 

@@ -127,22 +127,12 @@
 <head>
     <meta charset="UTF-8">
     <title>관리자 - 쿠폰 정책 등록/수정</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <style>
-        .admin-container { max-width: 800px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 0.5rem; color: #333; }
-        .form-control { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
-        .form-row { display: flex; gap: 1rem; }
-        .form-row .form-group { flex: 1; }
-        .btn-group { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
-        .btn-save { background: #2d5016; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-cancel { background: #f8f9fa; border: 1px solid #ddd; padding: 0.8rem 1.5rem; border-radius: 4px; text-decoration: none; color: #333; }
-        .error-msg { color: red; font-size: 0.85rem; margin-top: 5px; display: block;}
-        .remove-option { margin-left: 10px; font-size: 0.9rem; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
 
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 <body>
 <div class="admin-container">
     <h2 th:text="${pageTitle}">쿠폰 정책 등록</h2>
@@ -151,11 +141,14 @@
     <form th:action="${policy.couponPolicyId == null ? '/admin/policies/create' : '/admin/policies/update/' + policy.couponPolicyId}"
           th:object="${policy}" method="post">
 
-        <div class="form-group">
-            <label for="couponPolicyName">정책 이름</label>
-            <input type="text" id="couponPolicyName" th:field="*{couponPolicyName}" class="form-control" placeholder="예: 신규 회원 웰컴 쿠폰" required>
-        </div>
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('couponpolicies')}"></th:block>
 
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">쿠폰 정책</p>
+                <h2 th:text="${pageTitle}">쿠폰 정책 등록</h2>
         <div class="form-row">
             <div class="form-group">
                 <label for="couponPolicyType">쿠폰 타입</label>
@@ -170,7 +163,111 @@
                     <option th:each="dtype : ${discountTypes}" th:value="${dtype}" th:text="${dtype}"></option>
                 </select>
             </div>
+            <a th:href="@{/admin/policies}" class="btn-ghost">← 목록으로</a>
         </div>
+
+        <section class="admin-detail-card">
+            <form th:action="${policy.couponPolicyId == null ? '/admin/policies/create' : '/admin/policies/update/' + policy.couponPolicyId}"
+                  th:object="${policy}" method="post">
+
+                <div class="form-field">
+                    <label for="couponPolicyName">정책 이름</label>
+                    <input type="text" id="couponPolicyName" th:field="*{couponPolicyName}" class="form-control" placeholder="예: 신규 회원 웰컴 쿠폰" required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="couponPolicyType">쿠폰 타입</label>
+                        <select id="couponPolicyType" th:field="*{couponPolicyType}" class="form-control">
+                            <option th:each="type : ${policyTypes}" th:value="${type}" th:text="${type}"></option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="couponPolicyDiscountType">할인 방식</label>
+                        <select id="couponPolicyDiscountType" th:field="*{couponPolicyDiscountType}" class="form-control">
+                            <option th:each="dtype : ${discountTypes}" th:value="${dtype}" th:text="${dtype}"></option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="couponDiscountValue">할인값 (원/%)</label>
+                        <input type="number" id="couponDiscountValue" th:field="*{couponDiscountValue}" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="minPrice">최소 주문 금액</label>
+                        <input type="number" id="minPrice" th:field="*{minPrice}" class="form-control" value="0">
+                    </div>
+                    <div class="form-field">
+                        <label for="maxPrice">최대 할인 금액 (정률 할인 시)</label>
+                        <input type="number" id="maxPrice" th:field="*{maxPrice}" class="form-control">
+                    </div>
+                </div>
+
+                <div class="admin-detail-card" style="background:#f6f9f7; border-style:dashed; border-color:#d5ddd6;">
+                    <div class="form-field">
+                        <label>유효 기간 설정 (둘 중 하나만 입력)</label>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="durationDays">발급 후 유효 일수</label>
+                                <input type="number" id="durationDays" th:field="*{durationDays}" class="form-control" placeholder="예: 30">
+                            </div>
+                            <div class="form-field">
+                                <label>고정 기간 (시작 ~ 종료)</label>
+                                <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+                                    <input type="date" th:field="*{fixedStartDate}" class="form-control">
+                                    <input type="date" th:field="*{fixedEndDate}" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <p class="helper-text" style="margin-top:8px;">기간을 동시에 입력하면 고정 기간을 우선 적용합니다.</p>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="targetBookIds">적용 대상 도서 ID (쉼표로 구분)</label>
+                    <input type="text" id="targetBookIds" th:field="*{targetBookIds}" class="form-control" placeholder="예: 101, 102, 103">
+                </div>
+
+                <div class="form-field">
+                    <label>적용 대상 카테고리</label>
+                    <div class="checkbox-box">
+
+                        <div th:if="${#lists.isEmpty(categoryList)}" class="muted">
+                            등록된 카테고리가 없습니다.
+                        </div>
+
+                        <div th:each="cat : ${categoryList}" style="margin-bottom: 6px;">
+                            <input type="checkbox"
+                                   th:field="*{targetCategoryIds}"
+                                   th:value="${cat.id}"
+                                   th:id="${'cat_' + cat.id}">
+                            <label th:for="${'cat_' + cat.id}" th:text="${cat.name}">국내도서</label>
+                        </div>
+                    </div>
+                    <p class="helper-text" style="margin-top:6px;">여러 개 선택 가능합니다.</p>
+                </div>
+
+                <div class="form-field" th:if="${policy.couponPolicyId != null}">
+                    <label for="couponPolicyStatus">정책 상태</label>
+                    <select id="couponPolicyStatus" th:field="*{couponPolicyStatus}" class="form-control">
+                        <option th:each="status : ${statuses}"
+                                th:value="${status}"
+                                th:text="${status}"></option>
+                    </select>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 16px;">
+                    <a th:href="@{/admin/policies}" class="btn-ghost">취소</a>
+                    <button type="submit" class="btn-primary">저장하기</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
         <div class="form-row">
             <div class="form-group">

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>회원 관리 - Admin</title>
@@ -7,21 +7,11 @@
     <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
 <body>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
 <div class="admin-container">
-    <nav class="admin-sidebar">
-        <div class="admin-brand">Admin Center</div>
-        <div class="admin-menu">
-            <a th:href="@{/admin}">📊 대시보드</a>
-            <a th:href="@{/admin/users}" class="active">👥 회원 관리</a>
-            <a th:href="@{/admin/books}">📚 도서 관리</a>
-            <a th:href="@{/admin/orders}">📦 주문 관리</a>
-
-            <div style="margin-top: 50px; border-top: 1px solid #444; padding-top: 10px;">
-                <a th:href="@{/}" style="color: #aaa; font-size: 0.9rem;">🏠 쇼핑몰 메인으로</a>
-            </div>
-        </div>
-    </nav>
+    <th:block th:replace="~{fragments/admin :: adminSidebar('users')}"></th:block>
 
     <main class="admin-content">
         <div class="admin-header">
@@ -29,12 +19,12 @@
             <span style="color: #666;">총 <span th:text="${page.totalElements}">0</span>명</span>
         </div>
 
-        <div th:if="${param.success}"
-             style="color: green; margin-bottom: 15px; background: #e8f5e9; padding: 10px; border-radius: 4px;">
+        <div style="color: green; margin-bottom: 15px; background: #e8f5e9; padding: 10px; border-radius: 4px;"
+             th:if="${param.success}">
             ✅ 처리가 완료되었습니다.
         </div>
-        <div th:if="${param.error}"
-             style="color: red; margin-bottom: 15px; background: #ffebee; padding: 10px; border-radius: 4px;">
+        <div style="color: red; margin-bottom: 15px; background: #ffebee; padding: 10px; border-radius: 4px;"
+             th:if="${param.error}">
             ❌ 오류가 발생했습니다.
         </div>
 
@@ -56,9 +46,9 @@
                 <td th:text="${user.userId}">1</td>
 
                 <td>
-                    <a th:href="@{/admin/users/{id}(id=${user.userId})}"
-                       th:text="${user.userLoginId}"
-                       style="font-weight: bold; color: #2d5016; text-decoration: none;">
+                    <a style="font-weight: bold; color: #2d5016; text-decoration: none;"
+                       th:href="@{/admin/users/{id}(id=${user.userId})}"
+                       th:text="${user.userLoginId}">
                         testuser
                     </a>
                 </td>
@@ -91,22 +81,22 @@
         </table>
 
         <div class="pagination" style="margin-top: 20px; justify-content: center; display: flex; gap: 5px;">
-            <a th:if="${!page.first}"
-               th:href="@{/admin/users(page=${page.number - 1})}"
-               class="btn-small" style="text-decoration: none;">&lt; 이전</a>
+            <a class="btn-small"
+               style="text-decoration: none;"
+               th:href="@{/admin/users(page=${page.number - 1})}" th:if="${!page.first}">&lt; 이전</a>
 
             <span style="padding: 5px 10px; color: #666;"
                   th:text="${page.number + 1} + ' / ' + ${page.totalPages}">1 / 5</span>
 
-            <a th:if="${!page.last}"
-               th:href="@{/admin/users(page=${page.number + 1})}"
-               class="btn-small" style="text-decoration: none;">다음 &gt;</a>
+            <a class="btn-small"
+               style="text-decoration: none;"
+               th:href="@{/admin/users(page=${page.number + 1})}" th:if="${!page.last}">다음 &gt;</a>
         </div>
 
     </main>
 </div>
 
-<div id="editModal" class="modal">
+<div class="modal" id="editModal">
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <h3 style="margin-bottom: 20px;">회원 정보 수정</h3>
@@ -114,7 +104,7 @@
             <div class="form-row">
                 <label>권한</label>
                 <label for="editRole"></label>
-                <select name="role" id="editRole">
+                <select id="editRole" name="role">
                     <option value="USER">회원</option>
                     <option value="MEMBER_ADMIN">회원 관리자</option>
                     <option value="BOOK_ADMIN">도서 관리자</option>
@@ -126,7 +116,7 @@
             <div class="form-row">
                 <label>등급</label>
                 <label for="editGrade"></label>
-                <select name="gradeName" id="editGrade">
+                <select id="editGrade" name="gradeName">
                     <option value="BASIC">BASIC</option>
                     <option value="ROYAL">ROYAL</option>
                     <option value="GOLD">GOLD</option>
@@ -136,13 +126,13 @@
             <div class="form-row">
                 <label>상태</label>
                 <label for="editStatus"></label>
-                <select name="status" id="editStatus">
+                <select id="editStatus" name="status">
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="DORMANT">DORMANT</option>
                     <option value="CLOSED">CLOSED</option>
                 </select>
             </div>
-            <button type="submit" class="btn-primary" style="margin-top: 10px;">수정 완료</button>
+            <button class="btn-primary" style="margin-top: 10px;" type="submit">수정 완료</button>
         </form>
     </div>
 </div>

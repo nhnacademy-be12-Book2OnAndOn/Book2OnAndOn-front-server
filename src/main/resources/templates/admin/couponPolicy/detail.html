@@ -3,145 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <title>관리자 - 쿠폰 정책 상세</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
     <link rel="stylesheet" th:href="@{/css/policyDetail.css}">
 </head>
 <body>
 
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
 <div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('couponpolicies')}"></th:block>
 
-    <div class="detail-header">
-        <div class="detail-title">
-            <h2 th:text="${policy.couponPolicyName}">신규 회원 웰컴 쿠폰</h2>
-            <div class="detail-id">Policy ID: <span th:text="${policy.couponPolicyId}">101</span></div>
-        </div>
-        <div>
-            <span th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}" class="badge badge-active">사용중</span>
-            <span th:if="${policy.couponPolicyStatus?.name() == 'DEACTIVE'}" class="badge badge-deactive">비활성</span>
-        </div>
-    </div>
-
-    <div class="detail-card">
-
-        <div class="section-title">기본 정보</div>
-        <div class="info-grid">
-            <div class="info-item">
-                <span class="info-label">쿠폰 타입</span>
-                <div class="info-value">
-                    <span class="badge badge-type" th:text="${policy.couponPolicyType}">WELCOME</span>
-                </div>
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">쿠폰 정책</p>
+                <h2 th:text="${policy.couponPolicyName}">신규 회원 웰컴 쿠폰</h2>
+                <p class="muted">Policy ID: <span th:text="${policy.couponPolicyId}">101</span></p>
             </div>
-            <div class="info-item">
-                <span class="info-label">할인 방식</span>
-                <div class="info-value">
-                    <th:block th:if="${policy.couponPolicyDiscountType?.name() == 'PERCENT'}">
-                        <span style="color: #2d5016; font-weight: bold;">정률(%) 할인</span>
-                    </th:block>
-                    <th:block th:if="${policy.couponPolicyDiscountType?.name() == 'FIXED'}">
-                        <span style="color: #2d5016; font-weight: bold;">정액(원) 할인</span>
-                    </th:block>
-                </div>
-            </div>
-            <div class="info-item">
-                <span class="info-label">할인 값</span>
-                <div class="info-value">
-                    <span style="font-size: 1.2rem; font-weight: bold;"
-                          th:text="${#numbers.formatInteger(policy.couponDiscountValue, 0, 'COMMA')}">5,000</span>
-                    <span th:text="${policy.couponPolicyDiscountType?.name() == 'PERCENT' ? '%' : '원'}">원</span>
-                </div>
-            </div>
-            <div class="info-item">
-                <span class="info-label">유효 기간</span>
-                <div class="info-value">
-                    <span th:if="${policy.durationDays != null}"
-                          th:text="|발급일로부터 ${policy.durationDays}일간|">30일</span>
-                    <span th:if="${policy.fixedStartDate != null}">
-                        <span th:text="${policy.fixedStartDate}">2024-01-01</span> ~
-                        <span th:text="${policy.fixedEndDate}">2024-12-31</span>
-                    </span>
-                </div>
+            <div class="table-actions justify-end">
+                <span th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}" class="status-chip status-delivered">사용중</span>
+                <span th:if="${policy.couponPolicyStatus?.name() == 'DEACTIVE'}" class="status-chip status-pending">비활성</span>
+                <span class="badge badge-type" th:text="${policy.couponPolicyType}">WELCOME</span>
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="section-title">사용 조건</div>
-        <div class="info-grid">
-            <div class="info-item">
-                <span class="info-label">최소 주문 금액</span>
-                <div class="info-value"
-                     th:text="|${#numbers.formatInteger(policy.minPrice, 0, 'COMMA')}원 이상|">0원 이상</div>
-            </div>
-            <div class="info-item">
-                <span class="info-label">최대 할인 한도</span>
-                <div class="info-value">
-                    <span th:if="${policy.maxPrice != null}"
-                          th:text="|최대 ${#numbers.formatInteger(policy.maxPrice, 0, 'COMMA')}원|">최대 5,000원</span>
-                    <span th:if="${policy.maxPrice == null}" class="empty-text">제한 없음</span>
+        <section class="admin-detail-card">
+            <h4 class="section-title">기본 정보</h4>
+            <div class="admin-info-grid">
+                <div>
+                    <div class="info-label">쿠폰 타입</div>
+                    <div class="info-value">
+                        <span class="badge badge-type" th:text="${policy.couponPolicyType}">WELCOME</span>
+                    </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="section-title">적용 대상</div>
-        <div class="info-grid" style="grid-template-columns: 1fr;">
-
-            <div class="info-item">
-                <span class="info-label">적용 도서 (Book IDs)</span>
-                <div class="info-value">
-                    <div class="target-list" th:if="${not #lists.isEmpty(policy.targetBookIds)}">
-                        <span class="target-tag" th:each="bookId : ${policy.targetBookIds}">
-                            📕 <span th:text="${bookId}">1001</span>
+                <div>
+                    <div class="info-label">할인 방식</div>
+                    <div class="info-value">
+                        <th:block th:if="${policy.couponPolicyDiscountType?.name() == 'PERCENT'}">
+                            정률(%) 할인
+                        </th:block>
+                        <th:block th:if="${policy.couponPolicyDiscountType?.name() == 'FIXED'}">
+                            정액(원) 할인
+                        </th:block>
+                    </div>
+                </div>
+                <div>
+                    <div class="info-label">할인 값</div>
+                    <div class="info-value">
+                        <span th:text="${#numbers.formatInteger(policy.couponDiscountValue, 0, 'COMMA')}">5,000</span>
+                        <span th:text="${policy.couponPolicyDiscountType?.name() == 'PERCENT' ? '%' : '원'}">원</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="info-label">유효 기간</div>
+                    <div class="info-value">
+                        <span th:if="${policy.durationDays != null}"
+                              th:text="|발급일로부터 ${policy.durationDays}일간|">30일</span>
+                        <span th:if="${policy.fixedStartDate != null}">
+                            <span th:text="${policy.fixedStartDate}">2024-01-01</span> ~
+                            <span th:text="${policy.fixedEndDate}">2024-12-31</span>
                         </span>
                     </div>
-                    <div th:if="${#lists.isEmpty(policy.targetBookIds)}" class="empty-text">지정된 도서 없음 (전체 도서 가능)</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-detail-card">
+            <h4 class="section-title">사용 조건</h4>
+            <div class="admin-info-grid">
+                <div>
+                    <div class="info-label">최소 주문 금액</div>
+                    <div class="info-value"
+                         th:text="|${#numbers.formatInteger(policy.minPrice, 0, 'COMMA')}원 이상|">0원 이상</div>
+                </div>
+                <div>
+                    <div class="info-label">최대 할인 한도</div>
+                    <div class="info-value">
+                        <span th:if="${policy.maxPrice != null}"
+                              th:text="|최대 ${#numbers.formatInteger(policy.maxPrice, 0, 'COMMA')}원|">최대 5,000원</span>
+                        <span th:if="${policy.maxPrice == null}" class="empty-text">제한 없음</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="info-item" style="margin-top: 1rem;">
-                <span class="info-label">적용 카테고리 (Category IDs)</span>
-                <div class="info-value">
-                    <div class="target-list" th:if="${not #lists.isEmpty(policy.targetCategoryIds)}">
-                        <span class="target-tag" th:each="catId : ${policy.targetCategoryIds}">
-                            📂 <span th:text="${catId}">10</span>
-                        </span>
+            <div class="divider"></div>
+
+            <h4 class="section-title">적용 대상</h4>
+            <div class="admin-info-grid" style="grid-template-columns: 1fr;">
+                <div>
+                    <div class="info-label">적용 도서 (Book IDs)</div>
+                    <div class="info-value">
+                        <div class="target-list" th:if="${not #lists.isEmpty(policy.targetBookIds)}">
+                            <span class="target-tag" th:each="bookId : ${policy.targetBookIds}">
+                                📕 <span th:text="${bookId}">1001</span>
+                            </span>
+                        </div>
+                        <div th:if="${#lists.isEmpty(policy.targetBookIds)}" class="empty-text">지정된 도서 없음 (전체 도서 가능)</div>
                     </div>
-                    <div th:if="${#lists.isEmpty(policy.targetCategoryIds)}" class="empty-text">지정된 카테고리 없음</div>
                 </div>
+
+                <div>
+                    <div class="info-label">적용 카테고리 (Category IDs)</div>
+                    <div class="info-value">
+                        <div class="target-list" th:if="${not #lists.isEmpty(policy.targetCategoryIds)}">
+                            <span class="target-tag" th:each="catId : ${policy.targetCategoryIds}">
+                                📂 <span th:text="${catId}">10</span>
+                            </span>
+                        </div>
+                        <div th:if="${#lists.isEmpty(policy.targetCategoryIds)}" class="empty-text">지정된 카테고리 없음</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="admin-detail-card">
+            <div class="table-actions justify-end">
+                <a th:href="@{/admin/policies}" class="btn-ghost">목록으로</a>
+
+                <button type="button" class="btn-accent"
+                        th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}"
+                        onclick="openCouponModal()">
+                    쿠폰 발행
+                </button>
+
+                <a th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}" class="btn-primary">정책 수정</a>
+
+                <form th:action="@{/admin/policies/delete/{id}(id=${policy.couponPolicyId})}" method="post">
+                    <button type="submit" class="btn-danger"
+                            onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');">비활성</button>
+                </form>
             </div>
         </div>
-
-    </div>
-
-    <div class="btn-group">
-        <a href="/admin/policies" class="btn btn-list">목록으로</a>
-
-        <button type="button" class="btn btn-create-coupon"
-                th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}"
-                onclick="openCouponModal()">
-             쿠폰 발행
-        </button>
-
-        <a th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}" class="btn btn-edit">수정</a>
-
-        <form th:action="@{/admin/policies/delete/{id}(id=${policy.couponPolicyId})}" method="post">
-            <button type="submit" class="btn btn-delete"
-                    onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');">비활성</button>
-        </form>
-    </div>
-
+    </main>
 </div>
 
 <div id="couponModal" class="modal-overlay">
-    <div class="modal-content">
-        <h3>쿠폰 발행</h3>
-        <p style="color: #666; margin-bottom: 20px;">
+    <div class="modal-card">
+        <h3 style="margin-top: 0;">쿠폰 발행</h3>
+        <p class="muted" style="margin-bottom: 16px;">
             선택한 정책(<b>[[${policy.couponPolicyName}]]</b>)을 기반으로<br>실제 발급 가능한 쿠폰을 생성합니다.
         </p>
 
         <form th:action="@{/admin/policies/{id}/create-coupon(id=${policy.couponPolicyId})}" method="post">
-            <div class="form-group">
+            <div class="form-field">
                 <label for="quantity">발행 수량</label>
 
                 <div style="display: flex; gap: 10px; align-items: center;">
@@ -149,19 +155,20 @@
 
                     <label class="checkbox-label">
                         <input type="checkbox" id="unlimitedCheck" onchange="toggleQuantityInput()">
-                        <span>♾️ 무제한</span>
+                        <span>무제한</span>
                     </label>
                 </div>
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn btn-list" onclick="closeCouponModal()">취소</button>
-                <button type="submit" class="btn btn-create-coupon">확인 (발행)</button>
+                <button type="button" class="btn-ghost" onclick="closeCouponModal()">취소</button>
+                <button type="submit" class="btn-accent">확인 (발행)</button>
             </div>
         </form>
     </div>
 </div>
 
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 <script th:src="@{/js/policyDetail.js}"></script>
 
 </body>

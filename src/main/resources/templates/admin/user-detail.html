@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>회원 상세 정보 - 관리자 센터</title>
@@ -117,128 +117,123 @@
     </style>
 </head>
 <body>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+<main>
 
-<div class="admin-container">
-    <nav class="admin-sidebar">
-        <div class="admin-brand">Admin Center</div>
-        <div class="admin-menu">
-            <a th:href="@{/admin}">📊 대시보드</a>
-            <a th:href="@{/admin/users}" class="active">👥 회원 관리</a>
-            <a th:href="@{/admin/books}">📚 도서 관리</a>
-            <a th:href="@{/admin/orders}">📦 주문 관리</a>
-            <a th:href="@{/admin/coupons}">🎟️ 쿠폰 관리</a>
-            <div style="margin-top: 50px; border-top: 1px solid #444; padding-top: 10px;">
-                <a th:href="@{/}">🏠 쇼핑몰 메인으로</a>
-            </div>
-        </div>
-    </nav>
+    <div class="admin-container">
+        <th:block th:replace="~{fragments/admin :: adminSidebar('users')}"></th:block>
 
-    <main class="admin-content">
-        <div class="admin-header">
-            <h2>회원 상세 정보</h2>
-        </div>
-
-        <div th:if="${param.error}"
-             style="background: #ffebee; color: #c62828; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
-            ❌ 처리 중 오류가 발생했습니다.
-        </div>
-
-        <div class="detail-card">
-            <div class="section-title">👤 기본 정보</div>
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">회원 번호 (ID)</span>
-                    <span class="info-value" th:text="${user.userId}">1</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">로그인 아이디</span>
-                    <span class="info-value" th:text="${user.userLoginId}">testuser</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">이름</span>
-                    <span class="info-value" th:text="${user.name}">홍길동</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">닉네임</span>
-                    <span class="info-value" th:text="${user.nickname}">슈퍼홍</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">이메일</span>
-                    <span class="info-value" th:text="${user.email}">test@email.com</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">전화번호</span>
-                    <span class="info-value" th:text="${user.phone}">010-1234-5678</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">현재 포인트</span>
-                    <span class="info-value" style="color: #2d5016; font-weight: bold;"
-                          th:text="${#numbers.formatInteger(user.point, 0, 'COMMA')} + ' P'">5,000 P</span>
-                </div>
+        <section class="admin-content">
+            <div class="admin-header">
+                <h2>회원 상세 정보</h2>
             </div>
 
-            <div class="section-title">🛠️ 관리자 설정</div>
-            <div class="edit-form-container">
-                <form th:action="@{/admin/users/{id}/update(id=${user.userId})}" method="post">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="info-label">회원 등급</label>
-                            <label>
-                                <select name="gradeName">
-                                    <option th:value="${user.gradeName}" th:text="${user.gradeName} + ' (현재)'" selected>
-                                        CURRENT
-                                    </option>
-                                    <option value="BASIC">BASIC</option>
-                                    <option value="ROYAL">ROYAL</option>
-                                    <option value="GOLD">GOLD</option>
-                                    <option value="PLATINUM">PLATINUM</option>
-                                </select>
-                            </label>
-                        </div>
+            <div style="background: #ffebee; color: #c62828; padding: 10px; border-radius: 4px; margin-bottom: 20px;"
+                 th:if="${param.error}">
+                ❌ 처리 중 오류가 발생했습니다.
+            </div>
 
-                        <div class="form-group">
-                            <label class="info-label">계정 상태</label>
-                            <label>
-                                <select name="status">
-                                    <option th:value="${user.status}" th:text="${user.status} + ' (현재)'" selected>
-                                        CURRENT
-                                    </option>
-                                    <option value="ACTIVE">ACTIVE (정상)</option>
-                                    <option value="DORMANT">DORMANT (휴면)</option>
-                                    <option value="CLOSED">CLOSED (탈퇴)</option>
-                                </select>
-                            </label>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="info-label">접근 권한</label>
-                            <label>
-                                <select name="role">
-                                    <option th:value="${user.role}" th:text="${user.role} + ' (현재)'" selected>CURRENT
-                                    </option>
-                                    <option value="USER">회원</option>
-                                    <option value="MEMBER_ADMIN">회원 관리자</option>
-                                    <option value="BOOK_ADMIN">도서 관리자</option>
-                                    <option value="ORDER_ADMIN">주문 관리자</option>
-                                    <option value="COUPON_ADMIN">쿠폰 관리자</option>
-                                    <option value="SUPER_ADMIN">총관리자</option>
-                                </select>
-                            </label>
-                        </div>
+            <div class="detail-card">
+                <div class="section-title">👤 기본 정보</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">회원 번호 (ID)</span>
+                        <span class="info-value" th:text="${user.userId}">1</span>
                     </div>
-
-                    <div class="action-buttons">
-                        <a th:href="@{/admin/users}" class="btn-secondary">목록으로</a>
-
-                        <button type="button" class="btn-danger" onclick="forceDelete()">강제 탈퇴</button>
-
-                        <button type="submit" class="btn-primary" style="width: auto;">변경사항 저장</button>
+                    <div class="info-item">
+                        <span class="info-label">로그인 아이디</span>
+                        <span class="info-value" th:text="${user.userLoginId}">testuser</span>
                     </div>
-                </form>
+                    <div class="info-item">
+                        <span class="info-label">이름</span>
+                        <span class="info-value" th:text="${user.name}">홍길동</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">닉네임</span>
+                        <span class="info-value" th:text="${user.nickname}">슈퍼홍</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">이메일</span>
+                        <span class="info-value" th:text="${user.email}">test@email.com</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">전화번호</span>
+                        <span class="info-value" th:text="${user.phone}">010-1234-5678</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">현재 포인트</span>
+                        <span class="info-value" style="color: #2d5016; font-weight: bold;"
+                              th:text="${#numbers.formatInteger(user.point, 0, 'COMMA')} + ' P'">5,000 P</span>
+                    </div>
+                </div>
+
+                <div class="section-title">🛠️ 관리자 설정</div>
+                <div class="edit-form-container">
+                    <form method="post" th:action="@{/admin/users/{id}/update(id=${user.userId})}">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="info-label">회원 등급</label>
+                                <label>
+                                    <select name="gradeName">
+                                        <option selected th:text="${user.gradeName} + ' (현재)'"
+                                                th:value="${user.gradeName}">
+                                            CURRENT
+                                        </option>
+                                        <option value="BASIC">BASIC</option>
+                                        <option value="ROYAL">ROYAL</option>
+                                        <option value="GOLD">GOLD</option>
+                                        <option value="PLATINUM">PLATINUM</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="info-label">계정 상태</label>
+                                <label>
+                                    <select name="status">
+                                        <option selected th:text="${user.status} + ' (현재)'" th:value="${user.status}">
+                                            CURRENT
+                                        </option>
+                                        <option value="ACTIVE">ACTIVE (정상)</option>
+                                        <option value="DORMANT">DORMANT (휴면)</option>
+                                        <option value="CLOSED">CLOSED (탈퇴)</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="info-label">접근 권한</label>
+                                <label>
+                                    <select name="role">
+                                        <option selected th:text="${user.role} + ' (현재)'" th:value="${user.role}">
+                                            CURRENT
+                                        </option>
+                                        <option value="USER">회원</option>
+                                        <option value="MEMBER_ADMIN">회원 관리자</option>
+                                        <option value="BOOK_ADMIN">도서 관리자</option>
+                                        <option value="ORDER_ADMIN">주문 관리자</option>
+                                        <option value="COUPON_ADMIN">쿠폰 관리자</option>
+                                        <option value="SUPER_ADMIN">총관리자</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <a class="btn-secondary" th:href="@{/admin/users}">목록으로</a>
+
+                            <button class="btn-danger" onclick="forceDelete()" type="button">강제 탈퇴</button>
+
+                            <button class="btn-primary" style="width: auto;" type="submit">변경사항 저장</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
-    </main>
-</div>
+        </section>
+    </div>
+</main>
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 <script th:inline="javascript">
     function forceDelete() {

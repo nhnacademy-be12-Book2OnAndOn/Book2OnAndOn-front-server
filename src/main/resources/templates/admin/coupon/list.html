@@ -3,149 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <title>관리자 - 쿠폰 발급 관리</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <style>
-        .admin-container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
-
-        /* 탭 스타일 (기존과 동일) */
-        .status-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 1px solid #ddd; }
-        .tab-item { padding: 10px 20px; text-decoration: none; color: #666; border-radius: 8px 8px 0 0; }
-        .tab-item.active { background: white; color: #2d5016; border: 1px solid #ddd; border-bottom: 1px solid white; margin-bottom: -1px; font-weight: bold;}
-
-        /* 테이블 스타일 */
-        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-weight: 600; color: #555; }
-
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; }
-        .badge-active { background: #e8f5e9; color: #2e7d32; }
-        .badge-deactive { background: #ffebee; color: #c62828; }
-
-        /* 수정 버튼 */
-        .btn-edit {
-            padding: 5px 10px; background: white; border: 1px solid #2d5016;
-            color: #2d5016; border-radius: 4px; cursor: pointer; transition: 0.2s;
-        }
-        .btn-edit:hover { background: #2d5016; color: white; }
-
-        /* ===== 모달 (블라인드 효과) ===== */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5); /* 반투명 검정 배경 */
-            z-index: 1000;
-            display: none; /* 평소엔 숨김 */
-            justify-content: center; align-items: center;
-            opacity: 0; transition: opacity 0.3s ease; /* 페이드 효과 */
-        }
-
-        .modal-overlay.show { display: flex; opacity: 1; }
-
-        .modal-box {
-            background: white; width: 400px; padding: 25px;
-            border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transform: translateY(-20px); transition: transform 0.3s ease;
-        }
-        .modal-overlay.show .modal-box { transform: translateY(0); }
-
-        .form-row { margin-top: 15px; display: flex; gap: 10px; align-items: center; }
-        .modal-btns { margin-top: 25px; text-align: right; }
-        .modal-btns button { padding: 8px 15px; border-radius: 4px; cursor: pointer; border: none;}
-        .btn-save { background: #2d5016; color: white; }
-        .btn-close { background: #eee; color: #333; margin-right: 5px; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
 <body>
 
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
 <div class="admin-container">
-    <h2>쿠폰 발급 관리</h2>
+    <th:block th:replace="~{fragments/admin :: adminSidebar('coupons')}"></th:block>
 
-    <div class="status-tabs">
-        <a th:href="@{/admin/coupons}" class="tab-item"
-           th:classappend="${searchStatus == null} ? 'active'">전체</a>
-        <a th:href="@{/admin/coupons(status='ACTIVE')}" class="tab-item"
-           th:classappend="${searchStatus == 'ACTIVE'} ? 'active'">활성</a>
-        <a th:href="@{/admin/coupons(status='DEACTIVE')}" class="tab-item"
-           th:classappend="${searchStatus == 'DEACTIVE'} ? 'active'">비활성</a>
-    </div>
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">쿠폰 센터</p>
+                <h2>쿠폰 발급 관리</h2>
+                <p class="muted" th:text="${searchStatus == null} ? '모든 쿠폰' : (searchStatus == 'ACTIVE' ? '활성 쿠폰' : '비활성 쿠폰')">모든 쿠폰</p>
+            </div>
+            <a class="btn-ghost" th:href="@{/admin/policies}">정책으로 이동</a>
+        </div>
 
-    <table>
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>쿠폰명</th>
-            <th>혜택</th>
-            <th>유효기간</th>
-            <th>상태</th>
-            <th>잔여 수량</th>
-            <th>관리</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="coupon : ${coupons}">
-            <td th:text="${coupon.couponId}">1</td>
-            <td>
-                <span th:text="${coupon.couponName}" style="font-weight: bold;"></span>
-                <br><span style="font-size: 0.8rem; color: #888;" th:text="${coupon.discountDescription}"></span>
-            </td>
+        <div class="chip-tabs">
+            <a th:href="@{/admin/coupons}" class="chip-tab"
+               th:classappend="${searchStatus == null} ? 'active'">전체</a>
+            <a th:href="@{/admin/coupons(status='ACTIVE')}" class="chip-tab"
+               th:classappend="${searchStatus == 'ACTIVE'} ? 'active'">활성</a>
+            <a th:href="@{/admin/coupons(status='DEACTIVE')}" class="chip-tab"
+               th:classappend="${searchStatus == 'DEACTIVE'} ? 'active'">비활성</a>
+        </div>
 
-            <td th:text="${coupon.discountDescription}">5,000원 할인</td>
+        <div class="table-card">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>쿠폰명</th>
+                    <th>혜택</th>
+                    <th>유효기간</th>
+                    <th>상태</th>
+                    <th>잔여 수량</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="coupon : ${coupons}">
+                    <td th:text="${coupon.couponId}">1</td>
+                    <td>
+                        <span th:text="${coupon.couponName}" style="font-weight: bold;"></span>
+                        <br><span class="muted" th:text="${coupon.discountDescription}"></span>
+                    </td>
 
-            <td>
-                    <span th:if="${coupon.endDate != null}"
-                          th:text="|~ ${coupon.endDate} 까지|"
-                          th:style="${coupon.endDate.isBefore(today) ? 'color: red;' : ''}"></span>
+                    <td th:text="${coupon.discountDescription}">5,000원 할인</td>
 
-                <span th:if="${coupon.durationDays != null}"
-                      th:text="|발급 후 ${coupon.durationDays}일|"></span>
-            </td>
+                    <td>
+                        <span th:if="${coupon.endDate != null}"
+                              th:text="|~ ${coupon.endDate} 까지|"
+                              th:style="${coupon.endDate.isBefore(today) ? 'color: #d73a3a;' : ''}"></span>
 
-            <td>
-                <span th:if="${coupon.status.name() == 'ACTIVE'}" class="badge badge-active">활성</span>
-                <span th:if="${coupon.status.name() != 'ACTIVE'}" class="badge badge-deactive">비활성</span>
-            </td>
+                        <span th:if="${coupon.durationDays != null}"
+                              th:text="|발급 후 ${coupon.durationDays}일|"></span>
+                    </td>
 
-            <td style="font-weight: bold; color: #007bff;">
-                <span th:if="${coupon.couponRemainingQuantity == null}">♾️ 무제한</span>
-                <span th:if="${coupon.couponRemainingQuantity != null}"
-                      th:text="${#numbers.formatInteger(coupon.couponRemainingQuantity, 0, 'COMMA')} + '개'"></span>
-            </td>
+                    <td>
+                        <span th:if="${coupon.status.name() == 'ACTIVE'}" class="status-chip status-delivered">활성</span>
+                        <span th:if="${coupon.status.name() != 'ACTIVE'}" class="status-chip status-pending">비활성</span>
+                    </td>
 
-            <td>
-                <button type="button" class="btn-edit"
-                        th:if="${coupon.status.name() == 'ACTIVE' and (coupon.endDate == null or !coupon.endDate.isBefore(today))}"
-                        th:onclick="openQuantityModal([[${coupon.couponId}]], [[${coupon.couponRemainingQuantity}]])">
-                    수량 수정
-                </button>
+                    <td style="font-weight: bold; color: #2d5f3f;">
+                        <span th:if="${coupon.couponRemainingQuantity == null}">♾️ 무제한</span>
+                        <span th:if="${coupon.couponRemainingQuantity != null}"
+                              th:text="${#numbers.formatInteger(coupon.couponRemainingQuantity, 0, 'COMMA')} + '개'"></span>
+                    </td>
 
-                <span th:if="${coupon.endDate != null and coupon.endDate.isBefore(today)}"
-                      style="font-size: 0.8rem; color: #e53935; font-weight: bold;">(만료됨)</span>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+                    <td class="table-actions">
+                        <button type="button" class="btn-small"
+                                th:if="${coupon.status.name() == 'ACTIVE' and (coupon.endDate == null or !coupon.endDate.isBefore(today))}"
+                                th:onclick="openQuantityModal([[${coupon.couponId}]], [[${coupon.couponRemainingQuantity}]])">
+                            수량 수정
+                        </button>
+
+                        <span th:if="${coupon.endDate != null and coupon.endDate.isBefore(today)}"
+                              class="muted" style="color: #e53935; font-weight: 700;">만료됨</span>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(coupons)}">
+                    <td colspan="7" style="text-align: center; padding: 3rem; color: #999;">
+                        조회된 쿠폰이 없습니다.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
 </div>
 
 <div id="quantityModal" class="modal-overlay">
-    <div class="modal-box">
-        <h3>📦 재고 수량 수정</h3>
-        <p style="color: #666; font-size: 0.9rem;">현재 발급 가능한 쿠폰 수량을 변경합니다.</p>
+    <div class="modal-card">
+        <h3 style="margin-top: 0;">재고 수량 수정</h3>
+        <p class="muted" style="margin-top: 6px;">현재 발급 가능한 쿠폰 수량을 변경합니다.</p>
 
-        <form id="quantityForm" method="post">
-            <div class="form-row">
-                <input type="number" id="modalQuantity" name="quantity" class="form-control" placeholder="수량 입력" style="width: 100%; padding: 10px; border: 1px solid #ddd;">
-
-                <label style="white-space: nowrap; display: flex; align-items: center; gap: 5px;">
-                    <input type="checkbox" id="modalUnlimited" onchange="toggleModalInput()"> 무제한
-                </label>
+        <form id="quantityForm" method="post" style="margin-top: 16px;">
+            <div class="form-field" style="margin-bottom: 10px;">
+                <input type="number" id="modalQuantity" name="quantity" placeholder="수량 입력"
+                       class="form-control">
             </div>
 
-            <div class="modal-btns">
-                <button type="button" class="btn-close" onclick="closeQuantityModal()">취소</button>
-                <button type="submit" class="btn-save">수정 완료</button>
+            <label class="muted" style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
+                <input type="checkbox" id="modalUnlimited" onchange="toggleModalInput()" style="width: 18px; height: 18px;"> 무제한
+            </label>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" onclick="closeQuantityModal()">취소</button>
+                <button type="submit" class="btn-primary">수정 완료</button>
             </div>
         </form>
     </div>
 </div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 <script>
     const modal = document.getElementById('quantityModal');

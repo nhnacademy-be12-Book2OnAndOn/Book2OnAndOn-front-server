@@ -25,7 +25,7 @@ function toggleQuantityInput() {
 
 // 2. 모달 열기 (초기화 포함)
 function openCouponModal() {
-    document.getElementById('couponModal').style.display = 'flex';
+    document.getElementById('couponModal').classList.add('show');
 
     // 상태 초기화: 무제한 체크 해제, 입력창 활성화
     document.getElementById('unlimitedCheck').checked = false;
@@ -34,7 +34,7 @@ function openCouponModal() {
 
 // 3. 모달 닫기
 function closeCouponModal() {
-    document.getElementById('couponModal').style.display = 'none';
+    document.getElementById('couponModal').classList.remove('show');
 }
 
 // 4. 배경 클릭 시 닫기

@@ -2,6 +2,16 @@
 // 기본 설정
 // ============================
 
+// 쿠키 읽기 유틸
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+        return parts.pop().split(';').shift();
+    }
+    return null;
+}
+
 const userId = localStorage.getItem('userId');
 
 // accessToken 기준으로 회원/비회원 판단
@@ -10,6 +20,26 @@ let uuid = localStorage.getItem('uuid');
 
 const isGuest = !accessToken;
 const API_BASE = '/cart';
+const USE_DUMMY = false;
+
+// 더미 아이템 (개발용)
+const DUMMY_ITEMS = [
+    {
+        bookId: 1,
+        title: '샘플 도서',
+        thumbnailUrl: '',
+        originalPrice: 15000,
+        price: 15000,
+        stockCount: 3,
+        saleEnded: false,
+        deleted: false,
+        hidden: false,
+        quantity: 1,
+        selected: true
+    }
+];
+
+let cartItems = USE_DUMMY ? [...DUMMY_ITEMS] : [];
 
 // 서버 응답 전체를 담아둘 상태 (배송비, 최종 결제금액 포함)
 let cartSummaryData = null;
@@ -19,7 +49,7 @@ let cartSummaryData = null;
 // ============================
 
 function buildAuthHeaders(baseHeaders = {}) {
-    const headers = { ...baseHeaders };
+    const headers = {...baseHeaders};
 
     if (accessToken) {
         headers['Authorization'] = `Bearer ${accessToken}`;
@@ -81,6 +111,7 @@ function renderCart() {
     if (!cartItems || cartItems.length === 0) {
         cartContent.innerHTML = `
       <div class="empty-cart">
+        <!-- TODO: 장바구니 아이콘 변경 -->
         <div class="empty-cart-icon">🛒</div>
         <h2>장바구니가 비어있습니다</h2>
         <p>원하는 책을 담아보세요!</p>
@@ -200,7 +231,7 @@ async function toggleSelectAll() {
     // 실제 API 모드
     try {
         let url;
-        const body = JSON.stringify({ selected: selectAll });
+        const body = JSON.stringify({selected: selectAll});
         const baseHeaders = {
             'Content-Type': 'application/json'
         };
@@ -712,8 +743,6 @@ async function mergeGuestCart(isAuto = false) {
         alert('장바구니 병합 중 오류가 발생했습니다.');
     }
 }
-
-
 
 
 // ============================
