@@ -85,9 +85,14 @@ public class CouponPolicyViewController {
     // 정책 수정 폼
     @GetMapping("/update/{id}")
     public String updateForm(@PathVariable Long id, Model model) {
-        CouponPolicyDto policy = couponPolicyClient.getPolicy(id);
+        CouponPolicyUpdateDto policy = couponPolicyClient.getPolicy(id);
         List<CategoryDto> categories = bookClient.getCategories();
         // UpdateDto로 변환
+        boolean isMaxPriceNull = policy.getMaxPrice() == null;
+        boolean isDurationNull = policy.getDurationDays() == null;
+        boolean isDateNull = policy.getFixedStartDate() == null;
+        boolean isBookNull = policy.getTargetBookIds() == null || policy.getTargetBookIds().isEmpty();
+        boolean isCategoryNull = policy.getTargetCategoryIds() == null || policy.getTargetCategoryIds().isEmpty();
         CouponPolicyUpdateDto updateDto = new CouponPolicyUpdateDto(
                 policy.getCouponPolicyId(),
                 policy.getCouponPolicyName(),
@@ -96,16 +101,16 @@ public class CouponPolicyViewController {
                 policy.getCouponDiscountValue(),
                 policy.getMinPrice(),
                 policy.getMaxPrice(),
-                false,                       // removeMaxPrice 기본값 false
+                isMaxPriceNull,          // [수정] null이면 true
                 policy.getDurationDays(),
-                false,                       // removeDurationDays 기본값 false
+                isDurationNull,          // [수정]
                 policy.getFixedStartDate(),
                 policy.getFixedEndDate(),
-                false,                       // removeFixedDate 기본값 false
+                isDateNull,              // [수정]
                 policy.getTargetBookIds(),
-                false,                       // removeTargetBook 기본값 false
+                isBookNull,              // [수정]
                 policy.getTargetCategoryIds(),
-                false,                        // removeTargetCategory 기본값 false
+                isCategoryNull,          // [수정]
                 policy.getCouponPolicyStatus()
         );
 
@@ -115,17 +120,20 @@ public class CouponPolicyViewController {
         return "/admin/couponPolicy/form";
     }
 
-    // 정책 수정 처리
     @PostMapping("/update/{id}")
-    public String updatePolicy(@PathVariable Long id, @ModelAttribute CouponPolicyUpdateDto requestDto) {
+    public String updatePolicy(@PathVariable Long id,
+                               @ModelAttribute CouponPolicyUpdateDto requestDto) {
+
+        // ModelAttribute를 직접 JSON 변환하여 보내기
         couponPolicyClient.updatePolicy(id, requestDto);
+
         return "redirect:/admin/policies";
     }
 
     // 정책 상세 페이지
     @GetMapping("/details/{id}")
     public String viewPolicyDetails(@PathVariable Long id, Model model) {
-        CouponPolicyDto policy = couponPolicyClient.getPolicy(id); // 단일 정책 조회 API 호출
+        CouponPolicyUpdateDto policy = couponPolicyClient.getPolicy(id); // 단일 정책 조회 API 호출
 
         model.addAttribute("policy", policy);
         model.addAttribute("pageTitle", "쿠폰 정책 상세 조회");
