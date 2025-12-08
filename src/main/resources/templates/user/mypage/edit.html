@@ -65,25 +65,26 @@
                 <input type="text" id="nickname" th:field="*{nickname}" required>
             </div>
 
-            <div class="form-group">
+            <div class="form-field">
                 <label for="email">이메일</label>
-                <div class="input-inline">
-                    <input id="email" placeholder="example@email.com" required th:field="*{email}" type="email">
-                    <button class="btn-small" id="btn-send" onclick="sendVerification()" type="button">인증번호 전송
+                <div class="input-group">
+                    <input type="email" id="email" th:field="*{email}" required oninput="checkEmailChanged()"
+                           style="flex: 1;">
+                    <button type="button" id="btnSendCode" class="btn-verify" onclick="sendVerification()" disabled>
+                        인증번호 전송
                     </button>
                 </div>
-                <div class="error-text" th:errors="*{email}" th:if="${#fields.hasErrors('email')}">Error</div>
-            </div>
 
-            <div class="form-group" id="verification-group" style="display: none;">
-                <label for="verifyCode">인증번호</label>
-                <div class="input-inline">
-                    <input id="verifyCode" placeholder="6자리 코드 입력" type="text">
-                    <button class="btn-small" id="btn-verify" onclick="checkVerification()" type="button">확인
-                    </button>
+                <div id="verificationArea" class="mt-2" style="display: none;">
+                    <div class="input-group">
+                        <input type="text" id="verifyCode" placeholder="인증번호 6자리"
+                               style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <button type="button" class="btn-verify" onclick="confirmVerification()">확인</button>
+                    </div>
+                    <small id="verifyMessage" class="mt-2" style="display: block;"></small>
                 </div>
-                <p id="verify-message" style="font-size: 0.85rem; margin-top: 5px;"></p>
-                <input id="isEmailVerified" type="hidden" value="false">
+
+                <input type="hidden" id="originalEmail" th:value="*{email}">
             </div>
 
             <div class="form-field">
@@ -103,6 +104,7 @@
         const originalEmail = document.getElementById('originalEmail').value;
         let isEmailVerified = true;
 
+        // 1. 이메일 변경 감지
         function checkEmailChanged() {
             const currentEmail = document.getElementById('email').value;
             const btnSendCode = document.getElementById('btnSendCode');
@@ -110,109 +112,107 @@
             const verifyMessage = document.getElementById('verifyMessage');
 
             if (currentEmail !== originalEmail) {
-                // 이메일이 변경됨 -> 인증 필요 상태로 전환
+                // 변경됨 -> 인증 필요
+                btnSendCode.disabled = false;
                 isEmailVerified = false;
-                btnSendCode.disabled = false; // 전송 버튼 활성화
-                verifyMessage.textContent = ''; // 메시지 초기화
+                verifyMessage.textContent = '';
             } else {
-                // 원래 이메일로 돌아옴 -> 인증 완료 상태로 전환
+                // 원상복구 -> 인증 불필요
+                btnSendCode.disabled = true;
+                verificationArea.style.display = 'none';
                 isEmailVerified = true;
-                btnSendCode.disabled = true; // 전송 버튼 비활성화
-                verificationArea.style.display = 'none'; // 입력창 숨김
             }
         }
 
-        function sendVerificationCode() {
+        // 2. 인증번호 발송 요청 (함수명: sendVerification)
+        function sendVerification() {
             const email = document.getElementById('email').value;
-            if (!email) {
-                alert("이메일을 입력해주세요.");
+
+            if (!email || !email.includes('@')) {
+                alert('올바른 이메일 형식을 입력해주세요.');
                 return;
             }
 
             const btn = document.getElementById('btnSendCode');
-            btn.disabled = true;
             btn.innerText = "전송중...";
+            btn.disabled = true;
 
             fetch('/email/send', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: email=${encodeURIComponent(email)}
-        })
-        .then(response => {
-                if (response.ok) {
-                    alert("인증번호가 발송되었습니다. 메일함을 확인해주세요.");
-                    document.getElementById('verificationArea').style.display = 'block';
-                    btn.innerText = "재전송";
-                    document.getElementById('verifyCode').value = '';
-                    document.getElementById('verifyCode').focus();
-                } else {
-                    response.text().then(text => alert(text));
-                    btn.innerText = "인증번호 전송";
-                }
-                btn.disabled = false;
+                body: 'email=' + encodeURIComponent(email)
             })
-                .catch(error => {
+                .then(function (response) {
+                    if (response.ok) {
+                        alert('인증번호가 발송되었습니다.');
+                        document.getElementById('verificationArea').style.display = 'block';
+                        btn.innerText = "재전송";
+                        document.getElementById('verifyCode').value = '';
+                        document.getElementById('verifyCode').focus();
+                        btn.disabled = false; // 성공 시 버튼 활성화
+                    } else {
+                        return response.text().then(function (text) {
+                            throw new Error(text);
+                        });
+                    }
+                })
+                .catch(function (error) {
                     console.error('Error:', error);
-                    alert("서버 통신 오류가 발생했습니다.");
+                    alert("발송 실패: " + error.message);
+
+                    // 에러 나도 버튼은 다시 눌러볼 수 있게 복구
                     btn.disabled = false;
                     btn.innerText = "인증번호 전송";
                 });
         }
 
-        function confirmVerification() { // 함수명 충돌 방지 위해 변경
+        // 3. 인증번호 확인 요청 (함수명: confirmVerification)
+        function confirmVerification() {
             const email = document.getElementById('email').value;
             const code = document.getElementById('verifyCode').value;
-            const msg = document.getElementById('verifyMessage');
+            const msgElem = document.getElementById('verifyMessage');
 
             if (!code) {
-                alert("인증번호를 입력해주세요.");
+                alert('인증번호를 입력해주세요.');
                 return;
             }
 
             fetch('/email/verify', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}
-        })
-        .then(response => {
-                if (response.ok) {
-                    msg.style.color = 'green';
-                    msg.innerText = "인증되었습니다.";
-                    isEmailVerified = true; // 인증 성공 플래그
-
-                    document.getElementById('email').readOnly = true;
-                    document.getElementById('verifyCode').disabled = true;
-                    document.getElementById('btnSendCode').disabled = true;
-                } else {
-                    msg.style.color = 'red';
-                    msg.innerText = "인증번호가 일치하지 않습니다.";
-                    isEmailVerified = false;
-                }
+                body: 'email=' + encodeURIComponent(email) + '&code=' + encodeURIComponent(code)
             })
-                .catch(error => {
-                    console.error('Error:', error);
-                    msg.style.color = 'red';
-                    msg.innerText = "인증 중 오류가 발생했습니다.";
+                .then(function (response) {
+                    if (response.ok) {
+                        msgElem.textContent = '인증이 완료되었습니다.';
+                        msgElem.className = 'text-success';
+                        isEmailVerified = true;
+
+                        document.getElementById('btnSendCode').disabled = true;
+                        document.getElementById('email').readOnly = true;
+                    } else {
+                        throw new Error('인증번호가 일치하지 않습니다.');
+                    }
+                })
+                .catch(function (error) {
+                    msgElem.textContent = error.message;
+                    msgElem.className = 'text-danger';
                     isEmailVerified = false;
                 });
         }
 
+        // 4. 폼 전송 검증
         function validateForm() {
             const currentEmail = document.getElementById('email').value;
 
             if (currentEmail !== originalEmail && !isEmailVerified) {
-                alert("변경된 이메일에 대한 인증을 완료해주세요.");
-
-                if (document.getElementById('verificationArea').style.display === 'none') {
-                    document.getElementById('btnSendCode').focus();
-                } else {
-                    document.getElementById('verifyCode').focus();
-                }
-                return false; // 전송 막기
+                alert('변경된 이메일에 대한 인증이 필요합니다.');
+                return false;
             }
-            return true; // 전송 허용
+            return true;
         }
     </script>
+
 </div>
 </body>
 </html>

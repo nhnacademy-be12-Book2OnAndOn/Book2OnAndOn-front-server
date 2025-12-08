@@ -1,5 +1,6 @@
 package com.nhnacademy.book2onandonfrontservice.client;
 
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.MyLikedBookResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.AdminUserUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindIdRequest;
@@ -157,5 +158,13 @@ public interface UserClient {
     void deleteAddress(
             @RequestHeader("Authorization") String accessToken,
             @PathVariable("addressId") Long addressId
+    );
+
+    // [User] 내 좋아요 목록 조회
+    @GetMapping("/api/users/me/likes")
+    RestPage<MyLikedBookResponseDto> getMyLikedBooks(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size
     );
 }
