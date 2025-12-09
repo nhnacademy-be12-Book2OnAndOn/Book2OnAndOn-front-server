@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 - 배송 정책 등록/수정</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('deliverypolicies')}"></th:block>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">배송 관리</p>
+                <h2 th:text="${pageTitle}">배송 정책 등록</h2>
+            </div>
+            <a th:href="@{/admin/delivery-policies}" class="btn-ghost">← 목록으로</a>
+        </div>
+
+        <section class="admin-detail-card">
+            <form th:action="${deliveryPolicyDto.deliveryPolicyId == null ? '/admin/delivery-policies' : '/admin/delivery-policies/' + deliveryPolicyDto.deliveryPolicyId}"
+                  th:object="${deliveryPolicyDto}"
+                  method="post">
+
+                <input type="hidden" name="_method" value="put" th:if="${deliveryPolicyDto.deliveryPolicyId != null}"/>
+
+                <div class="form-field">
+                    <label for="deliveryPolicyName">정책 이름</label>
+                    <input type="text" id="deliveryPolicyName" th:field="*{deliveryPolicyName}"
+                           class="form-control" placeholder="예: 기본 배송 (3,000원)" required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="deliveryFee">기본 배송비 (원)</label>
+                        <input type="number" id="deliveryFee" th:field="*{deliveryFee}"
+                               class="form-control" placeholder="3000" min="0" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="freeDeliveryThreshold">무료 배송 기준 금액 (원)</label>
+                        <input type="number" id="freeDeliveryThreshold" th:field="*{freeDeliveryThreshold}"
+                               class="form-control" placeholder="50000" min="0" required>
+                        <p class="helper-text" style="margin-top: 5px; color: #666; font-size: 0.85rem;">
+                            ⓘ 설정한 금액 이상 구매 시 배송비가 0원으로 적용됩니다.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 2rem; display:flex; justify-content:flex-end; gap:10px;">
+                    <a th:href="@{/admin/delivery-policies}" class="btn-ghost">취소</a>
+                    <button type="submit" class="btn-primary">저장하기</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+</body>
+</html>

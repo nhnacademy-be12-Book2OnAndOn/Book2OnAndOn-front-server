@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 - 배송 정책 관리</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('deliverypolicies')}"></th:block>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">배송 관리</p>
+                <h2>배송 정책 관리</h2>
+                <p class="muted">현재 페이지 <b th:text="${deliveryPolicies != null ? deliveryPolicies.size() : 0}">0</b>개 정책</p>
+            </div>
+            <a class="btn-accent" th:href="@{/admin/delivery-policies/create}">+ 배송 정책 등록</a>
+        </div>
+
+        <div class="admin-toolbar" style="justify-content: flex-end;">
+            <a class="btn-ghost" th:href="@{/admin/delivery-policies}">↺ 새로고침</a>
+        </div>
+
+        <div class="table-card">
+            <table class="admin-table" id="policyTable">
+                <thead>
+                <tr>
+                    <th style="width: 10%;">ID</th>
+                    <th style="width: 35%;">정책 이름</th>
+                    <th style="width: 20%;">기본 배송비</th>
+                    <th style="width: 20%;">무료 배송 기준</th>
+                    <th style="width: 15%;">관리</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="policy : ${deliveryPolicies}">
+
+                    <td th:text="${policy.deliveryPolicyId}">1</td>
+
+                    <td>
+                        <span style="font-weight: 600; color: #333;" th:text="${policy.deliveryPolicyName}"></span>
+                    </td>
+
+                    <td class="discount-info">
+                        <strong th:text="${#numbers.formatInteger(policy.deliveryFee, 0, 'COMMA')}"></strong>원
+                    </td>
+
+                    <td style="font-size: 0.9rem;">
+                        <div style="color: #0277bd;">
+                            <span th:text="${#numbers.formatInteger(policy.freeDeliveryThreshold, 0, 'COMMA')}"></span>원 이상 구매 시
+                        </div>
+                    </td>
+
+                    <td class="table-actions">
+                        <a class="btn-small"
+                           th:href="@{/admin/delivery-policies/update/{id}(id=${policy.deliveryPolicyId})}">수정</a>
+
+                    </td>
+                </tr>
+
+                <tr th:if="${deliveryPolicies == null or #lists.isEmpty(deliveryPolicies)}">
+                    <td colspan="5" style="text-align: center; padding: 4rem; color: #999;">
+                        등록된 배송 정책이 없습니다.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" th:if="${totalPages > 0}">
+            <a class="page-link"
+               th:href="@{/admin/delivery-policies(page=${currentPage - 1}, size=${param.size})}"
+               th:if="${currentPage > 0}">&lt;</a>
+
+            <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                <a class="page-link"
+                   th:classappend="${i == currentPage} ? 'active'"
+                   th:href="@{/admin/delivery-policies(page=${i}, size=${param.size})}"
+                   th:text="${i + 1}">1</a>
+            </th:block>
+
+            <a class="page-link"
+               th:href="@{/admin/delivery-policies(page=${currentPage + 1}, size=${param.size})}"
+               th:if="${currentPage < totalPages - 1}">&gt;</a>
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+</body>
+</html>
