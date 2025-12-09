@@ -13,7 +13,7 @@
 <div th:fragment="content">
 
     <div class="address-form-container no-card">
-        <h2>⚙️ 회원 정보 수정</h2>
+        <h2>회원 정보 수정</h2>
 
         <div class="error-box" th:if="${error}" th:text="${error}"></div>
 
@@ -47,7 +47,8 @@
                                type="text">
                         <button class="btn-verify" onclick="confirmVerification()" type="button">확인</button>
                     </div>
-                    <small class="mt-2" id="verifyMessage" style="display: block; color: #d9534f; font-weight: 700;"></small>
+                    <small class="mt-2" id="verifyMessage"
+                           style="display: block; color: #d9534f; font-weight: 700;"></small>
                 </div>
 
                 <input id="originalEmail" th:value="*{email}" type="hidden">

@@ -92,10 +92,11 @@
                     </td>
 
                     <td style="font-size: 0.9rem;">
-                        <div style="color: #0277bd;" th:if="${policy.durationDays != null}">
+                        <div style="color: #0277bd;"
+                             th:if="${policy.durationDays != null}">
                             📅 발급 후 <b th:text="${policy.durationDays}">30</b>일간
                         </div>
-                        <div th:if="${policy.fixedStartDate != null}">
+                        <div th:if="${policy.durationDays == null}">
                             📅 <span th:text="${policy.fixedStartDate}"></span> ~
                             <span th:text="${policy.fixedEndDate}"></span>
                         </div>
