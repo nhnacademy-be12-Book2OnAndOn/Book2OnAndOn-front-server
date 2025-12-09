@@ -89,6 +89,6 @@ public interface BookClient {
 
     /// 북 검색엔진
     @GetMapping("/api/books/search")
-    RestPage<BookDto> searchBooks(@SpringQueryMap BookSearchCondition condition,//필드들을 뜯어서 검색조건으로 만듦 즉, 쿼리 파라미터로 만들수 있음
+    Page<BookDto> searchBooks(@SpringQueryMap BookSearchCondition condition,//필드들을 뜯어서 검색조건으로 만듦 즉, 쿼리 파라미터로 만들수 있음
                               @PageableDefault(size=20)Pageable pageable);
 }

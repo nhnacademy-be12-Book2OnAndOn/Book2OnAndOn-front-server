@@ -14,8 +14,7 @@
                th:text="${cat.name}">카테고리명</a>
 
             <span class="subcategory-toggle"
-                  th:if="${cat.children != null and !#lists.isEmpty(cat.children)}">
-                  ▼ </span>
+                  th:if="${cat.children != null and !#lists.isEmpty(cat.children)}"></span>
         </div>
 
         <ul class="subcategory-list"

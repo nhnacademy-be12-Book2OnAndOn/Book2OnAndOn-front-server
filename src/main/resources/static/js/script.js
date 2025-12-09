@@ -1,88 +1,69 @@
-const sidebar = document.getElementById('categorySidebar');
-const overlay = document.getElementById('sidebarOverlay');
-
+// 1. 사이드바 토글 함수 (전역 범위로 이동)
 function toggleSidebar() {
-    if (!sidebar || !overlay) return;
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('active');
+    const sidebar = document.getElementById('categorySidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+    } else {
+        console.warn("사이드바 요소를 찾을 수 없습니다.");
+    }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const chips = document.querySelectorAll('.chip-list .chip');
-    const chipList = document.querySelector('.chip-list');
-    const searchInput = document.querySelector('.global-search .input');
-    const clearButton = document.querySelector('.btn-clear');
-    let isDown = false;
-    let startX = 0;
-    let scrollLeft = 0;
-
-    chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            chips.forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-        });
-    });
-
-    if (chipList) {
-        chipList.addEventListener('mousedown', (e) => {
-            isDown = true;
-            chipList.classList.add('dragging');
-            startX = e.pageX - chipList.offsetLeft;
-            scrollLeft = chipList.scrollLeft;
-        });
-
-        chipList.addEventListener('mouseleave', () => {
-            isDown = false;
-            chipList.classList.remove('dragging');
-        });
-
-        chipList.addEventListener('mouseup', () => {
-            isDown = false;
-            chipList.classList.remove('dragging');
-        });
-
-        chipList.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - chipList.offsetLeft;
-            const walk = (x - startX) * 1.2;
-            chipList.scrollLeft = scrollLeft - walk;
-        });
+// 2. 하위 카테고리 토글 함수 (전역 범위로 이동)
+function toggleSubcategory(row) {
+    if (row.dataset.hasChildren !== 'true') {
+        return;
     }
 
-    window.toggleSubcategory = function(row) {
-        if (row.dataset.hasChildren !== 'true') {
-            return;
-        }
-        const item = row.closest('.category-item');
-        if (!item) return;
-        item.classList.toggle('open');
-        const list = item.querySelector(':scope > .subcategory-list');
-        if (!list) {
-            return;
-        }
+    const item = row.closest('.category-item');
+    if (!item) return;
 
-        if (item.classList.contains('open')) {
-            list.style.maxHeight = list.scrollHeight + 'px';
-            const onTransitionEnd = (event) => {
-                if (event.target !== list) return;
-                if (item.classList.contains('open')) {
-                    list.style.maxHeight = 'none';
-                }
-                list.removeEventListener('transitionend', onTransitionEnd);
-            };
-            list.addEventListener('transitionend', onTransitionEnd);
-        } else {
-            if (list.style.maxHeight === 'none') {
-                list.style.maxHeight = list.scrollHeight + 'px';
-                requestAnimationFrame(() => {
-                    list.style.maxHeight = 0;
-                });
-            } else {
-                list.style.maxHeight = 0;
+    // 클래스 토글 (open 클래스가 CSS에서 + / - 모양을 바꿈)
+    item.classList.toggle('open');
+
+    // 슬라이드 애니메이션 처리
+    const list = item.querySelector(':scope > .subcategory-list');
+    if (!list) return;
+
+    if (item.classList.contains('open')) {
+        list.style.display = 'block'; // 먼저 보이게 하고
+        list.style.maxHeight = list.scrollHeight + 'px'; // 높이를 늘림
+
+        // 애니메이션 끝나면 max-height 해제 (내용물 가려짐 방지)
+        const onTransitionEnd = (event) => {
+            if (event.target !== list) return;
+            if (item.classList.contains('open')) {
+                list.style.maxHeight = 'none';
             }
-        }
-    };
+            list.removeEventListener('transitionend', onTransitionEnd);
+        };
+        list.addEventListener('transitionend', onTransitionEnd);
+
+    } else {
+        // 닫을 때는 현재 높이를 숫자로 세팅하고 바로 0으로 줄임
+        list.style.maxHeight = list.scrollHeight + 'px';
+        requestAnimationFrame(() => {
+            list.style.maxHeight = '0';
+        });
+    }
+}
+
+// 3. 이벤트 리스너 연결 (DOM 로드 후 실행)
+document.addEventListener('DOMContentLoaded', () => {
+    // 햄버거 버튼 & 닫기 버튼 연결
+    const hamburger = document.querySelector('.hamburger');
+    const closeBtn = document.querySelector('.close-sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+    if (overlay) overlay.addEventListener('click', toggleSidebar);
+
+    // 검색창 X 버튼 기능
+    const searchInput = document.querySelector('.global-search .input');
+    const clearButton = document.querySelector('.btn-clear');
 
     if (searchInput && clearButton) {
         clearButton.addEventListener('click', () => {
@@ -90,18 +71,4 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.focus();
         });
     }
-
-    const hamburger = document.querySelector('.hamburger');
-    const closeBtn = document.querySelector('.close-sidebar');
-    if (hamburger) {
-        hamburger.addEventListener('click', toggleSidebar);
-    }
-    if (overlay) {
-        overlay.addEventListener('click', toggleSidebar);
-    }
-    if (closeBtn) {
-        closeBtn.addEventListener('click', toggleSidebar);
-    }
 });
-
-window.toggleSidebar = toggleSidebar;
