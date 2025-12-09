@@ -3,6 +3,7 @@ package com.nhnacademy.book2onandonfrontservice.controller.adminController;
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.DeliveryClient;
+import com.nhnacademy.book2onandonfrontservice.client.DeliveryPolicyClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
@@ -13,6 +14,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryCompany;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryDto;
+import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryPolicyDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryWaybillUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.OrderStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
@@ -51,6 +53,7 @@ public class AdminViewController {
     private final BookClient bookClient;
 //    private final UserGradeClient userGradeClient;
     private final DeliveryClient deliveryClient;
+    private final DeliveryPolicyClient deliveryPolicyClient;
 
     //관리자 대시보드
     @GetMapping
@@ -271,5 +274,62 @@ public class AdminViewController {
         deliveryClient.updateDeliveryInfo(deliveryId, requestDto);
 
         return "redirect:/admin/deliveries";
+    }
+
+    @GetMapping("/delivery-policies")
+    public String getDeliveries(@RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "10") int size,
+                                Model model) {
+        Page<DeliveryPolicyDto> deliveryPolicyPage = deliveryPolicyClient.getDeliveryPolicies(page, size);
+        log.info("배송 정책 조회: {}", deliveryPolicyPage.getTotalElements());
+        model.addAttribute("deliveryPolicies", deliveryPolicyPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", deliveryPolicyPage.getTotalPages());
+
+
+        // 페이지네이션 범위 계산
+        int startPage = Math.max(0, page - 2);
+        int endPage = Math.min(Math.max(0, deliveryPolicyPage.getTotalPages() - 1), page + 2);
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
+
+        return "admin/delivery/policy-list";
+    }
+
+    @PostMapping("/delivery-policies")
+    public String createDeliveries(@ModelAttribute DeliveryPolicyDto dto) {
+        log.info("배송 정책 요청 값: {}", dto);
+        deliveryPolicyClient.createDeliveryPolicy(dto);
+        log.info("deliveryPolicyName = {}", dto.getDeliveryPolicyName());
+        log.info("deliveryFee = {}", dto.getDeliveryFee());
+        log.info("freeDeliveryThreshold = {}", dto.getFreeDeliveryThreshold());
+
+        return "redirect:/admin/delivery-policies";
+    }
+
+    @GetMapping("/delivery-policies/create")
+    public String createForm(Model model) {
+        model.addAttribute("deliveryPolicyDto", new DeliveryPolicyDto());
+        model.addAttribute("pageTitle", "배송 정책 등록");
+        return "admin/delivery/form";
+    }
+
+    @GetMapping("/delivery-policies/update/{id}")
+    public String updateForm(@PathVariable Long id, Model model) {
+
+        DeliveryPolicyDto policy = deliveryPolicyClient.getDeliveryPolicy(id);
+
+        model.addAttribute("deliveryPolicyDto", policy);
+        model.addAttribute("pageTitle", "배송 정책 수정");
+        return "admin/delivery/form";
+    }
+
+    @PostMapping("/delivery-policies/{id}")
+    public String updateDeliveryPolicy(
+            @PathVariable Long id,
+            @ModelAttribute DeliveryPolicyDto dto) {
+
+        deliveryPolicyClient.updateDeliveryPolicy(id, dto);
+        return "redirect:/admin/delivery-policies";
     }
 }
