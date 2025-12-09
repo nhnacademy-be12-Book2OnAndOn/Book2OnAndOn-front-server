@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "gateway-service", contextId = "couponClient", url = "${gateway.base-url}")
 public interface CouponClient {
 
-    @PostMapping("api/admin/coupons")
+    @PostMapping("/api/admin/coupons")
     void createCoupon(@RequestBody CouponCreateDto requestDto);
 
     @GetMapping("/api/admin/coupons")
