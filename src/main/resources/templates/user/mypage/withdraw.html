@@ -6,14 +6,16 @@
 </head>
 <body>
 <div th:fragment="content">
-    <div class="address-form-container">
+        <div class="address-form-container withdraw-form no-card">
         <h2>회원 탈퇴</h2>
-        <p class="text-danger">탈퇴 시 모든 정보가 삭제되며 복구할 수 없습니다.</p>
+        <div class="withdraw-warning">
+            탈퇴 시 모든 정보가 삭제되며 복구할 수 없습니다.
+        </div>
 
         <form action="/users/me/withdraw" method="post" onsubmit="return confirm('정말 탈퇴하시겠습니까?');">
             <div class="form-field">
                 <label for="reason">탈퇴 사유</label>
-                <input type="text" id="reason" name="reason" placeholder="사유를 입력해주세요 (선택)">
+                <textarea id="reason" name="reason" placeholder="사유를 입력해주세요 (선택)" rows="4"></textarea>
             </div>
             <div class="form-actions">
                 <a href="/users/me" class="btn-cancel">취소</a>
