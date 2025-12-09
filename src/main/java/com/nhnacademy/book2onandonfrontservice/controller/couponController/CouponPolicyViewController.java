@@ -85,7 +85,7 @@ public class CouponPolicyViewController {
     // 정책 수정 폼
     @GetMapping("/update/{id}")
     public String updateForm(@PathVariable Long id, Model model) {
-        CouponPolicyUpdateDto policy = couponPolicyClient.getPolicy(id);
+        CouponPolicyDto policy = couponPolicyClient.getPolicy(id);
         List<CategoryDto> categories = bookClient.getCategories();
         // UpdateDto로 변환
         boolean isMaxPriceNull = policy.getMaxPrice() == null;
@@ -133,7 +133,7 @@ public class CouponPolicyViewController {
     // 정책 상세 페이지
     @GetMapping("/details/{id}")
     public String viewPolicyDetails(@PathVariable Long id, Model model) {
-        CouponPolicyUpdateDto policy = couponPolicyClient.getPolicy(id); // 단일 정책 조회 API 호출
+        CouponPolicyDto policy = couponPolicyClient.getPolicy(id); // 단일 정책 조회 API 호출
 
         model.addAttribute("policy", policy);
         model.addAttribute("pageTitle", "쿠폰 정책 상세 조회");
