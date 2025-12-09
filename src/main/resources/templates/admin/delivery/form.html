@@ -23,11 +23,15 @@
         </div>
 
         <section class="admin-detail-card">
-            <form th:action="${deliveryPolicyDto.deliveryPolicyId == null ? '/admin/delivery-policies' : '/admin/delivery-policies/' + deliveryPolicyDto.deliveryPolicyId}"
+            <form th:action="${deliveryPolicyDto.deliveryPolicyId == null ?
+        '/admin/delivery-policies' :
+        '/admin/delivery-policies/' + deliveryPolicyDto.deliveryPolicyId}"
                   th:object="${deliveryPolicyDto}"
                   method="post">
 
-                <input type="hidden" name="_method" value="put" th:if="${deliveryPolicyDto.deliveryPolicyId != null}"/>
+                <!-- 수정인 경우에만 PUT 적용 -->
+                <input type="hidden" name="_method" value="put"
+                       th:if="${deliveryPolicyDto.deliveryPolicyId != null}" />
 
                 <div class="form-field">
                     <label for="deliveryPolicyName">정책 이름</label>

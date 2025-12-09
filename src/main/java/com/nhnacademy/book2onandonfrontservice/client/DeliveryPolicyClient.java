@@ -24,7 +24,7 @@ public interface DeliveryPolicyClient {
     @PostMapping("/api/admin/delivery-policies")
     void createDeliveryPolicy(@RequestBody DeliveryPolicyDto requestDto);
 
-    @PostMapping("/api/admin/delivery-policies/{deliveryPolicyId}")
+    @PutMapping("/api/admin/delivery-policies/{deliveryPolicyId}")
     void updateDeliveryPolicy(@PathVariable("deliveryPolicyId") Long deliveryPolicyId,
                              @RequestBody DeliveryPolicyDto requestDto);
 }
