@@ -1031,3 +1031,454 @@ img {
     content: '♥';
     font-size: 16px;
 }
+
+/* ===== Book Detail Page ===== */
+.book-detail-page {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+.product-wrapper {
+    display: grid;
+    grid-template-columns: 450px 1fr;
+    gap: 3rem;
+    margin-bottom: 4rem;
+    align-items: start;
+}
+
+/* Gallery */
+.product-gallery {
+    position: sticky;
+    top: 100px;
+}
+
+.main-image {
+    width: 100%;
+    aspect-ratio: 1 / 1.4; /* 책 비율 */
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(0,0,0,0.05);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 혹은 contain */
+}
+
+.thumb-fallback.big {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f3f5;
+    color: var(--gray-500);
+}
+
+.thumbnail-list {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+    overflow-x: auto;
+}
+
+.thumb-item {
+    width: 60px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid transparent;
+    opacity: 0.7;
+    transition: all 0.2s;
+}
+
+.thumb-item:hover {
+    opacity: 1;
+    border-color: var(--green-600);
+}
+
+.thumb-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Product Info */
+.breadcrumb {
+    color: var(--gray-500);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.product-header {
+    margin-bottom: 1.5rem;
+}
+
+.badge-status {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #aaa;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.badge-status.sale {
+    background: var(--green-600);
+}
+
+.product-title {
+    font-size: 2rem;
+    line-height: 1.3;
+    color: var(--gray-900);
+}
+
+.product-title .vol {
+    color: var(--gray-500);
+    font-weight: 400;
+}
+
+.author-publisher {
+    margin-top: 0.5rem;
+    color: var(--gray-700);
+    font-size: 1.05rem;
+}
+
+.author-publisher .divider {
+    margin: 0 8px;
+    color: #ddd;
+}
+
+.rating-summary {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 0.8rem;
+    font-size: 0.95rem;
+}
+
+.rating-summary .stars {
+    color: #ffbf47;
+}
+
+.rating-summary .count {
+    color: var(--gray-500);
+}
+
+.soft-divider {
+    border: 0;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    margin: 1.5rem 0;
+}
+
+.price-area {
+    margin-bottom: 1.5rem;
+}
+
+.price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.price-row .label {
+    width: 60px;
+    font-size: 0.9rem;
+    color: var(--gray-700);
+}
+
+.price-row .sale-price {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--green-800);
+}
+
+.price-row .discount-rate {
+    font-size: 1.2rem;
+    color: #db4e56;
+    font-weight: 600;
+}
+
+.price-row.small {
+    margin-top: 0.2rem;
+}
+
+.price-row .original-price {
+    text-decoration: line-through;
+    color: var(--gray-500);
+}
+
+.meta-info-box {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: var(--radius-md);
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.meta-info-box .row {
+    display: flex;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.meta-info-box .row:last-child {
+    margin-bottom: 0;
+}
+
+.meta-info-box .th {
+    width: 80px;
+    color: var(--gray-500);
+}
+
+.tags-area {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tag-chip {
+    background: rgba(45, 95, 63, 0.08);
+    color: var(--green-700);
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+
+/* Purchase Actions */
+.purchase-actions {
+    background: var(--white);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.quantity-control {
+    display: inline-flex;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.quantity-control button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f8f9fa;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.quantity-control button:hover {
+    background: #eee;
+}
+
+.quantity-control input {
+    width: 40px;
+    border: none;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    text-align: center;
+    font-size: 1rem;
+    outline: none;
+}
+
+.total-price-preview {
+    margin-top: 1rem;
+    text-align: right;
+    font-size: 1.1rem;
+}
+
+.total-price-preview strong {
+    font-size: 1.5rem;
+    color: var(--green-800);
+    font-weight: 800;
+}
+
+.btn-group {
+    display: flex;
+    gap: 12px;
+    height: 56px;
+}
+
+.btn-group .btn {
+    flex: 1;
+    font-size: 1.1rem;
+    border-radius: var(--radius-md);
+}
+
+.btn-group .btn.primary.fill {
+    background: var(--green-700);
+    color: #fff;
+    border: none;
+}
+
+.btn-group .btn.primary.fill:hover {
+    background: var(--green-600);
+}
+
+.btn-group .btn.ghost {
+    color: var(--green-700);
+    border-color: var(--green-700);
+}
+
+.btn-group .btn.ghost:hover {
+    background: rgba(45, 95, 63, 0.05);
+}
+
+.like-btn.large {
+    width: 56px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+}
+
+/* Tabs & Content */
+.detail-content-wrapper {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    padding: 2rem;
+    min-height: 500px;
+}
+
+.tab-nav {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 2rem;
+}
+
+.tab-item {
+    padding: 1rem 2rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.tab-item:hover, .tab-item.active {
+    color: var(--green-700);
+    border-bottom-color: var(--green-700);
+}
+
+.content-block {
+    margin-bottom: 4rem;
+    padding-top: 1rem; /* anchor scroll spacing */
+}
+
+.content-block h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    color: var(--green-800);
+    border-left: 4px solid var(--green-600);
+    padding-left: 1rem;
+}
+
+.description-body, .toc-body {
+    line-height: 1.8;
+    color: #333;
+    font-size: 1.05rem;
+}
+
+.description-body img {
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+}
+
+/* Reviews */
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.review-item {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-meta {
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+    color: var(--gray-500);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.review-meta .reviewer {
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.review-meta .stars {
+    color: #ffbf47;
+}
+
+.review-content {
+    white-space: pre-line;
+    color: #444;
+}
+
+.linked-thumb {
+    display: block; /* a태그가 div처럼 동작하게 함 */
+    text-decoration: none;
+}
+
+.book-title a,
+.linked-title a,
+.linked-info > a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.book-title:hover,
+.linked-title:hover {
+    color: var(--green-700); /* 마우스 올리면 초록색으로 변경 */
+    transition: color 0.2s;
+}
+
+.no-deco {
+    text-decoration: none;
+    color: inherit;
+}
+.no-deco:hover {
+    color: var(--green-700);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .product-wrapper {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .product-gallery {
+        position: static;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+}
+
+

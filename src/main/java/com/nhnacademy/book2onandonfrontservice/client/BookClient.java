@@ -9,6 +9,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatusUpdateReque
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
+import jakarta.ws.rs.Path;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.data.domain.Page;
@@ -62,6 +63,10 @@ public interface BookClient {
     void updateBook(@PathVariable("bookId") Long bookId,
                 @RequestParam("book") BookUpdateRequest request,
                     @RequestPart(value="images",required = false) List<MultipartFile> images);
+
+    /// 도서 썸네일 지정 컨트롤러
+    @PutMapping("/api/admin/books/{bookId}/images/{imageId}/thumbnail")
+    void updateThumbnail(@PathVariable Long bookId, @PathVariable Long imageId);
 
     /// 도서 상세 정보
     @GetMapping("/api/books/{bookId}")
