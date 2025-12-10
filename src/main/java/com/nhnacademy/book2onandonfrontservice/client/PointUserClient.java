@@ -4,7 +4,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.Current
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.EarnOrderPointRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.EarnPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.EarnReviewPointRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.ExpiringPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointSummaryResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.RefundPointRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.UsePointRequestDto;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -64,5 +66,18 @@ public interface PointUserClient {
     EarnPointResponseDto refundPoint(
             @RequestHeader("Authorization") String accessToken,
             @RequestBody RefundPointRequestDto dto
+    );
+
+    // 6. 7일 내 소멸 예정 포인트 조회(프론트)
+    @GetMapping("/api/users/me/points/expiring")
+    ExpiringPointResponseDto getExpiringPoints(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestParam(name = "days", defaultValue = "7") int days
+    );
+
+    // 7. 포인트 내역 요약(프론트)
+    @GetMapping("/api/users/me/points/summary")
+    PointSummaryResponseDto getPointSummary(
+            @RequestHeader("Authorization") String accessToken
     );
 }

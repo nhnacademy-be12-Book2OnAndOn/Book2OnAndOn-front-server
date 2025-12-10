@@ -3,8 +3,9 @@ package com.nhnacademy.book2onandonfrontservice.controller.pointController;
 import com.nhnacademy.book2onandonfrontservice.client.PointUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.ExpiringPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
-import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointSummaryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -33,27 +34,21 @@ public class PointUserController {
         if (accessToken == null) {
             return "redirect:/login";
         }
-        // 0) 페이지 번호 검증
         page = Math.max(0, page);
         size = size <= 0 ? 10 : size;
 
-        // 1) 내 포인트 이력 조회 (백엔드 point-service 호출)
-        Page<PointHistoryResponseDto> historyPage =
-                pointUserClient.getMyPointHistory("Bearer " + accessToken, page, size);
+        String bearer = "Bearer " + accessToken;
+        Page<PointHistoryResponseDto> historyPage = pointUserClient.getMyPointHistory(bearer, page, size);
+        CurrentPointResponseDto currentPoint = pointUserClient.getMyCurrentPoint(bearer);
+        PointSummaryResponseDto summary = pointUserClient.getPointSummary(bearer);
+        ExpiringPointResponseDto expiring = pointUserClient.getExpiringPoints(bearer, 7);
 
-        // 2) 내 현재 포인트 조회
-        CurrentPointResponseDto currentPoint =
-                pointUserClient.getMyCurrentPoint("Bearer " + accessToken);
-
-        // 2-1) 사용자 기본 정보 조회 (초기 포인트 표기를 위해)
-        UserResponseDto user = userClient.getMyInfo("Bearer " + accessToken);
-
-        // 3) 화면에 전달할 모델 구성
-        model.addAttribute("currentPoint", currentPoint);            // 현재 포인트
-        model.addAttribute("histories", historyPage.getContent());   // 이력 리스트
-        model.addAttribute("currentPage", page);                     // 현재 페이지(0-based)
+        model.addAttribute("currentPoint", currentPoint);
+        model.addAttribute("histories", historyPage.getContent());
+        model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", historyPage.getTotalPages());
-        model.addAttribute("user", user);
+        model.addAttribute("summary", summary); // 이번달 적립/사용
+        model.addAttribute("expiring", expiring); // 소멸 예정
 
         // int startPage = Math.max(0, page - 2);
         // int endPage = Math.min(historyPage.getTotalPages() - 1, page + 2);
