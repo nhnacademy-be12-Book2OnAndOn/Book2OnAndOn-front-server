@@ -11,25 +11,52 @@
             padding: 1.5rem 2rem;
             border-radius: 20px;
             margin-bottom: 2rem;
-            box-shadow: var(--shadow-soft);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* 변수 대체 */
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
         .search-keyword {
-            color: var(--green-700);
+            color: #2d5f3f; /* 변수 대체 */
             font-weight: 700;
             font-size: 1.2rem;
         }
         .no-result {
             text-align: center;
             padding: 4rem 0;
-            color: var(--gray-500);
+            color: #6b7280; /* 변수 대체 */
         }
         .book-link-overlay {
             position: absolute;
             inset: 0;
             z-index: 1;
+        }
+        /* 정렬 선택 박스 스타일 추가 */
+        .sort-select {
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            color: #374151;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+        /* 페이지네이션 버튼 스타일 보완 */
+        .pagination button {
+            padding: 0.5rem 1rem;
+            margin: 0 0.2rem;
+            border: 1px solid #ddd;
+            background-color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .pagination button.active {
+            background-color: #2d5f3f;
+            color: white;
+            border-color: #2d5f3f;
+        }
+        .pagination button:hover:not(.active) {
+            background-color: #f3f4f6;
         }
     </style>
 </head>
@@ -45,6 +72,8 @@
 
         <div class="global-search">
             <form action="/books/search" method="get" class="group">
+                <input type="hidden" name="sort" th:value="${condition.sort}">
+
                 <input type="text" class="input" name="keyword"
                        th:value="${condition.keyword}"
                        placeholder="찾으시는 도서명, 저자, ISBN을 입력하세요" />
@@ -58,7 +87,7 @@
 
         <div class="header-actions">
             <a href="/cart" class="icon-btn cart">
-                <span class="fi fi-rs-cart"></span>
+                <span class="fi fi-rs-cart">🛒</span>
             </a>
             <a href="/login" class="text-link">로그인</a>
         </div>
@@ -71,24 +100,36 @@
         <div>
             <span class="search-keyword">"<span th:text="${condition.keyword}">키워드</span>"</span>
             검색 결과
+            <span style="margin-left: 10px; color: #6b7280; font-size: 0.9rem;">
+                (총 <b th:text="${page.totalElements}">0</b>건)
+            </span>
         </div>
+
         <div class="section-actions">
-            <span class="count">총 <b th:text="${page.totalElements}">0</b>건</span>
+            <select class="sort-select" onchange="location.href=this.value">
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='RECENT')}"
+                        th:selected="${condition.sort == 'RECENT' or condition.sort == null}">최신순</option>
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='LIKE_DESC')}"
+                        th:selected="${condition.sort == 'LIKE_DESC'}">인기순</option>
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='PRICE_ASC')}"
+                        th:selected="${condition.sort == 'PRICE_ASC'}">가격 낮은순</option>
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='PRICE_DESC')}"
+                        th:selected="${condition.sort == 'PRICE_DESC'}">가격 높은순</option>
+            </select>
         </div>
     </div>
 
     <div th:if="${books.isEmpty()}" class="no-result">
-        <h3 style="margin-bottom: 1rem; color: var(--green-800);">검색 결과가 없습니다.</h3>
+        <h3 style="margin-bottom: 1rem; color: #2d5f3f;">검색 결과가 없습니다.</h3>
         <p>단어의 철자가 정확한지 확인해 주세요.</p>
-        <a href="/" class="btn primary" style="margin-top: 2rem;">메인으로 돌아가기</a>
+        <a href="/" class="btn primary" style="margin-top: 2rem; display:inline-block; padding: 10px 20px; background-color: #2d5f3f; color: white; text-decoration: none; border-radius: 5px;">메인으로 돌아가기</a>
     </div>
 
     <div th:unless="${books.isEmpty()}" class="book-grid">
 
         <div th:each="book : ${books}" class="book-card">
-
             <div class="book-cover">
-                <img th:src="${book.imagePath} ?: 'https://via.placeholder.com/200x300?text=No+Image'"
+                <img th:src="${book.imagePath != null and book.imagePath != '' ? book.imagePath : 'https://via.placeholder.com/200x300?text=No+Image'}"
                      alt="도서 표지"
                      style="width: 100%; height: 280px; object-fit: cover;" />
             </div>
@@ -99,20 +140,22 @@
                     도서 제목
                 </h3>
 
-                <p class="book-author" th:text="${book.contributorNames}">저자명</p>
+                <p class="book-author"
+                   th:text="${#strings.listJoin(book.contributorNames, ', ')}">저자명</p>
 
                 <div class="book-meta">
                     <div class="rating">
                         <span>★</span>
-                        <span th:text="${book.rating}">0.0</span>
+                        <span th:text="${book.rating != null ? book.rating : '0.0'}">0.0</span>
                     </div>
                     <div class="price-info">
                         <span class="price" th:text="${#numbers.formatInteger(book.priceSales, 0, 'COMMA') + '원'}">15,000원</span>
 
                         <span class="origin" th:if="${book.priceStandard > book.priceSales}"
-                              th:text="${#numbers.formatInteger(book.priceStandard, 0, 'COMMA') + '원'}">
+                              th:text="${#numbers.formatInteger(book.priceStandard, 0, 'COMMA') + '원'}"
+                              style="text-decoration: line-through; color: #999; font-size: 0.9em; margin-left: 5px;">
                                 18,000원
-                            </span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -126,9 +169,10 @@
 
     </div>
 
-    <div th:if="${!books.isEmpty()}" class="pagination">
+    <div th:if="${!books.isEmpty()}" class="pagination" style="margin-top: 2rem; display: flex; justify-content: center;">
+
         <button th:if="${page.hasPrevious()}"
-                th:onclick="|location.href='@{/books/search(keyword=${condition.keyword}, page=${page.number - 1})}'|">
+                th:onclick="|location.href='@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number - 1})}'|">
             &lt;
         </button>
 
@@ -136,13 +180,13 @@
             <button th:if="${i >= page.number - 2 and i <= page.number + 2}"
                     th:classappend="${i == page.number} ? 'active'"
                     th:text="${i + 1}"
-                    th:onclick="|location.href='@{/books/search(keyword=${condition.keyword}, page=${i})}'|">
+                    th:onclick="|location.href='@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${i})}'|">
                 1
             </button>
         </th:block>
 
         <button th:if="${page.hasNext()}"
-                th:onclick="|location.href='@{/books/search(keyword=${condition.keyword}, page=${page.number + 1})}'|">
+                th:onclick="|location.href='@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number + 1})}'|">
             &gt;
         </button>
     </div>

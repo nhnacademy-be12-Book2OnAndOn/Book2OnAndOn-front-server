@@ -73,7 +73,7 @@ public class BookViewController {
     public String searchBooks(@ModelAttribute BookSearchCondition condition,
                               @PageableDefault(size=20) Pageable pageable,
                               Model model){
-        RestPage<BookDto> result = bookClient.searchBooks(condition, pageable);
+        Page<BookDto> result = bookClient.searchBooks(condition, pageable);
         model.addAttribute("books", result.getContent());
         model.addAttribute("page", result);
         model.addAttribute("condition", condition);

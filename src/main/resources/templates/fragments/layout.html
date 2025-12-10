@@ -85,8 +85,7 @@
         </nav>
     </header>
 
-    <th:block th:if="${#vars.containsKey('categories') and categories != null}"
-              th:replace="~{fragments/layout :: categorySidebar(${categories})}"></th:block>
+    <th:block th:replace="~{fragments/layout :: categorySidebar(${categories})}"></th:block>
 </th:block>
 
 <th:block th:fragment="categorySidebar(categories)" xmlns:th="http://www.thymeleaf.org">
