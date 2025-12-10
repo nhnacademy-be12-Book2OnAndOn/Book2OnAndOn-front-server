@@ -32,6 +32,13 @@
                         <p>Book2OnAndOn의 멤버가 되어주세요</p>
                     </div>
 
+                    <div class="social-login" style="margin-bottom: 2rem;">
+                        <a class="btn-social btn-payco" th:href="${paycoLoginUrl}">
+                            <span class="icon">P</span>
+                            PAYCO로 3초 만에 시작하기
+                        </a>
+                    </div>
+
                     <div class="alert alert-error" th:if="${error}">
                         <p th:text="${error}"></p>
                     </div>

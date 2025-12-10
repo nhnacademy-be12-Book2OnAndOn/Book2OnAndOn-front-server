@@ -1,12 +1,13 @@
 package com.nhnacademy.book2onandonfrontservice.controller.userController;
 
-import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindIdRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindPasswordRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LocalSignUpRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LoginRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PaycoLoginRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.FindIdResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.TokenResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
@@ -18,6 +19,7 @@ import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,10 +38,24 @@ public class AuthViewController {
     private final UserClient userClient;
     private final BookClient bookClient;
 
+    @Value("${payco.client-id}")
+    private String paycoClientId;
 
-    //로그인 페이지
+    @Value("${payco.authorization-uri}")
+    private String paycoAuthUri;
+
+    @Value("${payco.redirect-uri}")
+    private String paycoRedirectUri;
+
+    // Payco 로그인 페이지
     @GetMapping("/login")
-    public String loginForm() {
+    public String loginForm(Model model) {
+        String paycoLoginUrl = String.format(
+                "%s?response_type=code&client_id=%s&serviceProviderCode=FRIENDS&redirect_uri=%s&userLocale=ko_KR",
+                paycoAuthUri, paycoClientId, paycoRedirectUri
+        );
+
+        model.addAttribute("paycoLoginUrl", paycoLoginUrl);
         return "auth/login";
     }
 
@@ -56,22 +72,32 @@ public class AuthViewController {
             accessCookie.setHttpOnly(true);
             accessCookie.setSecure(true);
             accessCookie.setPath("/");
-            accessCookie.setMaxAge(1800);
+
+            if (loginRequest.isRememberMe()) {
+                accessCookie.setMaxAge(1800);
+            } else {
+                accessCookie.setMaxAge(-1);
+            }
             response.addCookie(accessCookie);
 
             Cookie refreshCookie = new Cookie("refreshToken", token.getRefreshToken());
             refreshCookie.setHttpOnly(true);
             refreshCookie.setSecure(true);
             refreshCookie.setPath("/");
-            refreshCookie.setMaxAge(604800);
+
+            if (loginRequest.isRememberMe()) {
+                refreshCookie.setMaxAge(604800);
+            } else {
+                refreshCookie.setMaxAge(-1);
+            }
             response.addCookie(refreshCookie);
 
-            try{
+            try {
                 String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
 
-                String bearerToken = "Bearer "+token.getAccessToken();
+                String bearerToken = "Bearer " + token.getAccessToken();
 
-                if(guestId != null){
+                if (guestId != null) {
                     bookClient.mergeRecentViews(bearerToken, guestId);
                 }
             } catch (Exception e) {
@@ -85,10 +111,19 @@ public class AuthViewController {
     }
 
 
-    //회원가입 페이지
     @GetMapping("/signup")
     public String signupForm(Model model) {
         model.addAttribute("signupForm", new LocalSignUpRequest());
+
+        // 1. PAYCO 인증 URL 생성 (로그인 페이지와 동일)
+        String paycoLoginUrl = String.format(
+                "%s?response_type=code&client_id=%s&serviceProviderCode=FRIENDS&redirect_uri=%s&userLocale=ko_KR",
+                paycoAuthUri, paycoClientId, paycoRedirectUri
+        );
+
+        // 2. 모델에 URL 추가
+        model.addAttribute("paycoLoginUrl", paycoLoginUrl);
+
         return "auth/signup";
     }
 
@@ -239,6 +274,53 @@ public class AuthViewController {
         } catch (Exception e) {
             model.addAttribute("error", "회원 정보를 찾을 수 없습니다.");
             return "auth/find-password";
+        }
+    }
+
+
+    // PAYCO Callback 처리
+    @GetMapping("/login/oauth2/code/payco")
+    public String paycoCallback(@RequestParam String code,
+                                HttpServletRequest request, // 쿠키 확인을 위해 request 추가
+                                HttpServletResponse response) {
+        try {
+            TokenResponseDto token = userClient.loginWithPayco(new PaycoLoginRequest(code));
+
+            Cookie accessCookie = new Cookie("accessToken", token.getAccessToken());
+            accessCookie.setHttpOnly(true);
+            accessCookie.setSecure(true);
+            accessCookie.setPath("/");
+            accessCookie.setMaxAge(1800); // 30분
+            response.addCookie(accessCookie);
+
+            Cookie refreshCookie = new Cookie("refreshToken", token.getRefreshToken());
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(true);
+            refreshCookie.setPath("/");
+            refreshCookie.setMaxAge(604800); // 7일
+            response.addCookie(refreshCookie);
+
+            try {
+                String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
+                String bearerToken = "Bearer " + token.getAccessToken();
+
+                if (guestId != null) {
+                    bookClient.mergeRecentViews(bearerToken, guestId);
+                }
+            } catch (Exception e) {
+                log.warn("PAYCO 로그인 후 데이터 병합 실패", e);
+            }
+
+            return "redirect:/";
+
+        } catch (Exception e) {
+            log.error("PAYCO 로그인 실패", e);
+
+            String errorMessage = e.getMessage();
+            if (errorMessage != null && errorMessage.contains("PAYCO_INFO_MISSING")) {
+                return "redirect:/login?error=payco_consent";
+            }
+            return "redirect:/login?error=payco";
         }
     }
 }

@@ -71,7 +71,7 @@
                 <span class="card-link">포인트 내역 →</span>
             </div>
             <p class="stat-value"
-               th:text="${user.point != null ? #numbers.formatInteger(user.point, 0) : 0} + ' P'">0 P</p>
+               th:text="${currentPoint != null ? #numbers.formatInteger(currentPoint, 0, 'COMMA') : 0} + ' P'">0 P</p>
             <p class="subtext">적립/사용 내역을 확인하세요.</p>
         </a>
     </div>
