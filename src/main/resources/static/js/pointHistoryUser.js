@@ -1,10 +1,14 @@
-const API_BASE = '/users/me/points';
-const userId = localStorage.getItem('userId') || '1';
+const API_BASE = '/user/me/points/api';
 const USE_DUMMY = false;
 
 let currentPage = 0;
 let currentFilter = 'ALL';
 let allHistory = [];
+let totalPages = 0;
+
+const initialHistory = window.initialPointHistory || null;
+const initialTotalPages = typeof window.initialTotalPages === 'number' ? window.initialTotalPages : 0;
+const initialCurrentPointValue = window.initialCurrentPointValue ?? null;
 
 // 더미 데이터
 const DUMMY_CURRENT_POINT = 25000;
@@ -103,6 +107,14 @@ const DUMMY_HISTORY = [
 
 // 현재 포인트 조회
 async function loadCurrentPoint() {
+    if (initialCurrentPointValue !== null && initialCurrentPointValue !== undefined) {
+        const el = document.getElementById('currentPoint');
+        if (el) {
+            el.textContent = initialCurrentPointValue.toLocaleString() + ' P';
+        }
+        return;
+    }
+
     if (USE_DUMMY) {
         document.getElementById('currentPoint').textContent =
             DUMMY_CURRENT_POINT.toLocaleString() + ' P';
@@ -135,11 +147,7 @@ async function loadCurrentPoint() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/current`, {
-            headers: {
-                'X-USER-ID': userId
-            }
-        });
+        const response = await fetch(`${API_BASE}/current`, { credentials: 'include' });
 
         if (!response.ok) throw new Error('포인트 조회 실패');
 
@@ -148,12 +156,24 @@ async function loadCurrentPoint() {
             data.currentPoint.toLocaleString() + ' P';
     } catch (error) {
         console.error('Error:', error);
-        alert('포인트 조회에 실패했습니다.');
+        const el = document.getElementById('currentPoint');
+        if (el) {
+            el.textContent = '0 P';
+        }
     }
 }
 
 // 포인트 이력 조회
 async function loadHistory(page = 0) {
+    if (initialHistory) {
+        allHistory = [...initialHistory];
+        totalPages = initialTotalPages || 1;
+        updateSummaryFromHistory(allHistory);
+        renderPagination(totalPages);
+        applyFilter();
+        return;
+    }
+
     if (USE_DUMMY) {
         allHistory = [...DUMMY_HISTORY];
         applyFilter();
@@ -161,20 +181,19 @@ async function loadHistory(page = 0) {
     }
 
     try {
-        const response = await fetch(`${API_BASE}?page=${page}&size=10`, {
-            headers: {
-                'X-USER-ID': userId
-            }
-        });
+        const response = await fetch(`${API_BASE}/history?page=${page}&size=10`, { credentials: 'include' });
 
         if (!response.ok) throw new Error('이력 조회 실패');
 
         const data = await response.json();
-        allHistory = data.content;
+        allHistory = data.content || [];
+        totalPages = data.totalPages || 0;
+        updateSummaryFromHistory(allHistory);
+        renderPagination(totalPages);
         applyFilter();
     } catch (error) {
         console.error('Error:', error);
-        alert('이력 조회에 실패했습니다.');
+        renderErrorRow('포인트 내역을 불러오지 못했습니다.');
     }
 }
 
@@ -183,11 +202,12 @@ function applyFilter() {
     let filteredHistory = allHistory;
 
     if (currentFilter !== 'ALL') {
-        filteredHistory = allHistory.filter(item => item.changeType === currentFilter);
+        filteredHistory = allHistory.filter(item =>
+            (item.pointHistoryChange > 0 ? 'EARN' : 'USE') === currentFilter
+        );
     }
 
     renderHistory(filteredHistory);
-    renderPagination(Math.ceil(filteredHistory.length / 10));
 }
 
 // 이력 렌더링
@@ -211,22 +231,28 @@ function renderHistory(history) {
     const end = start + 10;
     const pageHistory = history.slice(start, end);
 
-    tbody.innerHTML = pageHistory.map(item => `
+    tbody.innerHTML = pageHistory.map(item => {
+                const isEarn = item.pointHistoryChange > 0;
+                const changeAbs = Math.abs(item.pointHistoryChange);
+                const createdDate = formatDate(item.pointCreatedDate);
+                const expiryDate = formatDate(item.pointExpiredDate);
+                return `
                 <tr>
-                    <td>${item.changeDate}</td>
+                    <td>${createdDate}</td>
                     <td>
-                        <span class="status-badge ${item.changeType === 'EARN' ? 'badge-earn' : 'badge-use'}">
-                            ${item.changeType === 'EARN' ? '적립' : '사용'}
+                        <span class="status-badge ${isEarn ? 'badge-earn' : 'badge-use'}">
+                            ${isEarn ? '적립' : '사용'}
                         </span>
                     </td>
-                    <td>${item.changeDescription}</td>
-                    <td class="point-change ${item.changeType === 'EARN' ? 'point-plus' : 'point-minus'}">
-                        ${item.changeType === 'EARN' ? '+' : '-'}${item.changePoint.toLocaleString()} P
+                    <td>${item.pointReason || '-'}</td>
+                    <td class="point-change ${isEarn ? 'point-plus' : 'point-minus'}">
+                        ${isEarn ? '+' : '-'}${changeAbs.toLocaleString()} P
                     </td>
-                    <td><strong>${item.balancePoint.toLocaleString()} P</strong></td>
-                    <td>${item.expiryDate || '-'}</td>
+                    <td><strong>${(item.totalPoints ?? item.remainingPoint ?? 0).toLocaleString()} P</strong></td>
+                    <td>${expiryDate}</td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
 }
 
 // 페이지네이션 렌더링
@@ -261,7 +287,70 @@ function renderPagination(totalPages) {
 // 페이지 변경
 function changePage(page) {
     currentPage = page;
-    applyFilter();
+    loadHistory(page);
+}
+
+function renderErrorRow(message) {
+    const tbody = document.getElementById('historyTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="6" class="empty-state">${message}</td>
+        </tr>
+    `;
+}
+
+// 날짜 포맷 (YYYY-MM-DD)
+function formatDate(value) {
+    if (!value) return '-';
+    // value가 LocalDateTime 문자열 형태라면 날짜만 잘라서 반환
+    if (typeof value === 'string') {
+        return value.substring(0, 10);
+    }
+    try {
+        return new Date(value).toISOString().substring(0, 10);
+    } catch (e) {
+        return '-';
+    }
+}
+
+// 월별/소멸 예정 요약 계산
+function updateSummaryFromHistory(history) {
+    if (!history || history.length === 0) {
+        document.getElementById('monthlyEarned').textContent = '0 P';
+        document.getElementById('monthlyUsed').textContent = '0 P';
+        document.getElementById('expiringPoint').textContent = '0 P';
+        return;
+    }
+
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    const in30Days = now.getTime() + 30 * 24 * 60 * 60 * 1000;
+
+    let earned = 0;
+    let used = 0;
+    let expiring = 0;
+
+    history.forEach(item => {
+        const change = item.pointHistoryChange || 0;
+        const created = item.pointCreatedDate ? new Date(item.pointCreatedDate) : null;
+        const expires = item.pointExpiredDate ? new Date(item.pointExpiredDate) : null;
+
+        if (created && created.getMonth() === thisMonth && created.getFullYear() === thisYear) {
+            if (change > 0) earned += change;
+            if (change < 0) used += Math.abs(change);
+        }
+
+        if (expires && expires.getTime() > now.getTime() && expires.getTime() <= in30Days) {
+            const remaining = item.remainingPoint ?? item.totalPoints ?? Math.max(change, 0);
+            expiring += Math.max(remaining, 0);
+        }
+    });
+
+    document.getElementById('monthlyEarned').textContent = earned.toLocaleString() + ' P';
+    document.getElementById('monthlyUsed').textContent = used.toLocaleString() + ' P';
+    document.getElementById('expiringPoint').textContent = expiring.toLocaleString() + ' P';
 }
 
 // 필터 변경

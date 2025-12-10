@@ -1,16 +1,21 @@
 package com.nhnacademy.book2onandonfrontservice.controller.pointController;
 
 import com.nhnacademy.book2onandonfrontservice.client.PointUserClient;
+import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/user/me/points")
@@ -18,12 +23,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PointUserController {
 
     private final PointUserClient pointUserClient;
+    private final UserClient userClient;
 
     @GetMapping
     public String viewMyPointHistory(@CookieValue(value = "accessToken", required = false) String accessToken,
                                      @RequestParam(defaultValue = "0") int page,
                                      @RequestParam(defaultValue = "10") int size,
                                      Model model) {
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
         // 0) 페이지 번호 검증
         page = Math.max(0, page);
         size = size <= 0 ? 10 : size;
@@ -36,11 +45,15 @@ public class PointUserController {
         CurrentPointResponseDto currentPoint =
                 pointUserClient.getMyCurrentPoint("Bearer " + accessToken);
 
+        // 2-1) 사용자 기본 정보 조회 (초기 포인트 표기를 위해)
+        UserResponseDto user = userClient.getMyInfo("Bearer " + accessToken);
+
         // 3) 화면에 전달할 모델 구성
         model.addAttribute("currentPoint", currentPoint);            // 현재 포인트
         model.addAttribute("histories", historyPage.getContent());   // 이력 리스트
         model.addAttribute("currentPage", page);                     // 현재 페이지(0-based)
         model.addAttribute("totalPages", historyPage.getTotalPages());
+        model.addAttribute("user", user);
 
         // int startPage = Math.max(0, page - 2);
         // int endPage = Math.min(historyPage.getTotalPages() - 1, page + 2);
@@ -48,5 +61,44 @@ public class PointUserController {
         // model.addAttribute("endPage", endPage);
 
         return "user/mypage/point-history-user";
+    }
+
+    @GetMapping("/api/current")
+    @ResponseBody
+    public ResponseEntity<CurrentPointResponseDto> getCurrentPoint(
+            @CookieValue(value = "accessToken", required = false) String accessToken) {
+        if (accessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            CurrentPointResponseDto currentPoint =
+                    pointUserClient.getMyCurrentPoint("Bearer " + accessToken);
+            return ResponseEntity.ok(currentPoint);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/api/history")
+    @ResponseBody
+    public ResponseEntity<Page<PointHistoryResponseDto>> getPointHistory(
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        if (accessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            page = Math.max(0, page);
+            size = size <= 0 ? 10 : size;
+            Page<PointHistoryResponseDto> historyPage =
+                    pointUserClient.getMyPointHistory("Bearer " + accessToken, page, size);
+            return ResponseEntity.ok(historyPage);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

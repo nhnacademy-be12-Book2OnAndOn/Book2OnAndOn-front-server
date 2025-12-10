@@ -1,95 +1,74 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/mypage-layout}">
+<html lang="ko" th:replace="~{layout/mypage-layout :: layout(
+        title = ~{::title},
+        sidebarActive = 'likes',
+        content = ~{::content}
+      )}"
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>마이페이지 - 찜한 도서</title>
-    <link rel="stylesheet" th:href="@{/css/mypage.css}">
+    <title>마이페이지 - 좋아요 도서</title>
 </head>
 
 <body>
-<div layout:fragment="content" class="mypage-content">
-    <h2 class="mb-4">찜한 도서 목록</h2>
-
-    <div th:if="${books == null or books.isEmpty()}" class="empty-list text-center py-5">
-        <p>찜한 도서가 없습니다.</p>
-        <a href="/" class="btn btn-primary mt-3">도서 구경하러 가기</a>
+<div class="mypage-content likes-page" th:fragment="content">
+    <div class="dashboard-header">
+        <h2>마음에 담은 책</h2>
+        <p class="muted">
+            <span th:text="${(user != null && user.nickname != null) ? user.nickname : '회원'}"></span>님이 좋아요를 누른 도서들을 한
+            눈에 확인하세요.
+        </p>
     </div>
 
-    <div th:unless="${books == null or books.isEmpty()}" class="book-list-container">
-        <div class="row row-cols-1 row-cols-md-4 g-4">
-            <div class="col" th:each="item : ${books}">
-                <div class="card h-100 shadow-sm">
-                    <a th:href="@{/books/{bookId}(bookId=${item.bookInfo.id})}">
-                        <img th:src="${item.bookInfo.imagePath != null ? item.bookInfo.imagePath : '/images/no-image.png'}"
-                             class="card-img-top" alt="도서 이미지"
-                             style="height: 300px; object-fit: cover;">
-                    </a>
+    <div class="liked-empty" th:if="${books == null or books.isEmpty()}">
+        <p>아직 <span th:text="${(user != null && user.nickname != null) ? user.nickname : '회원'}"></span>님의 마음에 담긴 책이 없어요.
+        </p>
+        <a class="liked-btn-verify" href="/">마음에 담을 책 찾으러 가기</a>
+    </div>
 
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title text-truncate">
-                            <a th:href="@{/books/{bookId}(bookId=${item.bookInfo.id})}"
-                               th:text="${item.bookInfo.title}"
-                               class="text-decoration-none text-dark">도서 제목</a>
-                        </h5>
-
-                        <p class="card-text text-muted small mb-2">
-                            <span th:each="author, iterStat : ${item.bookInfo.contributorNames}">
-                                <span th:text="${author}">저자</span>
-                                <span th:if="${!iterStat.last}">, </span>
-                            </span>
-                        </p>
-
-                        <div class="mt-auto">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-danger fw-bold"
-                                      th:text="${#numbers.formatInteger(item.bookInfo.priceSales, 0, 'COMMA') + '원'}">
-                                    13,500원
-                                </span>
-                                <span class="text-decoration-line-through text-muted small"
-                                      th:if="${item.bookInfo.priceStandard > item.bookInfo.priceSales}"
-                                      th:text="${#numbers.formatInteger(item.bookInfo.priceStandard, 0, 'COMMA') + '원'}">
-                                    15,000원
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="text-end mt-2">
-                            <small class="text-muted"
-                                   th:text="'찜한 날짜: ' + ${#temporals.format(item.createdAt, 'yyyy-MM-dd')}">
-                                2024-01-01
-                            </small>
-                        </div>
-
+    <div th:unless="${books == null or books.isEmpty()}">
+        <div class="liked-grid">
+            <a class="liked-card" th:each="item : ${books}"
+               th:href="@{/books/{bookId}(bookId=${item.bookInfo.id})}">
+                <div class="liked-thumb">
+                    <img alt="도서 이미지"
+                         th:src="${item.bookInfo.imagePath != null ? item.bookInfo.imagePath : '/images/no-image.png'}">
+                </div>
+                <div class="liked-body">
+                    <h5 class="liked-title" th:text="${item.bookInfo.title}">도서 제목</h5>
+                    <p class="liked-authors">
+                        <span th:each="author, iterStat : ${item.bookInfo.contributorNames}">
+                            <span th:text="${author}">저자</span><span th:if="${!iterStat.last}">, </span>
+                        </span>
+                    </p>
+                    <div class="liked-price">
+                        <span class="price-sale"
+                              th:text="${#numbers.formatInteger(item.bookInfo.priceSales, 0, 'COMMA') + '원'}">0원</span>
+                        <span class="price-origin"
+                              th:if="${item.bookInfo.priceStandard > item.bookInfo.priceSales}"
+                              th:text="${#numbers.formatInteger(item.bookInfo.priceStandard, 0, 'COMMA') + '원'}">0원</span>
+                    </div>
+                    <div class="liked-meta" th:text="'찜한 날짜 · ' + ${#temporals.format(item.createdAt, 'yyyy-MM-dd')}">
+                        2024-01-01
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
-        <div class="d-flex justify-content-center mt-5" th:if="${totalPages > 0}">
-            <nav aria-label="Page navigation">
-                <ul class="pagination">
-                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="@{/users/me/likes(page=${currentPage - 1})}"
-                           aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
+        <div class="page-nav" th:if="${totalPages > 0}">
+            <a aria-label="이전" class="page-btn" th:classappend="${currentPage == 0} ? 'disabled'"
+               th:href="@{/users/me/likes(page=${currentPage - 1})}">이전</a>
 
-                    <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
-                        th:classappend="${pageNum == currentPage} ? 'active'">
-                        <a class="page-link" th:href="@{/users/me/likes(page=${pageNum})}"
-                           th:text="${pageNum + 1}">1</a>
-                    </li>
+            <div class="page-numbers">
+                <a class="page-btn"
+                   th:classappend="${pageNum == currentPage} ? 'active'"
+                   th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                   th:href="@{/users/me/likes(page=${pageNum})}"
+                   th:text="${pageNum + 1}">1</a>
+            </div>
 
-                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/users/me/likes(page=${currentPage + 1})}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            <a aria-label="다음" class="page-btn" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"
+               th:href="@{/users/me/likes(page=${currentPage + 1})}">다음</a>
         </div>
     </div>
 </div>

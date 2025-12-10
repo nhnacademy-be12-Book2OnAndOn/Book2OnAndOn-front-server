@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>내 리뷰 목록</title>
+    <title>작성한 리뷰 목록 </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
 </head>
@@ -23,7 +23,7 @@
                 <li><a th:href="@{/coupons/me}">쿠폰함</a></li>
                 <li><a th:href="@{/users/me/addresses}">내 주소 관리</a></li>
                 <li><a th:href="@{/users/me/edit}">내 정보 수정</a></li>
-                <li><a th:href="@{/logout}" style="color:#d9534f;">로그아웃</a></li>
+                <li><a style="color:#d9534f;" th:href="@{/logout}">로그아웃</a></li>
             </ul>
         </aside>
 
