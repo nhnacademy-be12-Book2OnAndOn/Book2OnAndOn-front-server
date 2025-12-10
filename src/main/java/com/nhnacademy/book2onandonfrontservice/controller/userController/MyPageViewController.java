@@ -3,10 +3,12 @@ package com.nhnacademy.book2onandonfrontservice.controller.userController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.MemberCouponClient;
+import com.nhnacademy.book2onandonfrontservice.client.PointUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.MyLikedBookResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponStatus;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PasswordChangeRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressCreateRequest;
@@ -46,6 +48,7 @@ public class MyPageViewController {
     private final UserClient userClient;
     private final BookClient bookClient;
     private final MemberCouponClient memberCouponClient;
+    private final PointUserClient pointUserClient;
 
     //마이페이지
     @GetMapping
@@ -81,6 +84,14 @@ public class MyPageViewController {
             }
 
             model.addAttribute("orderCount", 0);
+
+            try {
+                CurrentPointResponseDto pointDto = pointUserClient.getMyCurrentPoint("Bearer " + accessToken);
+                model.addAttribute("currentPoint", pointDto.getCurrentPoint());
+            } catch (Exception e) {
+                log.warn("포인트 조회 실패", e);
+                model.addAttribute("currentPoint", 0);
+            }
 
             return "user/mypage/index";
 

@@ -37,6 +37,14 @@
                         <p>아이디 또는 비밀번호가 올바르지 않습니다.</p>
                     </div>
 
+                    <div class="alert alert-error" th:if="${param.error == 'payco'}">
+                        <p>PAYCO 로그인 중 오류가 발생했습니다.</p>
+                    </div>
+
+                    <div class="alert alert-error" th:if="${param.error == 'payco_consent'}">
+                        <p>필수 정보(이메일, 이름) 제공에 동의해야 가입할 수 있습니다.<br>다시 시도해주세요.</p>
+                    </div>
+
                     <div class="alert alert-success" th:if="${param.logout}">
                         <p>로그아웃되었습니다.</p>
                     </div>
@@ -63,7 +71,7 @@
 
                     <div class="form-options">
                         <label class="checkbox-container">
-                            <input name="remember-me" type="checkbox">
+                            <input name="rememberMe" type="checkbox">
                             <span>로그인 상태 유지</span>
                         </label>
                         <div class="find-links">
@@ -80,8 +88,7 @@
                     </div>
 
                     <div class="social-login">
-                        <a class="btn-social btn-payco"
-                           href="#">
+                        <a class="btn-social btn-payco" th:href="${paycoLoginUrl}">
                             <span class="icon">P</span>
                             PAYCO로 시작하기
                         </a>

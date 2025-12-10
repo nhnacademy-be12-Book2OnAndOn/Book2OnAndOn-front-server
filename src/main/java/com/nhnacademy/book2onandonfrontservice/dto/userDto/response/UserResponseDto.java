@@ -20,6 +20,5 @@ public class UserResponseDto {
     private String nickname;
     private String role;
     private String gradeName;
-    private Long point;
     private String status;
 }
