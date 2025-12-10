@@ -388,6 +388,7 @@
     color: #2f6242;
     font-weight: 800;
 }
+
 .review-card {
     /*margin-top: 0.5rem;*/
 }
@@ -815,7 +816,7 @@
 }
 
 .default-badge {
-    color: #2d5016;
+    color: #2f6242;
     font-weight: bold;
     margin-top: 0.4rem;
     display: block;
@@ -944,7 +945,7 @@
 
 .add-address-btn {
     display: inline-block;
-    background: #2d5016;
+    background: #2f6242;
     color: white;
     padding: 0.65rem 1.2rem;
     border-radius: 10px;
@@ -1215,4 +1216,30 @@
     margin-bottom: 1.5rem;
     border: 1px solid #f8b4b4;
     font-size: 0.95rem;
+}
+
+/* 우편번호 찾기 버튼 */
+.btn-postcode {
+    padding: 0.65rem 1.1rem;
+    background: #2f6242;
+    color: #fff;
+    border: 1px solid #2f6242;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(45, 80, 22, 0.18);
+}
+
+.btn-postcode:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(45, 80, 22, 0.24);
+    opacity: 0.94;
+}
+
+.btn-postcode:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 14px rgba(45, 80, 22, 0.2);
 }

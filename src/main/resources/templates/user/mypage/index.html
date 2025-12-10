@@ -22,7 +22,7 @@
                 <span class="card-label">내 정보</span>
                 <span class="card-link">정보 수정 →</span>
             </div>
-            <p class="stat-value" th:text="${user.nickname != null ? user.nickname : '닉네임 등록 안 됨'}">nickname</p>
+            <p class="stat-value" th:text="${(user.nickname != null ? user.nickname : '닉네임 등록 안 됨')} + ' 님'">nickname</p>
             <p class="subtext" th:text="${user.name}">이름</p>
             <p class="subtext" th:text="${user.email}">email@example.com</p>
             <p class="subtext address-line"
@@ -96,7 +96,8 @@
             </div>
             <p class="stat-value"
                th:text="${currentPoint != null ? #numbers.formatInteger(currentPoint, 0, 'COMMA') : 0} + ' P'">0 P</p>
-            <p class="subtext">적립/사용 내역을 확인하세요.</p>
+            <p class="subtext"><span th:text="${(user != null && user.nickname != null) ? user.nickname : '회원'}"></span>님의
+                적립/사용 내역을 확인하세요.</p>
             <div class="mini-list">
                 <div class="muted" th:if="${recentPointHistory == null or #lists.isEmpty(recentPointHistory)}">최근 포인트
                     내역이 없습니다.
@@ -107,8 +108,8 @@
                         <span class="mini-meta" th:text="${point.date}">2024-01-01</span>
                     </div>
                     <div class="mini-row mini-sub">
-                        <span class="mini-amount" th:text="${point.amount} + ' P'">+1,000 P</span>
-                        <span class="mini-meta" th:text="${point.balance} + ' P'">잔액 10,000 P</span>
+                        <span class="mini-amount" th:text="${point.amount}">+1,000 </span>
+                        <span class="mini-meta" th:text="${point.balance}">잔액 10,000 </span>
                     </div>
                 </div>
             </div>

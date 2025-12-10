@@ -80,6 +80,11 @@
     </div>
 </div>
 
+<script th:inline="javascript">
+    window.initialPointHistory = /*[[${histories}]]*/ [];
+    window.initialTotalPages = /*[[${totalPages}]]*/ 0;
+    window.initialCurrentPointValue = /*[[${currentPoint != null ? currentPoint.currentPoint : null}]]*/ null;
+</script>
 <script th:src="@{/js/pointHistoryUser.js}"></script>
 </body>
 </html>

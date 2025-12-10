@@ -6,6 +6,10 @@ let currentFilter = 'ALL';
 let allHistory = [];
 let totalPages = 0;
 
+const initialHistory = window.initialPointHistory || null;
+const initialTotalPages = typeof window.initialTotalPages === 'number' ? window.initialTotalPages : 0;
+const initialCurrentPointValue = window.initialCurrentPointValue ?? null;
+
 // 더미 데이터
 const DUMMY_CURRENT_POINT = 25000;
 const DUMMY_HISTORY = [
@@ -103,6 +107,14 @@ const DUMMY_HISTORY = [
 
 // 현재 포인트 조회
 async function loadCurrentPoint() {
+    if (initialCurrentPointValue !== null && initialCurrentPointValue !== undefined) {
+        const el = document.getElementById('currentPoint');
+        if (el) {
+            el.textContent = initialCurrentPointValue.toLocaleString() + ' P';
+        }
+        return;
+    }
+
     if (USE_DUMMY) {
         document.getElementById('currentPoint').textContent =
             DUMMY_CURRENT_POINT.toLocaleString() + ' P';
@@ -153,6 +165,15 @@ async function loadCurrentPoint() {
 
 // 포인트 이력 조회
 async function loadHistory(page = 0) {
+    if (initialHistory) {
+        allHistory = [...initialHistory];
+        totalPages = initialTotalPages || 1;
+        updateSummaryFromHistory(allHistory);
+        renderPagination(totalPages);
+        applyFilter();
+        return;
+    }
+
     if (USE_DUMMY) {
         allHistory = [...DUMMY_HISTORY];
         applyFilter();

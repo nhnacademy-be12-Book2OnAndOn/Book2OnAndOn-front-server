@@ -52,7 +52,7 @@
                 <input type="text" id="zipCode_edit" th:field="*{zipCode}" placeholder="우편번호" readonly style="flex: 1;">
                 <button type="button"
                         onclick="execDaumPostcode('zipCode_edit', 'userAddress_edit', 'userAddressDetail_edit')"
-                        class="btn-secondary" style="padding: 0 15px; white-space: nowrap; cursor: pointer;">우편번호 찾기
+                        class="btn-postcode">우편번호 찾기
                 </button>
             </div>
 
@@ -108,7 +108,7 @@
                 <input type="text" id="zipCode_new" th:field="*{zipCode}" placeholder="우편번호" readonly style="flex: 1;">
                 <button type="button"
                         onclick="execDaumPostcode('zipCode_new', 'userAddress_new', 'userAddressDetail_new')"
-                        class="btn-secondary" style="padding: 0 15px; white-space: nowrap; cursor: pointer;">우편번호 찾기
+                        class="btn-postcode">우편번호 찾기
                 </button>
             </div>
 
