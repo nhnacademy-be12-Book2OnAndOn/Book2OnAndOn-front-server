@@ -59,7 +59,7 @@ public class BookViewController {
             model.addAttribute("bookDetail", bookDetail);
         }
         //TODO: 북 상세조회 페이지 만들기
-        return "민서가 작성하시오";
+        return "books/book-detail";
     }
 
 
