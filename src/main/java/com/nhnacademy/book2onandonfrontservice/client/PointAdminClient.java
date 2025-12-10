@@ -38,10 +38,4 @@ public interface PointAdminClient {
             @RequestHeader("Authorization") String accessToken,
             @RequestBody PointHistoryAdminAdjustRequestDto requestDto
     );
-
-    // 4. 포인트 만료 처리
-    @PostMapping("/api/admin/points/expire")
-    void expirePoints(
-            @RequestHeader("Authorization") String accessToken
-    );
 }

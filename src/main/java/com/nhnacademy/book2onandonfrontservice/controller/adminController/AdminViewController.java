@@ -4,6 +4,7 @@ import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.DeliveryClient;
 import com.nhnacademy.book2onandonfrontservice.client.DeliveryPolicyClient;
+import com.nhnacademy.book2onandonfrontservice.client.PointAdminClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
@@ -17,6 +18,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryPolicyDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryWaybillUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.OrderStatus;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryAdminAdjustRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
 //import com.nhnacademy.book2onandonfrontservice.dto.userDto.UserGradeDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.AdminUserUpdateRequest;
@@ -31,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -54,6 +59,7 @@ public class AdminViewController {
 //    private final UserGradeClient userGradeClient;
     private final DeliveryClient deliveryClient;
     private final DeliveryPolicyClient deliveryPolicyClient;
+    private final PointAdminClient pointAdminClient;
 
     //관리자 대시보드
     @GetMapping
@@ -331,5 +337,44 @@ public class AdminViewController {
 
         deliveryPolicyClient.updateDeliveryPolicy(id, dto);
         return "redirect:/admin/delivery-policies";
+    }
+
+    ///  -------------------------- Point Admin --------------------------------------
+
+    @GetMapping("/points")
+    public String listUserPointHistory(@CookieValue(value = "accessToken", required = false) String accessToken,
+                                       @RequestParam Long userId,
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "10") int size,
+                                       Model model) {
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+        page = Math.max(0, page);
+        size = size <= 0 ? 10 : size;
+        Page<PointHistoryResponseDto> historyPage = pointAdminClient.getUserPointHistory("Bearer " + accessToken, userId, page, size);
+        CurrentPointResponseDto currentPoint = pointAdminClient.getUserCurrentPoint("Bearer " + accessToken, userId);
+
+        model.addAttribute("userId", userId);
+        model.addAttribute("currentPoint", currentPoint);
+        model.addAttribute("histories", historyPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", historyPage.getTotalPages());
+
+        return "/user/mypage/point-history-admin";
+    }
+
+    @PostMapping("/points/adjust")
+    public String adjustUserPoint(
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @ModelAttribute PointHistoryAdminAdjustRequestDto requestDto) {
+
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+
+        pointAdminClient.adjustPointByAdmin("Bearer " + accessToken, requestDto);
+
+        return "redirect:/admin/points?userId=" + requestDto.getUserId();
     }
 }
