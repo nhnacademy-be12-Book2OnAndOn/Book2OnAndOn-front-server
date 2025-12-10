@@ -1,25 +1,25 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko"
-      th:replace="~{layout/mypage-layout :: layout(
+<html lang="ko" th:replace="~{layout/mypage-layout :: layout(
         title = ~{::title},
         sidebarActive = 'addresses',
         content = ~{::content}
-      )}">
+      )}"
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>내 주소 관리</title>
+    <title>배송지 관리</title>
 </head>
 
 <body>
 <div th:fragment="content">
 
-    <h2>내 주소 관리</h2>
+    <h2>주소 목록 관리</h2>
 
-    <a href="/users/me/addresses/new" class="add-address-btn">+ 새 주소 추가</a>
+    <a class="add-address-btn" href="/users/me/addresses/new">+ 새 주소 추가</a>
 
-    <p th:if="${#lists.isEmpty(addresses)}" class="empty-text">등록된 배송지가 없습니다.</p>
+    <p class="empty-text" th:if="${#lists.isEmpty(addresses)}">등록된 배송지가 없습니다.</p>
 
-    <div th:each="addr : ${addresses}" class="address-card">
+    <div class="address-card" th:each="addr : ${addresses}">
 
         <h4 th:text="${addr.userAddressName}"></h4>
 
@@ -34,14 +34,14 @@
             <span th:text="${addr.userAddressDetail}"></span>
         </p>
 
-        <span th:if="${addr.isDefault}" class="default-badge">✔ 기본 배송지</span>
+        <span class="default-badge" th:if="${addr.isDefault}">✔ 기본 배송지</span>
 
         <div class="address-actions">
-            <a th:href="@{'/users/me/addresses/' + ${addr.addressId} + '/edit'}"
-               class="btn-edit">수정</a>
+            <a class="btn-edit"
+               th:href="@{'/users/me/addresses/' + ${addr.addressId} + '/edit'}">수정</a>
 
-            <form th:action="@{'/users/me/addresses/' + ${addr.addressId} + '/delete'}"
-                  method="post">
+            <form method="post"
+                  th:action="@{'/users/me/addresses/' + ${addr.addressId} + '/delete'}">
                 <button class="btn-delete">삭제</button>
             </form>
         </div>

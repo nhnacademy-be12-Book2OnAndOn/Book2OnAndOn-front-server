@@ -4,14 +4,11 @@ import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
-import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,12 +27,12 @@ public class BookViewController {
     @GetMapping("/")
     public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
         commonData(model);
-        Page<BookDto> response = bookClient.getNewArrivals(null, page,8);
+        Page<BookDto> response = bookClient.getNewArrivals(null, page, 8);
 //        List<BookDto> bestsellerDaily = bookClient.getBestsellers("DAILY");
 //        List<BookDto> bestsellerWeek = bookClient.getBestsellers("WEEK");
-        Page<BookDto> likeBest = bookClient.getPopularBooks(page,0);
+//        Page<BookDto> likeBest = bookClient.getPopularBooks(page,0);
 
-        if(response != null){
+        if (response != null) {
             model.addAttribute("newBooks", response.getContent());
         }
 //        if(bestsellerDaily != null){
@@ -44,18 +41,18 @@ public class BookViewController {
 //        if(bestsellerWeek != null){
 //            model.addAttribute("bestWeek", bestsellerWeek);
 //        }
-        if(likeBest !=null){
-            model.addAttribute("likeBest", likeBest);
-        }
+//        if (likeBest != null) {
+//            model.addAttribute("likeBest", likeBest);
+//        }
         return "dashboard";
     }
 
     /// 도서 상세조회
     @GetMapping("/books/{bookId:[0-9]+}")
-    public String getBookDetail(@PathVariable Long bookId, Model model){
+    public String getBookDetail(@PathVariable Long bookId, Model model) {
         commonData(model);
         BookDetailResponse bookDetail = bookClient.getBookDetail(bookId);
-        if(bookDetail!=null){
+        if (bookDetail != null) {
             model.addAttribute("bookDetail", bookDetail);
         }
         //TODO: 북 상세조회 페이지 만들기
@@ -71,8 +68,8 @@ public class BookViewController {
 
     @GetMapping("/books/search")
     public String searchBooks(@ModelAttribute BookSearchCondition condition,
-                              @PageableDefault(size=20) Pageable pageable,
-                              Model model){
+                              @PageableDefault(size = 20) Pageable pageable,
+                              Model model) {
         Page<BookDto> result = bookClient.searchBooks(condition, pageable);
         model.addAttribute("books", result.getContent());
         model.addAttribute("page", result);
