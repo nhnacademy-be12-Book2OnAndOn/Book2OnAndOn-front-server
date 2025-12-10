@@ -22,48 +22,55 @@
 
                     <ul class="dashboard-menu">
                         <li>
-                            <a th:href="@{/users/me}"
-                               th:classappend="${sidebarActive=='dashboard'} ? 'active'">대시보드</a>
+                            <a th:classappend="${sidebarActive=='dashboard'} ? 'active'"
+                               th:href="@{/users/me}">대시보드</a>
                         </li>
 
                         <li>
-                            <a th:href="@{/users/me/reviews}"
-                               th:classappend="${sidebarActive=='reviews'} ? 'active'">내 리뷰</a>
+                            <a th:classappend="${sidebarActive=='orders'} ? 'active'"
+                               th:href="@{/orders/me}">주문 내역</a>
                         </li>
 
                         <li>
-                            <a th:href="@{/users/me/likes}"
-                               th:classappend="${sidebarActive=='likes'} ? 'active'">찜한 도서</a>
+                            <a th:classappend="${sidebarActive=='likes'} ? 'active'"
+                               th:href="@{/users/me/likes}">마음에 담은 책</a>
                         </li>
 
                         <li>
-                            <a th:href="@{/orders/me}"
-                               th:classappend="${sidebarActive=='orders'} ? 'active'">주문 내역</a>
+                            <a th:classappend="${sidebarActive=='reviews'} ? 'active'"
+                               th:href="@{/users/me/reviews}">작성한 리뷰</a>
                         </li>
 
                         <li>
-                            <a th:href="@{/users/me/coupons}"
-                               th:classappend="${sidebarActive=='coupons'} ? 'active'">쿠폰함</a>
+                            <a th:classappend="${sidebarActive=='coupons'} ? 'active'"
+                               th:href="@{/users/me/coupons}">쿠폰함</a>
                         </li>
 
                         <li>
-                            <a th:href="@{/users/me/addresses}"
-                               th:classappend="${sidebarActive=='addresses'} ? 'active'">내 주소 관리</a>
+                            <a th:classappend="${sidebarActive=='points'} ? 'active'"
+                               th:href="@{/user/me/points}">포인트 내역</a>
                         </li>
 
                         <li>
-                            <a th:href="@{/users/me/edit}"
-                               th:classappend="${sidebarActive=='edit'} ? 'active'">내 정보 수정</a>
+                            <a th:classappend="${sidebarActive=='edit'} ? 'active'"
+                               th:href="@{/users/me/edit}">정보 관리</a>
                         </li>
 
                         <li>
-                            <a th:href="@{/users/me/password}"
-                               th:classappend="${sidebarActive=='password'} ? 'active'">비밀번호 변경</a>
+                            <a th:classappend="${sidebarActive=='addresses'} ? 'active'"
+                               th:href="@{/users/me/addresses}">주소 목록 관리</a>
                         </li>
 
                         <li>
-                            <a th:href="@{/users/me/withdraw}"
-                               th:classappend="${sidebarActive=='withdraw'} ? 'active'">회원 탈퇴</a>
+                            <a class="password-link"
+                               th:classappend="${sidebarActive=='password'} ? 'active'"
+                               th:href="@{/users/me/password}">비밀번호 변경</a>
+                        </li>
+
+                        <li>
+                            <a class="withdraw-link"
+                               th:classappend="${sidebarActive=='withdraw'} ? 'active'"
+                               th:href="@{/users/me/withdraw}">회원 탈퇴</a>
                         </li>
 
                         <li>

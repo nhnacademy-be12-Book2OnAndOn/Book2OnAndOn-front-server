@@ -48,15 +48,17 @@
 
         <div class="form-field">
             <label>주소</label>
-            <label>
-                <input type="text" th:field="*{zipCode}" placeholder="우편번호">
-            </label>
-            <label>
-                <input type="text" th:field="*{userAddress}" placeholder="도로명 주소">
-            </label>
-            <label>
-                <input type="text" th:field="*{userAddressDetail}" placeholder="상세 주소">
-            </label>
+            <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                <input type="text" id="zipCode_edit" th:field="*{zipCode}" placeholder="우편번호" readonly style="flex: 1;">
+                <button type="button"
+                        onclick="execDaumPostcode('zipCode_edit', 'userAddress_edit', 'userAddressDetail_edit')"
+                        class="btn-postcode">우편번호 찾기
+                </button>
+            </div>
+
+            <input type="text" id="userAddress_edit" th:field="*{userAddress}" placeholder="도로명 주소" readonly
+                   style="margin-bottom: 8px;">
+            <input type="text" id="userAddressDetail_edit" th:field="*{userAddressDetail}" placeholder="상세 주소">
         </div>
 
         <div class="form-field">
@@ -102,15 +104,17 @@
 
         <div class="form-field">
             <label>주소</label>
-            <label>
-                <input type="text" th:field="*{zipCode}" placeholder="우편번호">
-            </label>
-            <label>
-                <input type="text" th:field="*{userAddress}" placeholder="도로명 주소">
-            </label>
-            <label>
-                <input type="text" th:field="*{userAddressDetail}" placeholder="상세 주소">
-            </label>
+            <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                <input type="text" id="zipCode_new" th:field="*{zipCode}" placeholder="우편번호" readonly style="flex: 1;">
+                <button type="button"
+                        onclick="execDaumPostcode('zipCode_new', 'userAddress_new', 'userAddressDetail_new')"
+                        class="btn-postcode">우편번호 찾기
+                </button>
+            </div>
+
+            <input type="text" id="userAddress_new" th:field="*{userAddress}" placeholder="도로명 주소" readonly
+                   style="margin-bottom: 8px;">
+            <input type="text" id="userAddressDetail_new" th:field="*{userAddressDetail}" placeholder="상세 주소">
         </div>
 
         <div class="form-field">
@@ -126,6 +130,28 @@
         </div>
 
     </form>
+
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script>
+        function execDaumPostcode(zipCodeId, addressId, detailId) {
+            new daum.Postcode({
+                oncomplete: function (data) {
+                    var addr = '';
+
+                    if (data.userSelectedType === 'R') {
+                        addr = data.roadAddress;
+                    } else {
+                        addr = data.jibunAddress;
+                    }
+
+                    document.getElementById(zipCodeId).value = data.zonecode;
+                    document.getElementById(addressId).value = addr;
+
+                    document.getElementById(detailId).focus();
+                }
+            }).open();
+        }
+    </script>
 
 </div>
 

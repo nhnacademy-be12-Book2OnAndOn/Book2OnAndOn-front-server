@@ -1,40 +1,41 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/mypage-layout :: layout(~{::title}, 'coupons', ~{::section})}">
+<html th:replace="~{layout/mypage-layout :: layout(~{::title}, 'coupons', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>내 쿠폰함</title>
 </head>
 <body>
 
-<section>
+<section class="coupon-container">
     <link rel="stylesheet" th:href="@{/css/memberCoupon.css}">
 
     <div class="page-header">
-        <div class="page-title">내 쿠폰함</div>
+        <div class="page-title">쿠폰함</div>
+        <p class="muted">사용 가능한 쿠폰 및 사용한 쿠폰들을 확인하세요.</p>
     </div>
 
     <div class="status-tabs">
-        <a th:href="@{/users/me/coupons}"
-           class="tab-item"
-           th:classappend="${currentStatus == null} ? 'active'">전체</a>
+        <a class="tab-item"
+           th:classappend="${currentStatus == null} ? 'active'"
+           th:href="@{/users/me/coupons}">전체</a>
 
-        <a th:href="@{/users/me/coupons(status='NOT_USED')}"
-           class="tab-item"
-           th:classappend="${currentStatus?.name() == 'NOT_USED'} ? 'active'">사용 가능</a>
+        <a class="tab-item"
+           th:classappend="${currentStatus?.name() == 'NOT_USED'} ? 'active'"
+           th:href="@{/users/me/coupons(status='NOT_USED')}">사용 가능</a>
 
-        <a th:href="@{/users/me/coupons(status='USED')}"
-           class="tab-item"
-           th:classappend="${currentStatus?.name() == 'USED'} ? 'active'">사용 완료</a>
+        <a class="tab-item"
+           th:classappend="${currentStatus?.name() == 'USED'} ? 'active'"
+           th:href="@{/users/me/coupons(status='USED')}">사용 완료</a>
 
-        <a th:href="@{/users/me/coupons(status='EXPIRED')}"
-           class="tab-item"
-           th:classappend="${currentStatus?.name() == 'EXPIRED'} ? 'active'">만료됨</a>
+        <a class="tab-item"
+           th:classappend="${currentStatus?.name() == 'EXPIRED'} ? 'active'"
+           th:href="@{/users/me/coupons(status='EXPIRED')}">만료됨</a>
     </div>
 
     <div class="coupon-grid">
 
-        <div class="coupon-card" th:each="coupon : ${myCoupons}"
-             th:classappend="${coupon.memberCouponStatus.name() != 'NOT_USED'} ? 'deactive'">
+        <div class="coupon-card" th:classappend="${coupon.memberCouponStatus.name() != 'NOT_USED'} ? 'deactive'"
+             th:each="coupon : ${myCoupons}">
 
             <div class="card-body">
                 <div class="discount-display">
@@ -82,26 +83,26 @@
         </div>
     </div>
 
-    <div th:if="${#lists.isEmpty(myCoupons)}" style="text-align: center; padding: 5rem; color: #999;">
+    <div style="text-align: center; padding: 5rem; color: #999;" th:if="${#lists.isEmpty(myCoupons)}">
         <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
         <p>보유하신 쿠폰이 없습니다.</p>
     </div>
 
     <div class="pagination" th:if="${totalPages > 0}">
-        <a th:if="${currentPage > 0}"
+        <a class="page-link"
            th:href="@{/users/me/coupons(page=${currentPage - 1}, status=${currentStatus})}"
-           class="page-link">&lt;</a>
+           th:if="${currentPage > 0}">&lt;</a>
 
         <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
-            <a th:href="@{/users/me/coupons(page=${i}, status=${currentStatus})}"
-               th:text="${i + 1}"
-               class="page-link"
-               th:classappend="${i == currentPage} ? 'active'">1</a>
+            <a class="page-link"
+               th:classappend="${i == currentPage} ? 'active'"
+               th:href="@{/users/me/coupons(page=${i}, status=${currentStatus})}"
+               th:text="${i + 1}">1</a>
         </th:block>
 
-        <a th:if="${currentPage < totalPages - 1}"
+        <a class="page-link"
            th:href="@{/users/me/coupons(page=${currentPage + 1}, status=${currentStatus})}"
-           class="page-link">&gt;</a>
+           th:if="${currentPage < totalPages - 1}">&gt;</a>
     </div>
 
 </section>

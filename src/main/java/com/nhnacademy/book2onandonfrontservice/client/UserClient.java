@@ -8,6 +8,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.FindPasswordR
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LocalSignUpRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LoginRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PasswordChangeRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PaycoLoginRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressCreateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserUpdateRequest;
@@ -167,4 +168,8 @@ public interface UserClient {
             @RequestParam("page") int page,
             @RequestParam("size") int size
     );
+
+    // [Payco] 로그인
+    @PostMapping("/api/auth/login/payco")
+    TokenResponseDto loginWithPayco(@RequestBody PaycoLoginRequest request);
 }

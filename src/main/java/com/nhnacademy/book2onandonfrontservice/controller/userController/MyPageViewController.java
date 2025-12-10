@@ -3,10 +3,13 @@ package com.nhnacademy.book2onandonfrontservice.controller.userController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.MemberCouponClient;
+import com.nhnacademy.book2onandonfrontservice.client.PointUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.MyLikedBookResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponStatus;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PasswordChangeRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressCreateRequest;
@@ -21,7 +24,12 @@ import feign.FeignException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +54,7 @@ public class MyPageViewController {
     private final UserClient userClient;
     private final BookClient bookClient;
     private final MemberCouponClient memberCouponClient;
+    private final PointUserClient pointUserClient;
 
     //마이페이지
     @GetMapping
@@ -75,12 +84,33 @@ public class MyPageViewController {
 
                 log.info("쿠폰 갯수: {}", memberCouponPage.getTotalElements());
                 model.addAttribute("couponCount", memberCouponPage.getTotalElements());
+                model.addAttribute("recentCoupons", toRecentCoupons(memberCouponPage.getContent()));
             } catch (Exception e) {
                 log.warn("쿠폰 개수 조회 실패", e);
                 model.addAttribute("couponCount", 0);
+                model.addAttribute("recentCoupons", List.of());
             }
 
             model.addAttribute("orderCount", 0);
+            model.addAttribute("recentOrders", List.of());
+            model.addAttribute("defaultAddress", resolveDefaultAddress(accessToken));
+
+            try {
+                Page<PointHistoryResponseDto> pointHistoryPage =
+                        pointUserClient.getMyPointHistory("Bearer " + accessToken, 0, 1);
+                model.addAttribute("recentPointHistory", toRecentPoints(pointHistoryPage.getContent()));
+            } catch (Exception e) {
+                log.warn("포인트 내역 조회 실패", e);
+                model.addAttribute("recentPointHistory", List.of());
+            }
+
+            try {
+                CurrentPointResponseDto pointDto = pointUserClient.getMyCurrentPoint("Bearer " + accessToken);
+                model.addAttribute("currentPoint", pointDto.getCurrentPoint());
+            } catch (Exception e) {
+                log.warn("포인트 조회 실패", e);
+                model.addAttribute("currentPoint", 0);
+            }
 
             return "user/mypage/index";
 
@@ -88,6 +118,99 @@ public class MyPageViewController {
             log.error("마이페이지 로드 실패", e);
             return "redirect:/logout";
         }
+    }
+
+    private List<RecentCouponView> toRecentCoupons(List<MemberCouponDto> coupons) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        List<RecentCouponView> views = new ArrayList<>();
+
+        coupons.stream()
+                .sorted(Comparator.comparing(MemberCouponDto::getMemberCouponEndDate))
+                .limit(1)
+                .forEach(coupon -> views.add(new RecentCouponView(
+                        coupon.getCouponName(),
+                        getCouponStatusLabel(coupon.getMemberCouponStatus()),
+                        coupon.getMemberCouponEndDate() != null
+                                ? coupon.getMemberCouponEndDate().format(formatter)
+                                : "-",
+                        coupon.getDiscountDescription() != null ? coupon.getDiscountDescription() : ""
+                )));
+
+        return views;
+    }
+
+    private List<RecentPointView> toRecentPoints(List<PointHistoryResponseDto> points) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        NumberFormat numberFormat = NumberFormat.getInstance(Locale.KOREA);
+        List<RecentPointView> views = new ArrayList<>();
+
+        points.stream()
+                .sorted(Comparator.comparing(PointHistoryResponseDto::getPointCreatedDate).reversed())
+                .limit(1)
+                .forEach(point -> {
+                    String amount = (point.getPointHistoryChange() >= 0 ? "+" : "")
+                            + numberFormat.format(point.getPointHistoryChange()) + " P";
+                    String balance = numberFormat.format(point.getTotalPoints()) + " P";
+
+                    views.add(new RecentPointView(
+                            getReasonLabel(point.getPointReason()),
+                            point.getPointCreatedDate() != null
+                                    ? point.getPointCreatedDate().format(formatter)
+                                    : "-",
+                            amount,
+                            balance
+                    ));
+                });
+
+        return views;
+    }
+
+    private String resolveDefaultAddress(String accessToken) {
+        try {
+            return userClient.getMyAddresses("Bearer " + accessToken).stream()
+                    .filter(UserAddressResponseDto::isDefault)
+                    .findFirst()
+                    .map(addr -> {
+                        String detail = addr.getUserAddressDetail() != null ? " " + addr.getUserAddressDetail() : "";
+                        return addr.getUserAddress() + detail;
+                    })
+                    .orElse(null);
+        } catch (Exception e) {
+            log.warn("기본 주소 조회 실패", e);
+            return null;
+        }
+    }
+
+    private String getReasonLabel(com.nhnacademy.book2onandonfrontservice.dto.pointDto.PointReason reason) {
+        if (reason == null) {
+            return "-";
+        }
+        return switch (reason) {
+            case SIGNUP -> "회원가입 적립";
+            case REVIEW -> "리뷰 적립";
+            case ORDER -> "주문 적립";
+            case USE -> "포인트 사용";
+            case REFUND -> "포인트 반환";
+            case EXPIRE -> "포인트 만료";
+            case ADMIN_ADJUST -> "관리자 조정";
+        };
+    }
+
+    private String getCouponStatusLabel(MemberCouponStatus status) {
+        if (status == null) {
+            return "-";
+        }
+        return switch (status) {
+            case NOT_USED -> "사용 가능";
+            case USED -> "사용 완료";
+            case EXPIRED -> "만료됨";
+        };
+    }
+
+    private record RecentCouponView(String name, String status, String expireDate, String detail) {
+    }
+
+    private record RecentPointView(String reason, String date, String amount, String balance) {
     }
 
 
@@ -125,6 +248,9 @@ public class MyPageViewController {
         }
 
         try {
+            UserResponseDto myInfo = userClient.getMyInfo("Bearer " + accessToken);
+            model.addAttribute("user", myInfo);
+
             RestPage<MyLikedBookResponseDto> rest = userClient.getMyLikedBooks("Bearer " + accessToken, page, 12);
 
             model.addAttribute("books", rest.getContent());

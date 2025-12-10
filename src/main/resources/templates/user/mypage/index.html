@@ -12,7 +12,7 @@
 <body>
 <div th:fragment="content">
     <div class="dashboard-header">
-        <h2>마이페이지 대시보드</h2>
+        <h2>대시보드</h2>
         <p class="muted">내 활동을 한 눈에 확인하세요.</p>
     </div>
 
@@ -22,8 +22,11 @@
                 <span class="card-label">내 정보</span>
                 <span class="card-link">정보 수정 →</span>
             </div>
-            <p class="stat-value" th:text="${user.name}">이름</p>
+            <p class="stat-value" th:text="${(user.nickname != null ? user.nickname : '닉네임 등록 안 됨')} + ' 님'">nickname</p>
+            <p class="subtext" th:text="${user.name}">이름</p>
             <p class="subtext" th:text="${user.email}">email@example.com</p>
+            <p class="subtext address-line"
+               th:text="${defaultAddress != null ? defaultAddress : '기본 주소를 등록해 주세요.'}">주소 정보</p>
         </a>
 
         <a class="dashboard-card link-card coupon-card" th:href="@{/users/me/coupons}">
@@ -32,7 +35,22 @@
                 <span class="card-link">쿠폰함 →</span>
             </div>
             <p class="stat-value" th:text="${couponCount} + '개'">0개</p>
-            <p class="subtext">사용 가능한 쿠폰을 확인해보세요.</p>
+            <p class="subtext"><span th:text="${(user != null && user.nickname != null) ? user.nickname : '회원'}"></span>님의
+                쿠폰 내역을 확인해보세요.</p>
+            <div class="mini-list">
+                <div class="muted" th:if="${recentCoupons == null or #lists.isEmpty(recentCoupons)}">최근 쿠폰 내역이 없습니다.
+                </div>
+                <div class="mini-item" th:each="coupon : ${recentCoupons}">
+                    <div class="mini-row">
+                        <span class="mini-title" th:text="${coupon.name}">쿠폰명</span>
+                        <span class="mini-meta" th:text="${coupon.status}">사용 가능</span>
+                    </div>
+                    <div class="mini-row mini-sub">
+                        <span th:text="${coupon.expireDate}">2024-01-01</span>
+                        <span class="mini-meta" th:text="${coupon.detail}">조건</span>
+                    </div>
+                </div>
+            </div>
         </a>
 
         <a class="dashboard-card link-card order-status-card" th:href="@{/orders/me}">
@@ -40,60 +58,82 @@
                 <span class="card-label">주문 현황</span>
                 <span class="card-link">주문 내역 →</span>
             </div>
-            <div class="order-status-list">
-                <div class="order-status-row">
+            <div class="order-status-summary">
+                <div>
+                    <div class="summary-label">총 주문</div>
+                    <div class="stat-value" th:text="${orderCount} + '건'">0건</div>
+                </div>
+                <div class="summary-pill">
                     <span class="status-dot in-transit"></span>
-                    <span>배송 중</span>
-                    <span class="status-count"
-                          th:text="${orderStatusSummary != null ? orderStatusSummary.inTransit : 0} + '건'">0건</span>
+                    <span th:text="${orderStatusSummary != null ? orderStatusSummary.inTransit : 0} + '건'">0건</span>
+                    <span class="pill-text">배송 중</span>
                 </div>
-                <div class="order-status-row">
+                <div class="summary-pill">
                     <span class="status-dot delivered"></span>
-                    <span>배송 완료</span>
-                    <span class="status-count"
-                          th:text="${orderStatusSummary != null ? orderStatusSummary.delivered : 0} + '건'">0건</span>
+                    <span th:text="${orderStatusSummary != null ? orderStatusSummary.delivered : 0} + '건'">0건</span>
+                    <span class="pill-text">배송 완료</span>
+                </div>
+            </div>
+
+            <div class="order-mini-list">
+                <div class="muted" th:if="${recentOrders == null or #lists.isEmpty(recentOrders)}">최근 주문이 없습니다.</div>
+                <div class="order-mini-item" th:each="order : ${recentOrders}">
+                    <div class="order-mini-row">
+                        <span class="order-id" th:text="'#' + ${order.id}">#12345</span>
+                        <span class="order-status" th:text="${order.status}">배송중</span>
+                    </div>
+                    <div class="order-mini-row">
+                        <span th:text="${order.title}">주문 제목</span>
+                        <span class="order-date" th:text="${order.date}">2024-01-01</span>
+                    </div>
                 </div>
             </div>
         </a>
-
-        <a class="dashboard-card link-card order-total-card" th:href="@{/orders/me}">
-            <div class="card-head">
-                <span class="card-label">총 주문 수</span>
-                <span class="card-link">내역 보기 →</span>
-            </div>
-            <p class="stat-value" th:text="${orderCount} + '건'">0건</p>
-            <p class="subtext">모든 주문 내역을 확인하세요.</p>
-        </a>
-
         <a class="dashboard-card link-card point-card" th:href="@{/user/me/points}">
             <div class="card-head">
                 <span class="card-label">포인트 현황</span>
                 <span class="card-link">포인트 내역 →</span>
             </div>
             <p class="stat-value"
-               th:text="${user.point != null ? #numbers.formatInteger(user.point, 0) : 0} + ' P'">0 P</p>
-            <p class="subtext">적립/사용 내역을 확인하세요.</p>
+               th:text="${currentPoint != null ? #numbers.formatInteger(currentPoint, 0, 'COMMA') : 0} + ' P'">0 P</p>
+            <p class="subtext"><span th:text="${(user != null && user.nickname != null) ? user.nickname : '회원'}"></span>님의
+                적립/사용 내역을 확인하세요.</p>
+            <div class="mini-list">
+                <div class="muted" th:if="${recentPointHistory == null or #lists.isEmpty(recentPointHistory)}">최근 포인트
+                    내역이 없습니다.
+                </div>
+                <div class="mini-item" th:each="point : ${recentPointHistory}">
+                    <div class="mini-row">
+                        <span class="mini-title" th:text="${point.reason}">적립</span>
+                        <span class="mini-meta" th:text="${point.date}">2024-01-01</span>
+                    </div>
+                    <div class="mini-row mini-sub">
+                        <span class="mini-amount" th:text="${point.amount}">+1,000 </span>
+                        <span class="mini-meta" th:text="${point.balance}">잔액 10,000 </span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <a class="dashboard-card link-card review-card" th:href="@{/users/me/reviews}">
+            <div class="card-head">
+                <span class="card-label">최근 리뷰</span>
+                <span class="card-link">내 리뷰 →</span>
+            </div>
+
+            <div th:if="${recentReviews == null or #lists.isEmpty(recentReviews)}">
+                <p class="muted">최근 작성한 리뷰가 없습니다.</p>
+            </div>
+
+            <div class="review-preview" th:each="review : ${recentReviews}">
+                <div class="review-title" th:text="${review.bookTitle}">도서 제목</div>
+                <div class="review-content" th:text="${review.content}">리뷰 내용이 표시됩니다.</div>
+                <div class="review-meta">
+                    <span class="star" th:text="'★ ' + ${review.rating}">★ 0</span>
+                </div>
+            </div>
         </a>
     </div>
-
-    <a class="dashboard-card link-card review-card" th:href="@{/users/me/reviews}">
-        <div class="card-head">
-            <span class="card-label">최근 리뷰</span>
-            <span class="card-link">내 리뷰 →</span>
-        </div>
-
-        <div th:if="${recentReviews == null or #lists.isEmpty(recentReviews)}">
-            <p class="muted">최근 작성한 리뷰가 없습니다.</p>
-        </div>
-
-        <div class="review-preview" th:each="review : ${recentReviews}">
-            <div class="review-title" th:text="${review.bookTitle}">도서 제목</div>
-            <div class="review-content" th:text="${review.content}">리뷰 내용이 표시됩니다.</div>
-            <div class="review-meta">
-                <span class="star" th:text="'★ ' + ${review.rating}">★ 0</span>
-            </div>
-        </div>
-    </a>
 
 </div>
 </body>
