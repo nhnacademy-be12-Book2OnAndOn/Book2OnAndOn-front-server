@@ -6,6 +6,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.Current
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.ExpiringPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointSummaryResponseDto;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -44,7 +47,7 @@ public class PointUserController {
         ExpiringPointResponseDto expiring = pointUserClient.getExpiringPoints(bearer, 7);
 
         model.addAttribute("currentPoint", currentPoint);
-        model.addAttribute("histories", historyPage.getContent());
+        model.addAttribute("histories", toHistoryViews(historyPage.getContent()));
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", historyPage.getTotalPages());
         model.addAttribute("summary", summary); // 이번달 적립/사용
@@ -95,5 +98,31 @@ public class PointUserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private List<PointHistoryView> toHistoryViews(List<PointHistoryResponseDto> histories) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return histories.stream()
+                .map(h -> new PointHistoryView(
+                        h.getPointHistoryId(),
+                        h.getPointHistoryChange(),
+                        h.getTotalPoints(),
+                        h.getPointCreatedDate() != null ? h.getPointCreatedDate().format(formatter) : null,
+                        h.getPointExpiredDate() != null ? h.getPointExpiredDate().format(formatter) : null,
+                        h.getRemainingPoint(),
+                        h.getPointReason() != null ? h.getPointReason().name() : null
+                ))
+                .collect(Collectors.toList());
+    }
+
+    private record PointHistoryView(
+            Long pointHistoryId,
+            int pointHistoryChange,
+            int totalPoints,
+            String pointCreatedDate,
+            String pointExpiredDate,
+            Integer remainingPoint,
+            String pointReason
+    ) {
     }
 }

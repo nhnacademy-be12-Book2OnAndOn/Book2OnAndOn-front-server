@@ -25,10 +25,13 @@ public class SecurityConfig {
                                 .headerValue(HeaderValue.ENABLED_MODE_BLOCK)
                         )
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                "script-src 'self' 'unsafe-inline' https://t1.daumcdn.net; object-src 'none'; base-uri 'self';"))
+                                "script-src 'self' 'unsafe-inline' https://t1.daumcdn.net https://uicdn.toast.com; "
+                                        + "style-src 'self' 'unsafe-inline' https://uicdn.toast.com; "
+                                        + "object-src 'none'; base-uri 'self';"))
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/books/**")
+                        .requestMatchers("/", "/webjars/**", "/login", "/signup", "/css/**", "/js/**", "/images/**",
+                                "/books/**")
                         .permitAll()
                         .anyRequest().permitAll() // 프론트는 인증 기능 자체가 없음
                 );

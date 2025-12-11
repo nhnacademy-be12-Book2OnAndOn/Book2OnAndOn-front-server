@@ -20,7 +20,6 @@ public class BookDto {
     private Long priceSales; // 도서 판매가
     private Double rating; // 평점
 
-    private String imagePath;   // 도서 이미지
     private LocalDate publisherDate; //출간일
 
     private List<String> contributorNames;  // 기여자 정보

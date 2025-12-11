@@ -22,9 +22,10 @@
                 <span class="card-label">내 정보</span>
                 <span class="card-link">정보 수정 →</span>
             </div>
-            <p class="stat-value" th:text="${(user.nickname != null ? user.nickname : '닉네임 등록 안 됨')} + ' 님'">nickname</p>
+            <p class="stat-value" th:text="${(user.nickname != null ? user.nickname : '닉네임 등록 안 됨')} + ' 님'">
+                nickname</p>
             <p class="subtext" th:text="${user.name}">이름</p>
-            <p class="subtext" th:text="${user.email}">email@example.com</p>
+            <!--            <p class="subtext" th:text="${user.email}">email@example.com</p>-->
             <p class="subtext address-line"
                th:text="${defaultAddress != null ? defaultAddress : '기본 주소를 등록해 주세요.'}">주소 정보</p>
         </a>

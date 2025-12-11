@@ -3,21 +3,18 @@
         <div class="admin-brand">Admin Center</div>
         <div class="admin-menu">
             <!-- TODO: 아이콘 변경하기 -->
-            <a th:classappend="${activeMenu}=='dashboard' ? ' active'" th:href="@{/admin}">📊 대시보드</a>
-            <a th:classappend="${activeMenu}=='users' ? ' active'" th:href="@{/admin/users}">👥 회원 관리</a>
-            <a th:classappend="${activeMenu}=='books' ? ' active'" th:href="@{/admin/books}">📚 도서 관리</a>
-            <a th:classappend="${activeMenu}=='orders' ? ' active'" th:href="@{/admin/orders}">📦 주문 관리</a>
-            <a th:classappend="${activeMenu}=='deliveries' ? ' active'" th:href="@{/admin/deliveries}">🚚 배송 관리</a>
-            <a th:classappend="${activeMenu}=='deliveries' ? ' active'" th:href="@{/admin/delivery-policies}">🚚 배송비 정책</a>
-            <a th:classappend="${activeMenu}=='points' ? ' active'" th:href="@{/admin/points}">💰 포인트 관리</a>
-            <a th:classappend="${activeMenu}=='pointpolicies' ? ' active'" th:href="@{/admin/point-policies}">📐 포인트 정책</a>
-            <a th:classappend="${activeMenu}=='coupons' ? ' active'" th:href="@{/admin/coupons}">🎟️ 쿠폰 관리</a>
-            <a th:classappend="${activeMenu}=='couponpolicies' ? ' active'" th:href="@{/admin/policies}">🎟️ 쿠폰 정책
+            <a th:classappend="${activeMenu}=='dashboard' ? ' active'" th:href="@{/admin}">대시보드</a>
+            <a th:classappend="${activeMenu}=='users' ? ' active'" th:href="@{/admin/users}">회원 관리</a>
+            <a th:classappend="${activeMenu}=='books' ? ' active'" th:href="@{/admin/books/create}">도서 관리</a>
+            <a th:classappend="${activeMenu}=='orders' ? ' active'" th:href="@{/admin/orders}">주문 관리</a>
+            <a th:classappend="${activeMenu}=='deliveries' ? ' active'" th:href="@{/admin/deliveries}">배송 관리</a>
+            <a th:classappend="${activeMenu}=='deliveries' ? ' active'" th:href="@{/admin/delivery-policies}">배송비 정책</a>
+            <a th:classappend="${activeMenu}=='points' ? ' active'" th:href="@{/admin/points}">포인트 관리</a>
+            <a th:classappend="${activeMenu}=='pointpolicies' ? ' active'" th:href="@{/admin/point-policies}">포인트 정책</a>
+            <a th:classappend="${activeMenu}=='coupons' ? ' active'" th:href="@{/admin/coupons}">쿠폰 관리</a>
+            <a th:classappend="${activeMenu}=='couponpolicies' ? ' active'" th:href="@{/admin/policies}">쿠폰 정책
                 관리</a>
 
-            <div style="margin-top: 30px; border-top: 1px solid #e0e7e2; padding-top: 10px;">
-                <a style="color: #234132; font-size: 0.9rem;" th:href="@{/}">🏠 쇼핑몰 메인으로</a>
-            </div>
         </div>
     </nav>
 </th:block>

@@ -47,9 +47,9 @@
         <div class="card-head">
             <span class="card-label">포인트 내역</span>
             <div class="filter-tabs">
-                <button class="filter-tab active" onclick="filterHistory('ALL')">전체</button>
-                <button class="filter-tab" onclick="filterHistory('EARN')">적립</button>
-                <button class="filter-tab" onclick="filterHistory('USE')">사용</button>
+                <button class="filter-tab active" onclick="filterHistory(event, 'ALL')">전체</button>
+                <button class="filter-tab" onclick="filterHistory(event, 'EARN')">적립</button>
+                <button class="filter-tab" onclick="filterHistory(event, 'USE')">사용</button>
             </div>
         </div>
 
@@ -84,6 +84,9 @@
     window.initialPointHistory = /*[[${histories}]]*/ [];
     window.initialTotalPages = /*[[${totalPages}]]*/ 0;
     window.initialCurrentPointValue = /*[[${currentPoint != null ? currentPoint.currentPoint : null}]]*/ null;
+    window.initialMonthlyEarned = /*[[${summary != null ? summary.monthlyEarned : 0}]]*/ 0;
+    window.initialMonthlyUsed = /*[[${summary != null ? summary.monthlyUsed : 0}]]*/ 0;
+    window.initialExpiringPoint = /*[[${expiring != null ? expiring.expiringPoint : 0}]]*/ 0;
 </script>
 <script th:src="@{/js/pointHistoryUser.js}"></script>
 </body>
