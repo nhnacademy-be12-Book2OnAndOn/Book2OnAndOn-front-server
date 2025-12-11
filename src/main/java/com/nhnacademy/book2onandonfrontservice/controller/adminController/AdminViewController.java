@@ -12,7 +12,6 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatusUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
-//import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryCompany;
@@ -35,6 +34,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -70,13 +70,13 @@ public class AdminViewController {
         if (accessToken == null) {
             return "redirect:/login";
         }
-        String token = "Bearer " + accessToken;
+        String token = "Bearer " + accessToken; // "Bearer " 접두어 추가
 
         try {
-            RestPage<UserResponseDto> userPage = userClient.getUsers(token, 0, 1);
-            model.addAttribute("totalUserCount", userPage.getTotalElements());
+            ResponseEntity<Long> response = userClient.getUserCount(token);
+            model.addAttribute("totalUserCount", response.getBody());
         } catch (Exception e) {
-            log.error("대시보드 데이터 조회 실패 ", e);
+            log.error("대시보드 회원 수 조회 실패", e);
             model.addAttribute("totalUserCount", 0);
         }
         return "admin/index";
@@ -362,7 +362,8 @@ public class AdminViewController {
         }
         page = Math.max(0, page);
         size = size <= 0 ? 5 : size;
-        Page<PointHistoryResponseDto> historyPage = pointAdminClient.getUserPointHistory("Bearer " + accessToken, userId, page, size);
+        Page<PointHistoryResponseDto> historyPage = pointAdminClient.getUserPointHistory("Bearer " + accessToken,
+                userId, page, size);
         CurrentPointResponseDto currentPoint = pointAdminClient.getUserCurrentPoint("Bearer " + accessToken, userId);
 
         model.addAttribute("userId", userId);

@@ -19,6 +19,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserAddressR
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -189,4 +190,7 @@ public interface UserClient {
     @PostMapping("/api/auth/dormant/unlock")
     void unlockDormantAccount(@RequestParam("email") String email, @RequestParam("code") String code);
 
+    // 회원 수 조회
+    @GetMapping("/api/admin/users/count")
+    ResponseEntity<Long> getUserCount(@RequestHeader("Authorization") String accessToken);
 }
