@@ -180,4 +180,13 @@ public interface UserClient {
     // 아이디 중복 확인 요청
     @GetMapping("/api/users/check-id")
     boolean checkLoginId(@RequestParam("userLoginId") String userLoginId);
+
+    // 휴면 해제 인증번호 전송
+    @PostMapping("/api/auth/dormant/email/send")
+    void sendDormantVerification(@RequestParam("email") String email);
+
+    // 휴면 해제 요청
+    @PostMapping("/api/auth/dormant/unlock")
+    void unlockDormantAccount(@RequestParam("email") String email, @RequestParam("code") String code);
+
 }
