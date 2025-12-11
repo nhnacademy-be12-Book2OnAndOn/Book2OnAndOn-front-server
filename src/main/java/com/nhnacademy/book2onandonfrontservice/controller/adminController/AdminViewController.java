@@ -6,11 +6,11 @@ import com.nhnacademy.book2onandonfrontservice.client.DeliveryClient;
 import com.nhnacademy.book2onandonfrontservice.client.DeliveryPolicyClient;
 import com.nhnacademy.book2onandonfrontservice.client.PointAdminClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatusUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
-//import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryCompany;
@@ -22,9 +22,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.Current
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryAdminAdjustRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
-//import com.nhnacademy.book2onandonfrontservice.dto.userDto.UserGradeDto;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.UserGradeDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.AdminUserUpdateRequest;
-//import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserGradeRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserGradeRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,7 +56,7 @@ public class AdminViewController {
     private final UserClient userClient;
     private final CouponClient couponClient;
     private final BookClient bookClient;
-//    private final UserGradeClient userGradeClient;
+    private final UserGradeClient userGradeClient;
     private final DeliveryClient deliveryClient;
     private final DeliveryPolicyClient deliveryPolicyClient;
     private final PointAdminClient pointAdminClient;
@@ -180,7 +180,7 @@ public class AdminViewController {
     /// 도서 등록
     @PostMapping("/books/create")
     public String createBook(@ModelAttribute BookSaveRequest req,
-                             @RequestParam(value="images", required = false) List<MultipartFile> images){
+                             @RequestParam(value = "images", required = false) List<MultipartFile> images) {
         bookClient.createBook(req, images);
         return "redirect:/admin/books";
     }
@@ -189,21 +189,21 @@ public class AdminViewController {
     @PutMapping("/books/{bookId}")
     public String updateBook(@ModelAttribute BookUpdateRequest req,
                              @PathVariable Long bookId,
-                             @RequestParam(value="images", required = false) List<MultipartFile> images){
-        bookClient.updateBook(bookId,req, images);
+                             @RequestParam(value = "images", required = false) List<MultipartFile> images) {
+        bookClient.updateBook(bookId, req, images);
         return "redirect:/admin/books";
     }
 
     /// 도서 삭제
     @DeleteMapping("/books/{bookId}")
-    public String deleteBook(@PathVariable Long bookId){
+    public String deleteBook(@PathVariable Long bookId) {
         bookClient.deleteBook(bookId);
         return "redirect:/admin/books";
     }
 
     /// 도서 상태변경
     @PatchMapping("/books/{bookId}/status")
-    public String updateStatus(@PathVariable Long bookId, @RequestParam("status")BookStatus status){
+    public String updateStatus(@PathVariable Long bookId, @RequestParam("status") BookStatus status) {
         BookStatusUpdateRequest request = new BookStatusUpdateRequest(status);
 
         bookClient.updateBookStatus(bookId, request);
@@ -211,27 +211,27 @@ public class AdminViewController {
         return "redirect:/admin/books";
     }
 
-//    // 등급 목록 조회 페이지
-//    @GetMapping("/grades")
-//    public String gradeList(Model model) {
-//        List<UserGradeDto> grades = userGradeClient.getAllGrades();
-//        model.addAttribute("grades", grades);
-//        return "admin/grades/list";
-//    }
-//
-//    // 새 등급 생성
-//    @PostMapping("/grades")
-//    public String createGrade(@ModelAttribute UserGradeRequestDto request) {
-//        userGradeClient.createGrade(request);
-//        return "redirect:/admin/grades";
-//    }
-//
-//    // 등급 정보 수정
-//    @PostMapping("/grades/{gradeId}/update")
-//    public String updateGrade(@PathVariable Long gradeId, @ModelAttribute UserGradeRequestDto request) {
-//        userGradeClient.updateGrade(gradeId, request);
-//        return "redirect:/admin/grades";
-//    }
+    // 등급 목록 조회 페이지
+    @GetMapping("/grades")
+    public String gradeList(Model model) {
+        List<UserGradeDto> grades = userGradeClient.getAllGrades();
+        model.addAttribute("grades", grades);
+        return "admin/grades/list";
+    }
+
+    // 새 등급 생성
+    @PostMapping("/grades")
+    public String createGrade(@ModelAttribute UserGradeRequestDto request) {
+        userGradeClient.createGrade(request);
+        return "redirect:/admin/grades";
+    }
+
+    // 등급 정보 수정
+    @PostMapping("/grades/{gradeId}/update")
+    public String updateGrade(@PathVariable Long gradeId, @ModelAttribute UserGradeRequestDto request) {
+        userGradeClient.updateGrade(gradeId, request);
+        return "redirect:/admin/grades";
+    }
 
     ///  -------------------------- Deliveries Admin --------------------------------------
 
@@ -291,7 +291,6 @@ public class AdminViewController {
         model.addAttribute("deliveryPolicies", deliveryPolicyPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", deliveryPolicyPage.getTotalPages());
-
 
         // 페이지네이션 범위 계산
         int startPage = Math.max(0, page - 2);
