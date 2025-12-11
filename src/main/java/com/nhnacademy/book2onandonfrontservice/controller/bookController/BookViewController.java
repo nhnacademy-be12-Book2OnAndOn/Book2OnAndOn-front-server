@@ -30,20 +30,20 @@ public class BookViewController {
         Page<BookDto> response = bookClient.getNewArrivals(null, page, 8);
 //        List<BookDto> bestsellerDaily = bookClient.getBestsellers("DAILY");
 //        List<BookDto> bestsellerWeek = bookClient.getBestsellers("WEEK");
-//        Page<BookDto> likeBest = bookClient.getPopularBooks(page,0);
+        Page<BookDto> likeBest = bookClient.getPopularBooks(page, 0);
 
         if (response != null) {
             model.addAttribute("newBooks", response.getContent());
         }
-//        if(bestsellerDaily != null){
+//        if (bestsellerDaily != null) {
 //            model.addAttribute("bestDaily", bestsellerDaily);
 //        }
-//        if(bestsellerWeek != null){
+//        if (bestsellerWeek != null) {
 //            model.addAttribute("bestWeek", bestsellerWeek);
 //        }
-//        if (likeBest != null) {
-//            model.addAttribute("likeBest", likeBest);
-//        }
+        if (likeBest != null) {
+            model.addAttribute("likeBest", likeBest);
+        }
         return "dashboard";
     }
 

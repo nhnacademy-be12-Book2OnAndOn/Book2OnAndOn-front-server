@@ -11,6 +11,8 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatusUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+//import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryCompany;
@@ -87,7 +89,7 @@ public class AdminViewController {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
         try {
-            RestPage<UserResponseDto> userPage = userClient.getUsers(token, page, 10);
+            RestPage<UserResponseDto> userPage = userClient.getUsers(token, page, 5);
 
             model.addAttribute("users", userPage.getContent());
             model.addAttribute("page", userPage);
@@ -150,7 +152,7 @@ public class AdminViewController {
 
     @GetMapping("/coupons")
     public String listCoupons(@RequestParam(defaultValue = "0") int page,
-                              @RequestParam(defaultValue = "10") int size,
+                              @RequestParam(defaultValue = "5") int size,
                               @RequestParam(required = false) String status,
                               Model model) {
 
@@ -183,6 +185,15 @@ public class AdminViewController {
                              @RequestParam(value = "images", required = false) List<MultipartFile> images) {
         bookClient.createBook(req, images);
         return "redirect:/admin/books";
+    }
+
+    /// 도서 등록 페이지
+    @GetMapping("/books/create")
+    public String bookCreateForm(Model model) {
+        List<CategoryDto> categories = bookClient.getCategories();
+        model.addAttribute("categories", categories);
+        model.addAttribute("statuses", BookStatus.values());
+        return "admin/books/create";
     }
 
     /// 도서 수정
@@ -237,7 +248,7 @@ public class AdminViewController {
 
     @GetMapping("/deliveries")
     public String listDeliveries(@RequestParam(defaultValue = "0") int page,
-                                 @RequestParam(defaultValue = "10") int size,
+                                 @RequestParam(defaultValue = "5") int size,
                                  @RequestParam(required = false) OrderStatus status,
                                  Model model) {
 
@@ -284,7 +295,7 @@ public class AdminViewController {
 
     @GetMapping("/delivery-policies")
     public String getDeliveries(@RequestParam(defaultValue = "0") int page,
-                                @RequestParam(defaultValue = "10") int size,
+                                @RequestParam(defaultValue = "5") int size,
                                 Model model) {
         Page<DeliveryPolicyDto> deliveryPolicyPage = deliveryPolicyClient.getDeliveryPolicies(page, size);
         log.info("배송 정책 조회: {}", deliveryPolicyPage.getTotalElements());
@@ -344,13 +355,13 @@ public class AdminViewController {
     public String listUserPointHistory(@CookieValue(value = "accessToken", required = false) String accessToken,
                                        @RequestParam Long userId,
                                        @RequestParam(defaultValue = "0") int page,
-                                       @RequestParam(defaultValue = "10") int size,
+                                       @RequestParam(defaultValue = "5") int size,
                                        Model model) {
         if (accessToken == null) {
             return "redirect:/login";
         }
         page = Math.max(0, page);
-        size = size <= 0 ? 10 : size;
+        size = size <= 0 ? 5 : size;
         Page<PointHistoryResponseDto> historyPage = pointAdminClient.getUserPointHistory("Bearer " + accessToken, userId, page, size);
         CurrentPointResponseDto currentPoint = pointAdminClient.getUserCurrentPoint("Bearer " + accessToken, userId);
 

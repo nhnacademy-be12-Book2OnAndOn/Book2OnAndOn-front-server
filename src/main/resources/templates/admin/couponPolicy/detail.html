@@ -128,18 +128,18 @@
 
         <div class="admin-detail-card">
             <div class="table-actions justify-end">
-                <a class="btn-ghost" th:href="@{/admin/policies}">목록으로</a>
+                <a class="btn-ghost-link dense action-btn" th:href="@{/admin/policies}">← 목록으로</a>
 
-                <button class="btn-accent" onclick="openCouponModal()"
+                <button class="btn-accent action-btn" onclick="openCouponModal()"
                         th:if="${policy.couponPolicyStatus?.name() == 'ACTIVE'}"
                         type="button">
                     쿠폰 발행
                 </button>
 
-                <a class="btn-primary" th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}">정책 수정</a>
+                <a class="btn-primary action-btn" th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}">정책 수정</a>
 
                 <form method="post" th:action="@{/admin/policies/delete/{id}(id=${policy.couponPolicyId})}">
-                    <button class="btn-danger" onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');"
+                    <button class="btn-danger action-btn" onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');"
                             type="submit">비활성
                     </button>
                 </form>

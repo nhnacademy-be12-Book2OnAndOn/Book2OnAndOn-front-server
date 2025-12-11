@@ -114,11 +114,11 @@
                     </td>
 
                     <td class="table-actions">
-                        <a class="btn-small"
+                        <a class="btn-ghost-link dense"
                            th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}">수정</a>
 
                         <form method="post" th:action="@{/admin/policies/delete/{id}(id=${policy.couponPolicyId})}">
-                            <button class="btn-small btn-danger" onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');"
+                            <button class="btn-danger dense" onclick="return confirm('정말 이 정책을 비활성화 하시겠습니까?');"
                                     type="submit">중지
                             </button>
                         </form>

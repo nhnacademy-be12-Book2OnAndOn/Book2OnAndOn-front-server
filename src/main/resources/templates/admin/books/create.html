@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>도서 등록 | 관리자</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <!-- Toast UI Editor (CDN) -->
+    <link href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" rel="stylesheet">
+
+    <th:block
+            th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+</head>
+<body>
+<main>
+    <div class="admin-container">
+        <th:block th:replace="~{fragments/admin :: adminSidebar('books')}"></th:block>
+
+        <section class="admin-content">
+            <div class="admin-header">
+                <div>
+                    <div class="eyebrow">BOOKS</div>
+                    <h2>도서 등록</h2>
+                </div>
+                <div aria-label="도서 관리 빠른 이동" class="chip-tabs">
+                    <a class="chip-tab" href="#" onclick="history.back(); return false;">← 이전 페이지</a>
+                    <a class="chip-tab" th:href="@{/admin/books}">📚 도서 관리 목록</a>
+                </div>
+            </div>
+
+            <form class="admin-detail-card" enctype="multipart/form-data" id="bookCreateForm" method="post"
+                  th:action="@{/admin/books/create}">
+                <div class="admin-toolbar" style="margin-bottom: 12px;">
+                    <span class="muted">필수 항목을 모두 입력 후 등록해주세요.</span>
+                    <div class="spacer"></div>
+                    <button class="btn-ghost" onclick="history.back()" type="button">취소</button>
+                    <button class="btn-primary" type="submit">도서 등록</button>
+                </div>
+
+                <section class="form-section">
+                    <h4>기본 정보</h4>
+                    <div class="form-grid category-tag-grid">
+                        <div class="form-field tag-field">
+                            <label for="isbn">ISBN *</label>
+                            <input class="form-control" id="isbn" name="isbn" placeholder="ISBN을 입력하세요" required
+                                   type="text">
+                            <div class="field-note">숫자/하이픈 포함 형식 허용</div>
+                        </div>
+                        <div class="form-field">
+                            <label for="title">도서명 *</label>
+                            <input class="form-control" id="title" name="title" placeholder="도서 제목" required
+                                   type="text">
+                        </div>
+                        <div class="form-field">
+                            <label for="volume">권 정보</label>
+                            <input class="form-control" id="volume" name="volume" placeholder="시리즈/권 제목 (선택)"
+                                   type="text">
+                        </div>
+                        <div class="form-field">
+                            <label for="contributorName">저자/기여자</label>
+                            <input class="form-control" id="contributorName" name="contributorName"
+                                   placeholder="저자, 역자 등"
+                                   type="text">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>출판 정보</h4>
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="publisherName">출판사 *</label>
+                            <input class="form-control" id="publisherName" name="publisherName" placeholder="출판사명"
+                                   required type="text">
+                        </div>
+                        <div class="form-field">
+                            <label for="publishDate">출판일 *</label>
+                            <input class="form-control" id="publishDate" name="publishDate" required type="date">
+                        </div>
+                        <div class="form-field">
+                            <label for="priceStandard">정가 (원) *</label>
+                            <input class="form-control" id="priceStandard" min="0" name="priceStandard"
+                                   placeholder="예: 15000"
+                                   required step="100" type="number">
+                        </div>
+                        <div class="form-field">
+                            <label for="priceSales">판매가 (원) *</label>
+                            <input class="form-control" id="priceSales" min="0" name="priceSales" placeholder="예: 13500"
+                                   required step="100" type="number">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>재고 및 판매 설정</h4>
+                    <div class="form-grid inventory-grid">
+                        <div class="form-field compact-field">
+                            <label for="stockCount">재고 수량 *</label>
+                            <input class="form-control" id="stockCount" min="0" name="stockCount" placeholder="예: 100"
+                                   required type="number">
+                        </div>
+                        <div class="form-field compact-field">
+                            <label for="statusSelect">판매 상태 *</label>
+                            <select class="form-control" id="statusSelect" name="status" required>
+                                <option th:each="status : ${statuses}"
+                                        th:selected="${status.name() == 'ON_SALE'}"
+                                        th:text="${status}"
+                                        th:value="${status}">ON_SALE
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="isWrapped">선물 포장</label>
+                            <div class="pill-option wrap-option">
+                                <input name="isWrapped" type="hidden" value="false">
+                                <input id="isWrapped" name="isWrapped" type="checkbox" value="true">
+                                <span class="muted">선택 시 포장 가능 상품으로 표시됩니다.</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>카테고리/태그</h4>
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label>카테고리</label>
+                            <div class="category-select-grid">
+                                <select class="form-control" id="categoryLevel1">
+                                    <option value="">대분류 선택</option>
+                                </select>
+                                <select class="form-control" disabled id="categoryLevel2">
+                                    <option value="">중분류 선택</option>
+                                </select>
+                                <select class="form-control" disabled id="categoryLevel3">
+                                    <option value="">소분류 선택</option>
+                                </select>
+                                <select class="form-control" disabled id="categoryLevel4">
+                                    <option value="">세분류 선택</option>
+                                </select>
+                            </div>
+                            <input id="categorySelected" name="categoryIds" required type="hidden">
+                            <div class="field-note">대분류→중분류→소분류→세분류 순으로 선택 후 가장 하위 선택이 제출됩니다.</div>
+                        </div>
+                        <div class="form-field">
+                            <label for="tagInput">태그</label>
+                            <div class="inline-control tag-control tag-inline">
+                                <input class="form-control" data-tag-input id="tagInput" placeholder="태그 입력 후 Enter"
+                                       type="text">
+                                <button class="btn-ghost-link dense" data-tag-add type="button">추가</button>
+                            </div>
+                            <div class="chip-tabs tag-control" data-tag-list id="tagList"
+                                 style="margin-top: 8px;"></div>
+                            <div class="field-note">등록 시 검색/추천에 활용됩니다.</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>상세 정보</h4>
+                    <div class="form-grid" style="grid-template-columns: 1fr;">
+                        <div class="form-field">
+                            <label for="chapter">목차</label>
+                            <textarea class="form-control" id="chapter" name="chapter" placeholder="목차를 라인 단위로 작성해주세요."
+                                      rows="4"></textarea>
+                        </div>
+                        <div class="form-field">
+                            <label for="descriptionHtml">상세 설명</label>
+                            <div class="editor-box" id="descriptionEditor"></div>
+                            <textarea id="descriptionHtml" name="descriptionHtml" style="display: none;"
+                                      th:text="${descriptionHtml} ?: ''"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>이미지</h4>
+                    <div class="form-grid" style="grid-template-columns: 1fr;">
+                        <div class="form-field">
+                            <label for="images">대표/상세 이미지</label>
+                            <label class="file-upload">
+                                <span class="file-label">파일 선택</span>
+                                <span class="file-name" id="fileNameDisplay">선택된 파일 없음</span>
+                                <input accept="image/*" id="images" multiple name="images" type="file">
+                            </label>
+                            <div class="field-note">최대 여러 장 업로드 가능. 썸네일은 등록 후 별도 지정 가능합니다.</div>
+                            <div class="chip-tabs" id="preview" style="margin-top: 10px; display: none;"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="modal-actions">
+                    <button class="btn-ghost" onclick="history.back()" type="button">취소</button>
+                    <button class="btn-primary" type="submit">도서 등록</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<!-- Toast UI Editor JS (CDN) -->
+<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+<script src="https://uicdn.toast.com/editor/latest/i18n/ko-kr.min.js"></script>
+
+<script th:inline="javascript">
+    (function () {
+        const tagInput = document.querySelector('[data-tag-input]');
+        const tagAddBtn = document.querySelector('[data-tag-add]');
+        const tagList = document.querySelector('[data-tag-list]');
+        const form = document.getElementById('bookCreateForm');
+        const tags = new Set();
+
+        function renderTags() {
+            tagList.innerHTML = '';
+            tags.forEach((tag) => {
+                const pill = document.createElement('span');
+                pill.className = 'chip-tab active tag-chip';
+                pill.textContent = tag;
+                pill.style.cursor = 'pointer';
+                pill.title = '클릭하여 태그 제거';
+                pill.onclick = () => {
+                    tags.delete(tag);
+                    renderTags();
+                };
+                tagList.appendChild(pill);
+            });
+        }
+
+        function addTag() {
+            const value = (tagInput.value || '').trim();
+            if (!value) return;
+            value.split(',')
+                .map(v => v.trim())
+                .filter(Boolean)
+                .map(v => v.replace(/\s+/g, '_'))
+                .forEach(v => tags.add(v));
+            tagInput.value = '';
+            renderTags();
+        }
+
+        tagAddBtn?.addEventListener('click', addTag);
+        tagInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addTag();
+            }
+        });
+
+        form?.addEventListener('submit', () => {
+            // 기존 hidden tagNames 제거
+            form.querySelectorAll('input[data-tag-hidden]').forEach(el => el.remove());
+            tags.forEach(tag => {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'tagNames';
+                hidden.value = tag;
+                hidden.setAttribute('data-tag-hidden', 'true');
+                form.appendChild(hidden);
+            });
+        });
+
+        // 이미지 간단 프리뷰
+        const imageInput = document.getElementById('images');
+        const preview = document.getElementById('preview');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        imageInput?.addEventListener('change', () => {
+            const files = Array.from(imageInput.files || []);
+            if (fileNameDisplay) {
+                fileNameDisplay.textContent = files.length
+                    ? files.map(f => f.name).join(', ')
+                    : '선택된 파일 없음';
+            }
+            if (preview) preview.style.display = 'none';
+        });
+    })();
+
+    // 카테고리 계층 드롭다운
+    (function () {
+        function normalizeCategories(raw) {
+            if (Array.isArray(raw)) return raw;
+            if (typeof raw === 'string') {
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) return parsed;
+                    if (parsed && typeof parsed === 'object') return Object.values(parsed);
+                } catch (e) {
+                    return [];
+                }
+            }
+            if (raw && typeof raw === 'object' && raw.length === undefined) {
+                return Object.values(raw);
+            }
+            return [];
+        }
+
+        const categories = normalizeCategories(/*[[${categories}]]*/ []);
+
+        const form = document.getElementById('bookCreateForm');
+        const level1 = document.getElementById('categoryLevel1');
+        const level2 = document.getElementById('categoryLevel2');
+        const level3 = document.getElementById('categoryLevel3');
+        const level4 = document.getElementById('categoryLevel4');
+        const hidden = document.getElementById('categorySelected');
+
+        function clearOptions(select, placeholder) {
+            select.innerHTML = '';
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = placeholder;
+            select.appendChild(opt);
+            select.disabled = true;
+        }
+
+        function fillOptions(select, list, placeholder) {
+            clearOptions(select, placeholder);
+            if (!list || !list.length) return;
+            list.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                opt.dataset.hasChildren = (cat.children && cat.children.length) ? 'true' : 'false';
+                select.appendChild(opt);
+            });
+            select.disabled = false;
+        }
+
+        function findById(list, id) {
+            return list.find(c => String(c.id) === String(id));
+        }
+
+        function updateHidden() {
+            const chosen = level4.value || level3.value || level2.value || level1.value;
+            hidden.value = chosen || '';
+        }
+
+        level1?.addEventListener('change', () => {
+            const selected = findById(categories, level1.value);
+            fillOptions(level2, selected?.children || [], '중분류 선택');
+            clearOptions(level3, '소분류 선택');
+            clearOptions(level4, '세분류 선택');
+            updateHidden();
+        });
+
+        level2?.addEventListener('change', () => {
+            const parent = findById(categories, level1.value);
+            const selected = findById(parent?.children || [], level2.value);
+            fillOptions(level3, selected?.children || [], '소분류 선택');
+            clearOptions(level4, '세분류 선택');
+            updateHidden();
+        });
+
+        level3?.addEventListener('change', () => {
+            const p1 = findById(categories, level1.value);
+            const p2 = findById(p1?.children || [], level2.value);
+            const selected = findById(p2?.children || [], level3.value);
+            fillOptions(level4, selected?.children || [], '세분류 선택');
+            updateHidden();
+        });
+
+        level4?.addEventListener('change', updateHidden);
+
+        // 초기 로드
+        fillOptions(level1, categories, '대분류 선택');
+        updateHidden();
+        form?.addEventListener('submit', (e) => {
+            updateHidden();
+            if (!hidden.value) {
+                e.preventDefault();
+                alert('카테고리를 선택해주세요.');
+            }
+        });
+    })();
+
+    // 상세 설명 WYSIWYG (Toast UI Editor)
+    (function () {
+        const editorEl = document.getElementById('descriptionEditor');
+        const hiddenField = document.getElementById('descriptionHtml');
+        const form = document.getElementById('bookCreateForm');
+        if (!editorEl || !hiddenField || !window.toastui) return;
+
+        const Editor = toastui.Editor;
+        const editor = new Editor({
+            el: editorEl,
+            height: '300px',
+            initialEditType: 'wysiwyg',
+            previewStyle: 'vertical',
+            initialValue: hiddenField.value || '',
+            language: 'ko-KR',
+            placeholder: '도서 소개/상세 설명을 입력하세요.',
+            toolbarItems: [
+                ['heading', 'bold', 'italic', 'strike'],
+                ['ul', 'ol', 'task'],
+                ['table', 'image', 'link'],
+                ['quote', 'codeblock']
+            ]
+        });
+
+        form?.addEventListener('submit', () => {
+            hiddenField.value = editor.getHTML();
+        });
+    })();
+</script>
+</body>
+</html>
