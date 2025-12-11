@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>휴면 계정 해제</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <h1>휴면 계정 해제</h1>
+            <p>장기간 미접속으로 인해 휴면 상태로 전환되었습니다.<br>이메일 인증 후 다시 서비스를 이용하실 수 있습니다.</p>
+        </div>
+
+        <div class="auth-form">
+            <div class="form-group">
+                <label for="email">이메일</label>
+                <div class="input-inline">
+                    <input type="email" id="email" name="email" placeholder="가입한 이메일을 입력하세요" required>
+                    <button type="button" class="btn-small" id="btn-send" onclick="sendVerification()">인증번호 전송</button>
+                </div>
+            </div>
+
+            <div class="form-group" id="verification-group" style="display: none;">
+                <label for="code">인증번호</label>
+                <input type="text" id="code" name="code" placeholder="인증번호 6자리" required>
+            </div>
+
+            <div id="message-box" class="alert" style="display: none;"></div>
+
+            <button type="button" class="btn primary" id="btn-unlock" onclick="unlockAccount()" disabled>휴면 해제하기
+            </button>
+        </div>
+
+        <div class="auth-footer">
+            <a th:href="@{/login}" class="link">로그인 페이지로 돌아가기</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function showMessage(msg, isError = false) {
+        const box = document.getElementById('message-box');
+        box.style.display = 'block';
+        box.textContent = msg;
+        box.className = 'alert ' + (isError ? 'alert-error' : 'alert-success');
+    }
+
+    function sendVerification() {
+        const email = document.getElementById('email').value;
+        if (!email) {
+            alert('이메일을 입력해주세요.');
+            return;
+        }
+
+        const btnSend = document.getElementById('btn-send');
+        btnSend.disabled = true;
+        btnSend.textContent = '전송중...';
+
+        fetch('/dormant/email/send', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'email=' + encodeURIComponent(email)
+        })
+            .then(async response => {
+                const text = await response.text();
+                if (response.ok) {
+                    showMessage(text);
+                    document.getElementById('verification-group').style.display = 'block';
+                    document.getElementById('btn-unlock').disabled = false;
+                    btnSend.textContent = '재전송';
+                    btnSend.disabled = false;
+                } else {
+                    throw new Error(text);
+                }
+            })
+            .catch(error => {
+                showMessage(error.message, true);
+                btnSend.textContent = '인증번호 전송';
+                btnSend.disabled = false;
+            });
+    }
+
+    function unlockAccount() {
+        const email = document.getElementById('email').value;
+        const code = document.getElementById('code').value;
+
+        if (!code) {
+            alert('인증번호를 입력해주세요.');
+            return;
+        }
+
+        fetch('/dormant/unlock', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'email=' + encodeURIComponent(email) + '&code=' + encodeURIComponent(code)
+        })
+            .then(async response => {
+                const text = await response.text();
+                if (response.ok) {
+                    alert(text); // "휴면 상태가 해제되었습니다..."
+                    location.href = '/login';
+                } else {
+                    throw new Error(text);
+                }
+            })
+            .catch(error => {
+                showMessage(error.message, true);
+            });
+    }
+</script>
+
+</body>
+</html>

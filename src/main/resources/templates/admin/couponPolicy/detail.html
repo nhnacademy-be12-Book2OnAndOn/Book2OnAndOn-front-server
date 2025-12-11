@@ -95,25 +95,29 @@
 
             <h4 class="section-title">적용 대상</h4>
             <div class="admin-info-grid" style="grid-template-columns: 1fr;">
+
                 <div>
-                    <div class="info-label">적용 도서 (Book IDs)</div>
+                    <div class="info-label">적용 도서</div>
                     <div class="info-value">
                         <div class="target-list" th:if="${not #lists.isEmpty(policy.targetBookIds)}">
                             <span class="target-tag" th:each="bookId : ${policy.targetBookIds}">
-                                📕 <span th:text="${bookId}">1001</span>
+                                📕
+                                <span th:text="${bookNameMap.get(bookId)} ?: ${bookId}">책 제목</span>
+                                <small style="color:#888; margin-left:4px;" th:text="'(ID:' + ${bookId} + ')'"></small>
                             </span>
                         </div>
-                        <div class="empty-text" th:if="${#lists.isEmpty(policy.targetBookIds)}">지정된 도서 없음 (전체 도서 가능)
-                        </div>
+                        <div class="empty-text" th:if="${#lists.isEmpty(policy.targetBookIds)}">지정된 도서 없음 (전체 도서 가능)</div>
                     </div>
                 </div>
 
                 <div>
-                    <div class="info-label">적용 카테고리 (Category IDs)</div>
+                    <div class="info-label">적용 카테고리</div>
                     <div class="info-value">
                         <div class="target-list" th:if="${not #lists.isEmpty(policy.targetCategoryIds)}">
                             <span class="target-tag" th:each="catId : ${policy.targetCategoryIds}">
-                                📂 <span th:text="${catId}">10</span>
+                                📂
+                                <span th:text="${categoryNameMap.get(catId)} ?: ${catId}">카테고리명</span>
+                                <small style="color:#888; margin-left:4px;" th:text="'(ID:' + ${catId} + ')'"></small>
                             </span>
                         </div>
                         <div class="empty-text" th:if="${#lists.isEmpty(policy.targetCategoryIds)}">지정된 카테고리 없음</div>

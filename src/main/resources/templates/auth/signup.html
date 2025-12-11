@@ -45,10 +45,14 @@
 
                     <div class="form-group">
                         <label for="userLoginId">아이디</label>
-                        <input id="userLoginId" placeholder="4~30자 이내" required th:field="*{userLoginId}" type="text">
+                        <input id="userLoginId" placeholder="4~30자 이내" required th:field="*{userLoginId}" type="text"
+                               onblur="checkIdDuplicate()">
                         <div class="error-text" th:errors="*{userLoginId}" th:if="${#fields.hasErrors('userLoginId')}">
                             Error
                         </div>
+
+                        <p id="id-message" style="font-size: 0.85rem; margin-top: 5px;"></p>
+                        <input type="hidden" id="isIdChecked" value="false">
                     </div>
 
                     <div class="form-group">
@@ -63,6 +67,16 @@
                         <label for="name">이름</label>
                         <input id="name" placeholder="이름을 입력하세요" required th:field="*{name}" type="text">
                         <div class="error-text" th:errors="*{name}" th:if="${#fields.hasErrors('name')}">Error</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nickname">닉네임</label>
+                        <div class="input-inline">
+                            <input id="nickname" name="nickname" placeholder="사용하실 닉네임을 입력하세요" required type="text"
+                                   onblur="checkNicknameDuplicate()">
+                        </div>
+                        <p id="nickname-message" style="font-size: 0.85rem; margin-top: 5px;"></p>
+                        <input type="hidden" id="isNicknameChecked" value="false">
                     </div>
 
                     <div class="form-group">
@@ -114,7 +128,6 @@
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 <script>
-    // (기존 자바스크립트 로직 그대로 유지)
     function sendVerification() {
         const email = document.getElementById('email').value;
         if (!email) {
@@ -188,11 +201,105 @@
             });
     }
 
+    function checkIdDuplicate() {
+        const idInput = document.getElementById('userLoginId');
+        const id = idInput.value;
+        const msg = document.getElementById('id-message');
+        const hiddenInput = document.getElementById('isIdChecked');
+
+        if (!id) {
+            msg.innerText = "";
+            hiddenInput.value = "false";
+            return;
+        }
+
+        // 아이디 길이 유효성 검사 (4~30자)
+        if (id.length < 4 || id.length > 30) {
+            msg.style.color = 'red';
+            msg.innerText = "아이디는 4~30자 사이여야 합니다.";
+            hiddenInput.value = "false";
+            return;
+        }
+
+        fetch('/check-id?userLoginId=' + encodeURIComponent(id))
+            .then(response => response.json())
+            .then(isDuplicate => {
+                if (isDuplicate) {
+                    msg.style.color = 'red';
+                    msg.innerText = "이미 사용 중인 아이디입니다.";
+                    hiddenInput.value = "false";
+                } else {
+                    msg.style.color = 'green';
+                    msg.innerText = "사용 가능한 아이디입니다.";
+                    hiddenInput.value = "true";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                msg.style.color = 'red';
+                msg.innerText = "중복 확인 중 오류가 발생했습니다.";
+                hiddenInput.value = "false";
+            });
+    }
+
+    function checkNicknameDuplicate() {
+        const nickname = document.getElementById('nickname').value;
+        const msg = document.getElementById('nickname-message');
+        const hiddenInput = document.getElementById('isNicknameChecked');
+
+        if (!nickname) {
+            msg.innerText = "";
+            hiddenInput.value = "false";
+            return;
+        }
+
+        if (nickname.length < 2 || nickname.length > 20) {
+            msg.style.color = 'red';
+            msg.innerText = "닉네임은 2~20자 사이여야 합니다.";
+            hiddenInput.value = "false";
+            return;
+        }
+
+        fetch('/check-nickname?nickname=' + encodeURIComponent(nickname))
+            .then(response => response.json())
+            .then(isDuplicate => {
+                if (isDuplicate) {
+                    msg.style.color = 'red';
+                    msg.innerText = "이미 사용 중인 닉네임입니다.";
+                    hiddenInput.value = "false";
+                } else {
+                    msg.style.color = 'green';
+                    msg.innerText = "사용 가능한 닉네임입니다.";
+                    hiddenInput.value = "true";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                msg.style.color = 'red';
+                msg.innerText = "중복 확인 중 오류가 발생했습니다.";
+                hiddenInput.value = "false";
+            });
+    }
+
     function validateForm() {
         const isVerified = document.getElementById('isEmailVerified').value;
         if (isVerified !== "true") {
             alert("이메일 인증을 완료해주세요.");
             document.getElementById('email').focus();
+            return false;
+        }
+
+        const isIdOk = document.getElementById('isIdChecked').value;
+        if (isIdOk !== "true") {
+            alert("아이디 중복 확인이 필요합니다 (이미 사용 중이거나 확인되지 않음).");
+            document.getElementById('userLoginId').focus();
+            return false;
+        }
+
+        const isNicknameOk = document.getElementById('isNicknameChecked').value;
+        if (isNicknameOk !== "true") {
+            alert("닉네임 중복 확인이 필요합니다 (이미 사용 중이거나 확인되지 않음)");
+            document.getElementById('nickname').focus();
             return false;
         }
         return true;
