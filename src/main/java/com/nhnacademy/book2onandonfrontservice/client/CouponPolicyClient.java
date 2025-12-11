@@ -29,7 +29,7 @@ public interface CouponPolicyClient {
 
     //정책 생성
     @PostMapping("/api/admin/coupon-policies")
-    void createPolicy(@RequestBody CouponPolicyDto requestDto);
+    void createPolicy(@RequestBody CouponPolicyUpdateDto requestDto);
 
 
     // 정책 수정

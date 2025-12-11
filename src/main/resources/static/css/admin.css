@@ -691,6 +691,115 @@ body {
     color: white;
     border-color: #2d5f3f;
 }
+/* =====================================
+   admin/police/form 카테고리
+===================================== */
+.category-tree-box {
+    border: 1px solid #d5ddd6;
+    padding: 1.2rem;
+    border-radius: 14px; /* 기존 박스들과 동일한 라운드 */
+    max-height: 350px;
+    overflow-y: auto;
+    background: #f9fbf9; /* form-section 배경색과 통일 */
+}
+
+/* 리스트 기본 스타일 초기화 */
+.tree-root, .sub-tree {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+/* 하위 트리 들여쓰기 및 가이드 라인 */
+.sub-tree {
+    padding-left: 22px;
+    margin-left: 9px;
+    border-left: 1px dashed #cddad2; /* 은은한 가이드 라인 */
+}
+
+.tree-item {
+    margin-bottom: 2px;
+}
+
+/* 트리 각 행의 레이아웃 */
+.tree-row {
+    display: flex;
+    align-items: center;
+    padding: 5px 4px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.tree-row:hover {
+    background-color: rgba(45, 95, 63, 0.06); /* 브랜드 컬러의 연한 틴트 */
+}
+
+/* 토글 화살표 버튼 */
+.toggle-btn {
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: #5c6f63; /* info-label 색상 사용 */
+    margin-right: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.toggle-btn:hover {
+    background-color: #eef3ef;
+    color: #205433;
+}
+
+/* 토글 열림 상태 (회전) */
+.toggle-btn.open {
+    transform: rotate(90deg);
+    color: #205433;
+}
+
+/* 자식이 없는 노드의 들여쓰기 공간 확보 */
+.toggle-placeholder {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    display: inline-block;
+}
+
+/* 체크박스 라벨 스타일 */
+.checkbox-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 0.95rem;
+    color: #234132;
+    font-weight: 500;
+    width: 100%;
+}
+
+.checkbox-label input[type="checkbox"] {
+    appearance: none; /* 기본 스타일 제거 후 커스텀 (선택사항, 호환성 위해 기본 유지 시 아래 accent-color만 사용) */
+    width: 18px;
+    height: 18px;
+    border: 1px solid #d5ddd6;
+    border-radius: 5px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+    accent-color: #2d5f3f; /* 최신 브라우저용 기본 컬러 지정 */
+}
+
+/* 체크박스 체크되었을 때 (커스텀 스타일링을 위한 보조) */
+input[type="checkbox"]:checked + span {
+    font-weight: bold;
+    color: #333;
+}
 
 
 /* =====================================

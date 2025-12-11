@@ -1,6 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.dto.bookdto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class BookSearchCondition {
     private String keyword; // 제목/부제목 등 도서 검색용
     private Long categoryId;    // 카테고리 필터
