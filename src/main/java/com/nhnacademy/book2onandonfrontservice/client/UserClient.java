@@ -172,4 +172,12 @@ public interface UserClient {
     // [Payco] 로그인
     @PostMapping("/api/auth/login/payco")
     TokenResponseDto loginWithPayco(@RequestBody PaycoLoginRequest request);
+
+    // 닉네임 중복 확인 요청
+    @GetMapping("/api/users/check-nickname")
+    boolean checkNickname(@RequestParam("nickname") String nickname);
+
+    // 아이디 중복 확인 요청
+    @GetMapping("/api/users/check-id")
+    boolean checkLoginId(@RequestParam("userLoginId") String userLoginId);
 }

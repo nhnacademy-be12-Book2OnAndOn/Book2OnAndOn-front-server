@@ -20,6 +20,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -170,6 +171,32 @@ public class AuthViewController {
         }
     }
 
+    // 아이디 중복 확인
+    @GetMapping("/check-id")
+    @ResponseBody
+    public ResponseEntity<Boolean> checkLoginId(@RequestParam("userLoginId") String userLoginId) {
+        try {
+            boolean isDuplicate = userClient.checkLoginId(userLoginId);
+            return ResponseEntity.ok(isDuplicate);
+        } catch (Exception e) {
+            log.error("아이디 중복 확인 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(true);
+        }
+    }
+
+    // 닉네임 중복 확인
+    @GetMapping("/check-nickname")
+    @ResponseBody
+    public ResponseEntity<Boolean> checkNickname(@RequestParam String nickname) {
+        try {
+            boolean isDuplicate = userClient.checkNickname(nickname);
+            return ResponseEntity.ok(isDuplicate);
+        } catch (Exception e) {
+            log.error("닉네임 중복 확인 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(true);
+        }
+    }
+
     //이메일 인증번호 발송
     @PostMapping("/email/send")
     @ResponseBody
@@ -177,8 +204,27 @@ public class AuthViewController {
         try {
             userClient.sendEmailVerification(email);
             return ResponseEntity.ok("인증번호가 발송되었습니다.");
+        } catch (FeignException e) {
+            log.error("이메일 발송 API 호출 에러", e);
+            String errorMessage = "발송 실패";
+
+            try {
+                String responseBody = e.contentUTF8();
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> errorMap = objectMapper.readValue(responseBody, Map.class);
+
+                if (errorMap != null && errorMap.containsKey("message")) {
+                    errorMessage = (String) errorMap.get("message");
+                }
+            } catch (Exception parsingEx) {
+                log.error("에러 메시지 파싱 실패", parsingEx);
+            }
+
+            return ResponseEntity.badRequest().body(errorMessage);
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("발송 실패: " + e.getMessage());
+            log.error("이메일 발송 중 알 수 없는 오류", e);
+            return ResponseEntity.badRequest().body("시스템 오류가 발생했습니다.");
         }
     }
 
