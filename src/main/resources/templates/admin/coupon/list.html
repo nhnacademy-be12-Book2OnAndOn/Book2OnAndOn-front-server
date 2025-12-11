@@ -53,7 +53,6 @@
                     <td th:text="${coupon.couponId}">1</td>
                     <td>
                         <span style="font-weight: bold;" th:text="${coupon.couponName}"></span>
-                        <br><span class="muted" th:text="${coupon.discountDescription}"></span>
                     </td>
 
                     <td th:text="${coupon.discountDescription}">5,000원 할인</td>
@@ -79,14 +78,16 @@
                     </td>
 
                     <td class="table-actions">
-                        <button class="btn-small" th:if="${coupon.status.name() == 'ACTIVE' and (coupon.endDate == null or !coupon.endDate.isBefore(today))}"
+                        <button class="btn-small"
+                                th:if="${coupon.status.name() == 'ACTIVE' and (coupon.endDate == null or !coupon.endDate.isBefore(today))}"
                                 th:onclick="openQuantityModal([[${coupon.couponId}]], [[${coupon.couponRemainingQuantity}]])"
                                 type="button">
                             수량 수정
                         </button>
 
                         <span class="muted"
-                              style="color: #e53935; font-weight: 700;" th:if="${coupon.endDate != null and coupon.endDate.isBefore(today)}">만료됨</span>
+                              style="color: #e53935; font-weight: 800;"
+                              th:if="${coupon.endDate != null and coupon.endDate.isBefore(today)}">만료됨</span>
                     </td>
                 </tr>
 
@@ -97,6 +98,23 @@
                 </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="pagination" th:if="${totalPage > 0}">
+            <a class="page-link"
+               th:href="@{/admin/coupons(page=${currentPage - 1}, size=${param.size != null ? param.size : 5}, status=${searchStatus})}"
+               th:if="${currentPage > 0}">&lt;</a>
+
+            <th:block th:each="i : ${#numbers.sequence(0, totalPage - 1)}">
+                <a class="page-link"
+                   th:classappend="${i == currentPage} ? 'active'"
+                   th:href="@{/admin/coupons(page=${i}, size=${param.size != null ? param.size : 5}, status=${searchStatus})}"
+                   th:text="${i + 1}">1</a>
+            </th:block>
+
+            <a class="page-link"
+               th:href="@{/admin/coupons(page=${currentPage + 1}, size=${param.size != null ? param.size : 5}, status=${searchStatus})}"
+               th:if="${currentPage < totalPage - 1}">&gt;</a>
         </div>
     </main>
 </div>

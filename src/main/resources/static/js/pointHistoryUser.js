@@ -9,6 +9,9 @@ let totalPages = 0;
 const initialHistory = window.initialPointHistory || null;
 const initialTotalPages = typeof window.initialTotalPages === 'number' ? window.initialTotalPages : 0;
 const initialCurrentPointValue = window.initialCurrentPointValue ?? null;
+const initialMonthlyEarned = window.initialMonthlyEarned ?? null;
+const initialMonthlyUsed = window.initialMonthlyUsed ?? null;
+const initialExpiringPoint = window.initialExpiringPoint ?? null;
 
 // 더미 데이터
 const DUMMY_CURRENT_POINT = 25000;
@@ -112,6 +115,19 @@ async function loadCurrentPoint() {
         if (el) {
             el.textContent = initialCurrentPointValue.toLocaleString() + ' P';
         }
+        // 초기 요약치도 함께 채우기
+        if (initialMonthlyEarned !== null) {
+            document.getElementById('monthlyEarned').textContent =
+                Number(initialMonthlyEarned).toLocaleString() + ' P';
+        }
+        if (initialMonthlyUsed !== null) {
+            document.getElementById('monthlyUsed').textContent =
+                Number(initialMonthlyUsed).toLocaleString() + ' P';
+        }
+        if (initialExpiringPoint !== null) {
+            document.getElementById('expiringPoint').textContent =
+                Number(initialExpiringPoint).toLocaleString() + ' P';
+        }
         return;
     }
 
@@ -165,7 +181,7 @@ async function loadCurrentPoint() {
 
 // 포인트 이력 조회
 async function loadHistory(page = 0) {
-    if (initialHistory) {
+    if (initialHistory && initialHistory.length > 0) {
         allHistory = [...initialHistory];
         totalPages = initialTotalPages || 1;
         updateSummaryFromHistory(allHistory);
@@ -354,15 +370,15 @@ function updateSummaryFromHistory(history) {
 }
 
 // 필터 변경
-function filterHistory(filter) {
+function filterHistory(evt, filter) {
     currentFilter = filter;
     currentPage = 0;
 
     // 탭 활성화 상태 변경
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    event.target.classList.add('active');
+    document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+    if (evt && evt.target) {
+        evt.target.classList.add('active');
+    }
 
     applyFilter();
 }

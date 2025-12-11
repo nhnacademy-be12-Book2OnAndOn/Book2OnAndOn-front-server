@@ -31,10 +31,10 @@
         <table class="admin-table">
             <thead>
             <tr>
-                <th style="width: 50px;">ID</th>
-                <th>아이디</th>
-                <th>이름</th>
-                <th>이메일</th>
+                <th class="table-col-id" style="width: 50px;">ID</th>
+                <th class="table-col-name">아이디</th>
+                <th class="table-col-name">이름</th>
+                <th class="table-col-email">이메일</th>
                 <th>등급</th>
                 <th>상태</th>
                 <th>권한</th>
@@ -43,7 +43,7 @@
             </thead>
             <tbody>
             <tr th:each="user : ${users}">
-                <td th:text="${user.userId}">1</td>
+                <td class="table-col-id" th:text="${user.userId}">1</td>
 
                 <td>
                     <a style="font-weight: bold; color: #2d5016; text-decoration: none;"
@@ -53,8 +53,8 @@
                     </a>
                 </td>
 
-                <td th:text="${user.name}">홍길동</td>
-                <td th:text="${user.email}">email@test.com</td>
+                <td class="table-col-name" th:text="${user.name}">홍길동</td>
+                <td class="table-col-email text-break" th:text="${user.email}">email@test.com</td>
                 <td><span class="badge" th:text="${user.gradeName}">BASIC</span></td>
                 <td>
                     <span class="badge"
@@ -63,15 +63,12 @@
                           th:text="${user.status}">ACTIVE</span>
                 </td>
                 <td th:text="${user.role}">USER</td>
-                <td>
-                    <!-- 수정됨: th:onclick → th:attr -->
-                    <button class="btn-small"
+                <td class="table-actions">
+                    <button class="btn-ghost-link dense"
                             th:attr="onclick=|openEditModal('${user.userId}', '${user.role}', '${user.gradeName}', '${user.status}')|">
                         수정
                     </button>
-
-                    <!-- 수정됨: th:onclick → th:attr -->
-                    <button class="btn-small" style="color: #c62828; border-color: #c62828;"
+                    <button class="btn-danger dense"
                             th:attr="onclick=|deleteUser('${user.userId}')|">
                         강퇴
                     </button>
@@ -80,17 +77,21 @@
             </tbody>
         </table>
 
-        <div class="pagination" style="margin-top: 20px; justify-content: center; display: flex; gap: 5px;">
-            <a class="btn-small"
-               style="text-decoration: none;"
-               th:href="@{/admin/users(page=${page.number - 1})}" th:if="${!page.first}">&lt; 이전</a>
+        <div class="pagination" th:if="${page.totalPages > 0}">
+            <a class="page-link"
+               th:if="${!page.first}"
+               th:href="@{/admin/users(page=${page.number - 1})}">&lt;</a>
 
-            <span style="padding: 5px 10px; color: #666;"
-                  th:text="${page.number + 1} + ' / ' + ${page.totalPages}">1 / 5</span>
+            <th:block th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                <a class="page-link"
+                   th:classappend="${i == page.number} ? 'active'"
+                   th:href="@{/admin/users(page=${i})}"
+                   th:text="${i + 1}">1</a>
+            </th:block>
 
-            <a class="btn-small"
-               style="text-decoration: none;"
-               th:href="@{/admin/users(page=${page.number + 1})}" th:if="${!page.last}">다음 &gt;</a>
+            <a class="page-link"
+               th:if="${!page.last}"
+               th:href="@{/admin/users(page=${page.number + 1})}">&gt;</a>
         </div>
 
     </main>
@@ -99,12 +100,14 @@
 <div class="modal" id="editModal">
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
-        <h3 style="margin-bottom: 20px;">회원 정보 수정</h3>
-        <form id="editForm" method="post">
-            <div class="form-row">
-                <label>권한</label>
-                <label for="editRole"></label>
-                <select id="editRole" name="role">
+        <div class="modal-title">
+            <h3>회원 정보 수정</h3>
+            <p class="muted">권한·등급·상태를 변경합니다.</p>
+        </div>
+        <form id="editForm" method="post" class="form-grid">
+            <div class="form-field">
+                <label for="editRole">권한</label>
+                <select id="editRole" name="role" class="form-control">
                     <option value="USER">회원</option>
                     <option value="MEMBER_ADMIN">회원 관리자</option>
                     <option value="BOOK_ADMIN">도서 관리자</option>
@@ -113,26 +116,27 @@
                     <option value="SUPER_ADMIN">총관리자</option>
                 </select>
             </div>
-            <div class="form-row">
-                <label>등급</label>
-                <label for="editGrade"></label>
-                <select id="editGrade" name="gradeName">
+            <div class="form-field">
+                <label for="editGrade">등급</label>
+                <select id="editGrade" name="gradeName" class="form-control">
                     <option value="BASIC">BASIC</option>
                     <option value="ROYAL">ROYAL</option>
                     <option value="GOLD">GOLD</option>
                     <option value="PLATINUM">PLATINUM</option>
                 </select>
             </div>
-            <div class="form-row">
-                <label>상태</label>
-                <label for="editStatus"></label>
-                <select id="editStatus" name="status">
+            <div class="form-field">
+                <label for="editStatus">상태</label>
+                <select id="editStatus" name="status" class="form-control">
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="DORMANT">DORMANT</option>
                     <option value="CLOSED">CLOSED</option>
                 </select>
             </div>
-            <button class="btn-primary" style="margin-top: 10px;" type="submit">수정 완료</button>
+            <div class="modal-actions" style="grid-column: 1 / -1; padding-top: 6px;">
+                <button type="button" class="btn-ghost" onclick="closeModal()">취소</button>
+                <button class="btn-primary" type="submit">수정 완료</button>
+            </div>
         </form>
     </div>
 </div>
@@ -180,6 +184,8 @@
         }
     }
 </script>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 </body>
 </html>

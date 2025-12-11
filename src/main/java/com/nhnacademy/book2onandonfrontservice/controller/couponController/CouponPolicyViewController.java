@@ -37,7 +37,7 @@ public class CouponPolicyViewController {
     // 정책 목록 조회 페이지
     @GetMapping
     public String listPolicies(@RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "10") int size,
+                               @RequestParam(defaultValue = "5") int size,
                                @RequestParam(required = false) CouponPolicyType type,
                                @RequestParam(required = false) CouponPolicyDiscountType discountType,
                                @RequestParam(required = false) CouponPolicyStatus status,
