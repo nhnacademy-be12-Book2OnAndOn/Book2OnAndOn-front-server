@@ -6,7 +6,7 @@
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
     <!-- Toast UI Editor (CDN) -->
-    <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+    <link href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" rel="stylesheet">
 
     <th:block
             th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
