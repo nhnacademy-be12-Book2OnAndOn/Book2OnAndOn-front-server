@@ -181,8 +181,9 @@ public class AdminViewController {
 
     /// 도서 등록
     @PostMapping("/books/create")
-    public String createBook(@ModelAttribute BookSaveRequest req,
+    public String createBook(@ModelAttribute(value = "book") BookSaveRequest req,
                              @RequestParam(value = "images", required = false) List<MultipartFile> images) {
+        log.info("북서비스 등록 BookSaveRequest: {}", req.toString());
         bookClient.createBook(req, images);
         return "redirect:/admin/books";
     }

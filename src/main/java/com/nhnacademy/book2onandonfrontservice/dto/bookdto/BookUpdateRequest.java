@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @AllArgsConstructor
@@ -40,13 +41,13 @@ public class BookUpdateRequest {
     private BookStatus status; // 책 재고 상태
 
     // 카테고리 및 태그, 포장 여부
-    private List<Long> categoryIds; // 카테고리
+    private Long categoryId; // 카테고리
     private Set<String> tagNames;  // 태그 리스트
     private Boolean isWrapped;  // 포장 여부
 
     // 이미지 url(경로)
     @Setter
-    private String imagePath;
+    private List<MultipartFile> imagePath;
 
     // 목차
     private String chapter;

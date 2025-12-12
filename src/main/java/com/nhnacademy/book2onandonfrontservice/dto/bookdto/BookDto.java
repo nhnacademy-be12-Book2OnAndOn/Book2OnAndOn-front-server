@@ -18,14 +18,14 @@ public class BookDto {
 
     private Long priceStandard; // 도서 정가
     private Long priceSales; // 도서 판매가
-    private Double rating; // 평점
+    private Double rating; //평점
 
-    private LocalDate publisherDate; //출간일
-
+    private LocalDate publisherDate;
     private List<String> contributorNames;  // 기여자 정보
     private List<String> publisherNames;    // 출판사
+    private List<String> tagNames;  // 태그
     private List<String> categoryNames;   // 카테고리
-    private List<String> tagNames; // 태그
+
     private String thumbnail;
 
     // 좋아요 UI용
