@@ -1,9 +1,25 @@
 package com.nhnacademy.book2onandonfrontservice.controller.couponController;
 
+import com.nhnacademy.book2onandonfrontservice.client.BookClient;
+import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
+import com.nhnacademy.book2onandonfrontservice.client.CouponPolicyClient;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponCreateDto;
+import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyDto;
+import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyUpdateDto;
+import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyDiscountType;
+import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyStatus;
+import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyType;
+import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -18,23 +34,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.nhnacademy.book2onandonfrontservice.client.BookClient;
-import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
-import com.nhnacademy.book2onandonfrontservice.client.CouponPolicyClient;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
-import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponCreateDto;
-import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyDto;
-import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyUpdateDto;
-import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyDiscountType;
-import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyStatus;
-import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyType;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Controller
 @RequestMapping("/admin/policies")
@@ -48,14 +47,17 @@ public class CouponPolicyViewController {
 
     // 정책 목록 조회 페이지
     @GetMapping
-    public String listPolicies(@RequestParam(defaultValue = "0") int page,
+    public String listPolicies(HttpServletRequest request,
+                               @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "10") int size,
                                @RequestParam(required = false) CouponPolicyType type,
                                @RequestParam(required = false) CouponPolicyDiscountType discountType,
                                @RequestParam(required = false) CouponPolicyStatus status,
                                Model model) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
-        Page<CouponPolicyDto> policyPage = couponPolicyClient.getPolicies(page, size, type, discountType, status);
+        Page<CouponPolicyDto> policyPage = couponPolicyClient.getPolicies(token, page, size, type,
+                discountType, status);
 
         model.addAttribute("policies", policyPage.getContent());
         model.addAttribute("currentPage", page);
@@ -87,16 +89,22 @@ public class CouponPolicyViewController {
 
     // --- 3. 정책 등록 처리 ---
     @PostMapping("/create")
-    public String createPolicy(@ModelAttribute CouponPolicyUpdateDto requestDto) {
+    public String createPolicy(HttpServletRequest request,
+                               @ModelAttribute CouponPolicyUpdateDto requestDto) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
         // 별도 변환 없이 바로 넘김 (Spring이 List<Long> 바인딩 처리)
-        couponPolicyClient.createPolicy(requestDto);
+        couponPolicyClient.createPolicy(token, requestDto);
         return "redirect:/admin/policies";
     }
 
     // --- 4. 정책 수정 폼 (핵심: 이름 매핑 정보 추가) ---
     @GetMapping("/update/{id}")
-    public String updateForm(@PathVariable Long id, Model model) {
-        CouponPolicyDto policy = couponPolicyClient.getPolicy(id);
+    public String updateForm(HttpServletRequest request,
+                             @PathVariable Long id, Model model) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
+        CouponPolicyDto policy = couponPolicyClient.getPolicy(token, id);
         List<CategoryDto> categories = bookClient.getCategories();
 
         // [DTO 변환] Null 처리 로직
@@ -159,16 +167,20 @@ public class CouponPolicyViewController {
 
     // 정책 수정 처리
     @PostMapping("/update/{id}")
-    public String updatePolicy(@PathVariable Long id,
+    public String updatePolicy(HttpServletRequest request,
+                               @PathVariable Long id,
                                @ModelAttribute CouponPolicyUpdateDto requestDto) {
-        couponPolicyClient.updatePolicy(id, requestDto);
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
+        couponPolicyClient.updatePolicy(token, id, requestDto);
         return "redirect:/admin/policies";
     }
 
     // 정책 상세 페이지
     @GetMapping("/details/{id}")
-    public String viewPolicyDetails(@PathVariable Long id, Model model) {
-        CouponPolicyDto policy = couponPolicyClient.getPolicy(id);
+    public String viewPolicyDetails(HttpServletRequest request, @PathVariable Long id, Model model) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        CouponPolicyDto policy = couponPolicyClient.getPolicy(token, id);
 
         // 도서 이름 매핑 (ID -> Title)
         Map<Long, String> bookNameMap = new HashMap<>();
@@ -200,15 +212,18 @@ public class CouponPolicyViewController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deactivatePolicy(@PathVariable Long id) {
-        couponPolicyClient.deactivatePolicy(id);
+    public String deactivatePolicy(HttpServletRequest request, @PathVariable Long id) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        couponPolicyClient.deactivatePolicy(token, id);
         return "redirect:/admin/policies";
     }
 
     @PostMapping("/{id}/create-coupon")
-    public String createCoupon(@PathVariable Long id, @RequestParam(required = false) Integer quantity) {
+    public String createCoupon(HttpServletRequest request, @PathVariable Long id,
+                               @RequestParam(required = false) Integer quantity) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
         CouponCreateDto requestDto = new CouponCreateDto(quantity, id);
-        couponClient.createCoupon(requestDto);
+        couponClient.createCoupon(token, requestDto);
         return "redirect:/admin/policies/details/" + id;
     }
 
@@ -225,7 +240,9 @@ public class CouponPolicyViewController {
 
     // 카테고리 트리에서 이름 찾기 (재귀)
     private void flattenCategoryTree(List<CategoryDto> nodes, Map<Long, String> map, List<Long> targetIds) {
-        if (nodes == null) return;
+        if (nodes == null) {
+            return;
+        }
         for (CategoryDto node : nodes) {
             // 찾는 대상(targetIds)에 현재 노드가 포함되어 있다면 Map에 저장
             if (targetIds.contains(node.getId())) {
@@ -235,12 +252,16 @@ public class CouponPolicyViewController {
             flattenCategoryTree(node.getChildren(), map, targetIds);
         }
     }
-    
+
     @ModelAttribute("policyTypes")
-    public CouponPolicyType[] policyTypes() { return CouponPolicyType.values(); }
+    public CouponPolicyType[] policyTypes() {
+        return CouponPolicyType.values();
+    }
 
     @ModelAttribute("discountTypes")
-    public CouponPolicyDiscountType[] discountTypes() { return CouponPolicyDiscountType.values(); }
+    public CouponPolicyDiscountType[] discountTypes() {
+        return CouponPolicyDiscountType.values();
+    }
 
     @ModelAttribute("statuses")
     public CouponPolicyStatus[] statuses() {
