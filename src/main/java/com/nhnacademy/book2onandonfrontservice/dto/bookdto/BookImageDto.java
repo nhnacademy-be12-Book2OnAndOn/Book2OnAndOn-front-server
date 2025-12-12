@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class BookImageDto {
     private Long id;
     private String url;
-    private boolean isThumbnail;
+//    private boolean isThumbnail;
 }

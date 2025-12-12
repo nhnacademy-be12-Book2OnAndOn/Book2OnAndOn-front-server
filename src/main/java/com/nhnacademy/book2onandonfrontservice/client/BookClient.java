@@ -50,9 +50,8 @@ public interface BookClient {
     Page<BookDto> getPopularBooks(@RequestParam("page") int page, @RequestParam("size") int size);
 
     /// 도서등록
-    @PostMapping(value = "/api/admin/books", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    Long createBook(@RequestHeader("Authorization") String accessToken,
-                    @RequestPart("book") BookSaveRequest request,
+    @PostMapping(value = "/api/admin/books", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    Long createBook(@RequestPart("book") BookSaveRequest request,
                     @RequestPart(value = "images", required = false) List<MultipartFile> images);
 
     /// 도서 수정
