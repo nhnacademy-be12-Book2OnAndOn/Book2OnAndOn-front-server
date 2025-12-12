@@ -191,7 +191,7 @@ public class AdminViewController {
         log.info("북서비스 등록 BookSaveRequest: {}", req.toString());
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
-        bookClient.createBook(req, images);
+        bookClient.createBook(token,req, images);
         return "redirect:/admin/books";
     }
 
