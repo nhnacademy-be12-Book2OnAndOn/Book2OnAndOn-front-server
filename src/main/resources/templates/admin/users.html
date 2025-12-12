@@ -48,13 +48,13 @@
                 <td>
                     <a style="font-weight: bold; color: #2d5016; text-decoration: none;"
                        th:href="@{/admin/users/{id}(id=${user.userId})}"
-                       th:text="${user.userLoginId}">
+                       th:text="${user.userLoginId}" class="user-text">
                         testuser
                     </a>
                 </td>
 
-                <td class="table-col-name" th:text="${user.name}">홍길동</td>
-                <td class="table-col-email text-break" th:text="${user.email}">email@test.com</td>
+                <td class="table-col-name user-text" th:text="${user.name}">홍길동</td>
+                <td class="table-col-email text-break user-text" th:text="${user.email}">email@test.com</td>
                 <td><span class="badge" th:text="${user.gradeName}">BASIC</span></td>
                 <td>
                     <span class="badge"
@@ -142,6 +142,16 @@
 </div>
 
 <script>
+    // 긴 텍스트만 축소 적용
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.user-text').forEach(el => {
+            const len = (el.textContent || '').trim().length;
+            if (len > 22) {
+                el.classList.add('compact-text');
+            }
+        });
+    });
+
     function openEditModal(userId, currentRole, currentGrade, currentStatus) {
         const modal = document.getElementById('editModal');
         const form = document.getElementById('editForm');

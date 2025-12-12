@@ -113,32 +113,7 @@
                     <a class="view-all" th:href="@{/books/new}">전체보기 →</a>
                 </div>
             </div>
-            <div class="book-grid">
-                <div class="book-card" th:each="book : ${newBooks}">
-                    <span class="book-badge" th:if="${book.tagNames != null and !book.tagNames.isEmpty()}" th:text="${book.tagNames[0]}">추천</span>
-                    <a class="book-cover" th:href="@{/books/{id}(id=${book.id})}">
-                        <img class="book-image" th:alt="${book.title}" th:if="${book.thumbnail != null}" th:src="${book.thumbnail}">
-                        <div class="thumb-fallback" th:unless="${book.thumbnail != null}">표지 준비중</div>
-                    </a>
-                    <div class="book-details">
-                        <a th:href="@{/books/{id}(id=${book.id})}" class="no-deco">
-                            <p class="book-title" th:text="${book.title}">제목</p>
-                        </a>
-                        <p class="book-author" th:text="${book.contributorNames != null and !book.contributorNames.isEmpty()} ? ${book.contributorNames[0]} : '저자 정보 없음'">저자</p>
-                        <div class="book-meta">
-                            <div class="rating"><span>★</span> <span th:text="${book.rating}">0.0</span></div>
-                            <div class="price-info">
-                                <span class="price" th:text="${book.priceSales != null} ? '₩' + ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} : '가격미정'">₩0</span>
-                            </div>
-                            <button class="like-btn" th:classappend="${book.likedByCurrentUser} ? 'active' : ''" th:onclick="'toggleLike(this, ' + ${book.id} + ')'" type="button">
-                                <span class="heart-icon"></span>
-                                <span class="like-count" th:text="${book.likeCount}">0</span>
-                            </button>
-                        </div>
-                    </div>
-                    <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
-                </div>
-            </div>
+            <div th:replace="~{fragments/dashboard :: sliderSection('newSlider', newBooks, 'NEW')}"></div>
         </div>
     </section>
 
@@ -161,32 +136,7 @@
                 </div>
             </div>
 
-            <div class="book-grid" th:if="${bestWeek != null and !bestWeek.isEmpty()}">
-                <div class="book-card" th:each="book : ${bestWeek}">
-                    <span class="book-badge" style="background-color: #ff6b6b; color: white;">WEEKLY BEST</span>
-                    <a class="book-cover" th:href="@{/books/{id}(id=${book.id})}">
-                        <img class="book-image" th:alt="${book.title}" th:if="${book.thumbnail != null}" th:src="${book.thumbnail}">
-                        <div class="thumb-fallback" th:unless="${book.thumbnail != null}">표지 준비중</div>
-                    </a>
-                    <div class="book-details">
-                        <a th:href="@{/books/{id}(id=${book.id})}" class="no-deco">
-                            <p class="book-title" th:text="${book.title}">제목</p>
-                        </a>
-                        <p class="book-author" th:text="${book.contributorNames != null and !book.contributorNames.isEmpty()} ? ${book.contributorNames[0]} : '저자 정보 없음'">저자</p>
-                        <div class="book-meta">
-                            <div class="rating"><span>★</span> <span th:text="${book.rating}">0.0</span></div>
-                            <div class="price-info">
-                                <span class="price" th:text="${book.priceSales != null} ? '₩' + ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} : '가격미정'">₩0</span>
-                            </div>
-                            <button class="like-btn" th:classappend="${book.likedByCurrentUser} ? 'active' : ''" th:onclick="'toggleLike(this, ' + ${book.id} + ')'" type="button">
-                                <span class="heart-icon"></span>
-                                <span class="like-count" th:text="${book.likeCount}">0</span>
-                            </button>
-                        </div>
-                    </div>
-                    <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
-                </div>
-            </div>
+            <div th:replace="~{fragments/dashboard :: sliderSection('bestWeekSlider', bestWeek, 'WEEKLY BEST')}"></div>
 
             <div class="book-grid" th:unless="${bestWeek != null and !bestWeek.isEmpty()}">
                 <div class="book-card placeholder">
@@ -208,32 +158,7 @@
                 </div>
             </div>
 
-            <div class="book-grid" th:if="${bestDaily != null and !bestDaily.isEmpty()}">
-                <div class="book-card" th:each="book : ${bestDaily}">
-                    <span class="book-badge" style="background-color: #20c997; color: white;">DAILY BEST</span>
-                    <a class="book-cover" th:href="@{/books/{id}(id=${book.id})}">
-                        <img class="book-image" th:alt="${book.title}" th:if="${book.thumbnail != null}" th:src="${book.thumbnail}">
-                        <div class="thumb-fallback" th:unless="${book.thumbnail != null}">표지 준비중</div>
-                    </a>
-                    <div class="book-details">
-                        <a th:href="@{/books/{id}(id=${book.id})}" class="no-deco">
-                            <p class="book-title" th:text="${book.title}">제목</p>
-                        </a>
-                        <p class="book-author" th:text="${book.contributorNames != null and !book.contributorNames.isEmpty()} ? ${book.contributorNames[0]} : '저자 정보 없음'">저자</p>
-                        <div class="book-meta">
-                            <div class="rating"><span>★</span> <span th:text="${book.rating}">0.0</span></div>
-                            <div class="price-info">
-                                <span class="price" th:text="${book.priceSales != null} ? '₩' + ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} : '가격미정'">₩0</span>
-                            </div>
-                            <button class="like-btn" th:classappend="${book.likedByCurrentUser} ? 'active' : ''" th:onclick="'toggleLike(this, ' + ${book.id} + ')'" type="button">
-                                <span class="heart-icon"></span>
-                                <span class="like-count" th:text="${book.likeCount}">0</span>
-                            </button>
-                        </div>
-                    </div>
-                    <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
-                </div>
-            </div>
+            <div th:replace="~{fragments/dashboard :: sliderSection('bestDailySlider', bestDaily, 'DAILY BEST')}"></div>
 
             <div class="book-grid" th:unless="${bestDaily != null and !bestDaily.isEmpty()}">
                 <div class="book-card placeholder">
@@ -254,31 +179,46 @@
                     <h2>인기 도서</h2>
                 </div>
             </div>
-            <div class="book-grid">
-                <div class="book-card" th:each="book : ${likeBest}">
-                    <span class="book-badge" style="background-color: #7950f2; color: white;">POPULAR</span>
-                    <a class="book-cover" th:href="@{/books/{id}(id=${book.id})}">
-                        <img class="book-image" th:alt="${book.title}" th:if="${book.thumbnail != null}" th:src="${book.thumbnail}">
-                        <div class="thumb-fallback" th:unless="${book.thumbnail != null}">표지 준비중</div>
-                    </a>
-                    <div class="book-details">
-                        <a th:href="@{/books/{id}(id=${book.id})}" class="no-deco">
-                            <p class="book-title" th:text="${book.title}">제목</p>
-                        </a>
-                        <p class="book-author" th:text="${book.contributorNames != null and !book.contributorNames.isEmpty()} ? ${book.contributorNames[0]} : '저자 정보 없음'">저자</p>
-                        <div class="book-meta">
-                            <div class="rating"><span>★</span> <span th:text="${book.rating}">0.0</span></div>
-                            <div class="price-info">
-                                <span class="price" th:text="${book.priceSales != null} ? '₩' + ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} : '가격미정'">₩0</span>
+            <div class="book-slider" id="popularSlider"
+                 th:with="books=${likeBest?.content}, total=${books != null ? #lists.size(books) : 0}, sliceCount=${total > 0 ? (total + 4) / 5 : 0}"
+                 th:if="${likeBest != null and !likeBest.isEmpty() and likeBest.content != null and !likeBest.content.isEmpty()}">
+                <button class="slider-btn slider-prev" type="button" aria-label="이전 인기 도서">‹</button>
+                <div class="slider-viewport">
+                    <div class="slider-track" th:if="${total > 0}">
+                        <th:block th:each="slice : ${#numbers.sequence(0, sliceCount - 1)}"
+                                  th:with="start=${slice * 5}, end=${T(java.lang.Math).min((slice + 1) * 5 - 1, total - 1)}">
+                            <div class="book-slide">
+                                <div class="book-grid slice-grid">
+                                    <div class="book-card" th:each="i : ${#numbers.sequence(start, end)}" th:with="book=${books[i]}">
+                                        <span class="book-badge" style="background-color: #7950f2; color: white;">POPULAR</span>
+                                        <a class="book-cover" th:href="@{/books/{id}(id=${book.id})}">
+                                            <img class="book-image" th:alt="${book.title}" th:if="${book.thumbnail != null}" th:src="${book.thumbnail}">
+                                            <div class="thumb-fallback" th:unless="${book.thumbnail != null}">표지 준비중</div>
+                                        </a>
+                                        <div class="book-details">
+                                            <a class="no-deco" th:href="@{/books/{id}(id=${book.id})}">
+                                                <p class="book-title" th:text="${book.title}">제목</p>
+                                            </a>
+                                            <p class="book-author" th:text="${book.contributorNames != null and !book.contributorNames.isEmpty()} ? ${book.contributorNames[0]} : '저자 정보 없음'">저자</p>
+                                            <div class="book-meta">
+                                                <div class="rating"><span>★</span> <span th:text="${book.rating}">0.0</span></div>
+                                                <div class="price-info">
+                                                    <span class="price" th:text="${book.priceSales != null} ? '₩' + ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} : '가격미정'">₩0</span>
+                                                </div>
+                                                <button class="like-btn" th:classappend="${book.likedByCurrentUser} ? 'active' : ''" th:onclick="'toggleLike(this, ' + ${book.id} + ')'" type="button">
+                                                    <span class="heart-icon"></span>
+                                                    <span class="like-count" th:text="${book.likeCount}">0</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
+                                    </div>
+                                </div>
                             </div>
-                            <button class="like-btn" th:classappend="${book.likedByCurrentUser} ? 'active' : ''" th:onclick="'toggleLike(this, ' + ${book.id} + ')'" type="button">
-                                <span class="heart-icon"></span>
-                                <span class="like-count" th:text="${book.likeCount}">0</span>
-                            </button>
-                        </div>
+                        </th:block>
                     </div>
-                    <button class="cart-button" th:onclick="'addToCart(' + ${book.id} + ')'"><span>장바구니</span></button>
                 </div>
+                <button class="slider-btn slider-next" type="button" aria-label="다음 인기 도서">›</button>
             </div>
         </div>
     </section>
@@ -334,6 +274,43 @@
                 }
             });
     }
+
+    // 슬라이더 초기화 (인기, 신간, 주간/일간 베스트 공용)
+    document.addEventListener('DOMContentLoaded', () => {
+        const sliders = document.querySelectorAll('.book-slider');
+
+        sliders.forEach(slider => {
+            const track = slider.querySelector('.slider-track');
+            const slides = Array.from(slider.querySelectorAll('.book-slide'));
+            const prevBtn = slider.querySelector('.slider-prev');
+            const nextBtn = slider.querySelector('.slider-next');
+            let index = 0;
+
+            if (!track || slides.length === 0 || !prevBtn || !nextBtn) return;
+
+            const update = () => {
+                track.style.transform = `translateX(-${index * 100}%)`;
+                prevBtn.disabled = index === 0;
+                nextBtn.disabled = index >= slides.length - 1;
+            };
+
+            prevBtn.addEventListener('click', () => {
+                if (index > 0) {
+                    index -= 1;
+                    update();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (index < slides.length - 1) {
+                    index += 1;
+                    update();
+                }
+            });
+
+            update();
+        });
+    });
     /*]]>*/
 </script>
 </body>

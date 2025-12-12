@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @AllArgsConstructor
@@ -46,7 +47,7 @@ public class BookSaveRequest {
 
     // 이미지 url(경로)
     @Setter
-    private String imagePath;
+    private List<MultipartFile> imagePath;
 
     // 목차
     private String chapter;

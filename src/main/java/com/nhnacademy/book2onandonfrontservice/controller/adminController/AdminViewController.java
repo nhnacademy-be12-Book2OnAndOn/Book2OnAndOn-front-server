@@ -23,9 +23,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.Current
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryAdminAdjustRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
-//import com.nhnacademy.book2onandonfrontservice.dto.userDto.UserGradeDto;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.UserGradeDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.AdminUserUpdateRequest;
-//import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserGradeRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserGradeRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,7 +58,7 @@ public class AdminViewController {
     private final UserClient userClient;
     private final CouponClient couponClient;
     private final BookClient bookClient;
-//    private final UserGradeClient userGradeClient;
+    private final UserGradeClient userGradeClient;
     private final DeliveryClient deliveryClient;
     private final DeliveryPolicyClient deliveryPolicyClient;
     private final PointAdminClient pointAdminClient;
@@ -89,7 +89,7 @@ public class AdminViewController {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
         try {
-            RestPage<UserResponseDto> userPage = userClient.getUsers(token, page, 5);
+            RestPage<UserResponseDto> userPage = userClient.getUsers(token, page, 10);
 
             model.addAttribute("users", userPage.getContent());
             model.addAttribute("page", userPage);
@@ -152,7 +152,7 @@ public class AdminViewController {
 
     @GetMapping("/coupons")
     public String listCoupons(@RequestParam(defaultValue = "0") int page,
-                              @RequestParam(defaultValue = "5") int size,
+                              @RequestParam(defaultValue = "10") int size,
                               @RequestParam(required = false) String status,
                               Model model) {
 
@@ -222,33 +222,33 @@ public class AdminViewController {
         return "redirect:/admin/books";
     }
 
-//    // 등급 목록 조회 페이지
-//    @GetMapping("/grades")
-//    public String gradeList(Model model) {
-//        List<UserGradeDto> grades = userGradeClient.getAllGrades();
-//        model.addAttribute("grades", grades);
-//        return "admin/grades/list";
-//    }
-//
-//    // 새 등급 생성
-//    @PostMapping("/grades")
-//    public String createGrade(@ModelAttribute UserGradeRequestDto request) {
-//        userGradeClient.createGrade(request);
-//        return "redirect:/admin/grades";
-//    }
-//
-//    // 등급 정보 수정
-//    @PostMapping("/grades/{gradeId}/update")
-//    public String updateGrade(@PathVariable Long gradeId, @ModelAttribute UserGradeRequestDto request) {
-//        userGradeClient.updateGrade(gradeId, request);
-//        return "redirect:/admin/grades";
-//    }
+    // 등급 목록 조회 페이지
+    @GetMapping("/grades")
+    public String gradeList(Model model) {
+        List<UserGradeDto> grades = userGradeClient.getAllGrades();
+        model.addAttribute("grades", grades);
+        return "admin/grades/list";
+    }
+
+    // 새 등급 생성
+    @PostMapping("/grades")
+    public String createGrade(@ModelAttribute UserGradeRequestDto request) {
+        userGradeClient.createGrade(request);
+        return "redirect:/admin/grades";
+    }
+
+    // 등급 정보 수정
+    @PostMapping("/grades/{gradeId}/update")
+    public String updateGrade(@PathVariable Long gradeId, @ModelAttribute UserGradeRequestDto request) {
+        userGradeClient.updateGrade(gradeId, request);
+        return "redirect:/admin/grades";
+    }
 
     ///  -------------------------- Deliveries Admin --------------------------------------
 
     @GetMapping("/deliveries")
     public String listDeliveries(@RequestParam(defaultValue = "0") int page,
-                                 @RequestParam(defaultValue = "5") int size,
+                                 @RequestParam(defaultValue = "10") int size,
                                  @RequestParam(required = false) OrderStatus status,
                                  Model model) {
 
@@ -295,7 +295,7 @@ public class AdminViewController {
 
     @GetMapping("/delivery-policies")
     public String getDeliveries(@RequestParam(defaultValue = "0") int page,
-                                @RequestParam(defaultValue = "5") int size,
+                                @RequestParam(defaultValue = "10") int size,
                                 Model model) {
         Page<DeliveryPolicyDto> deliveryPolicyPage = deliveryPolicyClient.getDeliveryPolicies(page, size);
         log.info("배송 정책 조회: {}", deliveryPolicyPage.getTotalElements());
@@ -355,13 +355,13 @@ public class AdminViewController {
     public String listUserPointHistory(@CookieValue(value = "accessToken", required = false) String accessToken,
                                        @RequestParam Long userId,
                                        @RequestParam(defaultValue = "0") int page,
-                                       @RequestParam(defaultValue = "5") int size,
+                                       @RequestParam(defaultValue = "10") int size,
                                        Model model) {
         if (accessToken == null) {
             return "redirect:/login";
         }
         page = Math.max(0, page);
-        size = size <= 0 ? 5 : size;
+        size = size <= 0 ? 10 : size;
         Page<PointHistoryResponseDto> historyPage = pointAdminClient.getUserPointHistory("Bearer " + accessToken,
                 userId, page, size);
         CurrentPointResponseDto currentPoint = pointAdminClient.getUserCurrentPoint("Bearer " + accessToken, userId);

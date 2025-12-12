@@ -1,5 +1,23 @@
 package com.nhnacademy.book2onandonfrontservice.controller.couponController;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.CouponPolicyClient;
@@ -13,18 +31,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.CouponPolicyU
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyDiscountType;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.couponPolicyDto.enums.CouponPolicyType;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @Controller
@@ -40,7 +49,7 @@ public class CouponPolicyViewController {
     // 정책 목록 조회 페이지
     @GetMapping
     public String listPolicies(@RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "5") int size,
+                               @RequestParam(defaultValue = "10") int size,
                                @RequestParam(required = false) CouponPolicyType type,
                                @RequestParam(required = false) CouponPolicyDiscountType discountType,
                                @RequestParam(required = false) CouponPolicyStatus status,
@@ -206,7 +215,7 @@ public class CouponPolicyViewController {
     @GetMapping("/books/search")
     @ResponseBody
     public ResponseEntity<Page<BookDto>> searchBooksForPolicy(@RequestParam("keyword") String keyword,
-                                                              @PageableDefault(size = 5) Pageable pageable) {
+                                                              @PageableDefault(size = 10) Pageable pageable) {
         BookSearchCondition condition = BookSearchCondition.builder()
                 .keyword(keyword)
                 .build();
