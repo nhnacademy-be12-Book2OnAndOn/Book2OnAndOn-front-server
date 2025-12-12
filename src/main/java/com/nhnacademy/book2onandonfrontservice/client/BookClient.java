@@ -51,7 +51,8 @@ public interface BookClient {
 
     /// 도서등록
     @PostMapping(value = "/api/admin/books", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    Long createBook(@RequestPart("book") BookSaveRequest request,
+    Long createBook(@RequestHeader("Authorization") String accessToken,
+                    @RequestPart("book") BookSaveRequest request,
                     @RequestPart(value = "images", required = false) List<MultipartFile> images);
 
     /// 도서 수정
