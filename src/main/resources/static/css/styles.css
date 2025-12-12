@@ -688,6 +688,78 @@ img {
     gap: 1.75rem;
 }
 
+.book-slider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.slider-viewport {
+    overflow: hidden;
+    flex: 1;
+}
+
+.slider-track {
+    display: flex;
+    transition: transform 0.3s ease;
+    width: 100%;
+}
+
+.book-slide {
+    flex: 0 0 100%;
+    padding: 4px;
+}
+
+.slice-grid {
+    grid-template-columns: repeat(5, minmax(180px, 1fr));
+    gap: 1.25rem;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.book-slider .book-card {
+    max-width: 220px;
+    width: 100%;
+    flex: 1 1 0;
+    min-height: 520px;
+    height: 100%;
+}
+
+.book-slider .book-cover img,
+.book-slider .thumb-fallback {
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
+}
+
+.slider-btn {
+    border: 1px solid #d5ddd6;
+    background: #ffffff;
+    color: #234132;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.slider-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.slider-btn:hover:not(:disabled) {
+    background: #eef3ef;
+    border-color: #cfd8d4;
+}
+
 .book-card {
     background: var(--white);
     border-radius: var(--radius-md);
@@ -697,6 +769,7 @@ img {
     flex-direction: column;
     gap: 0.8rem;
     position: relative;
+    height: 100%;
 }
 
 .book-badge {
@@ -720,10 +793,17 @@ img {
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
+    flex: 1;
 }
 
 .book-title {
     font-weight: 600;
+    min-height: 44px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .book-author {
@@ -736,7 +816,7 @@ img {
     justify-content: space-between;
     align-items: center;
     font-size: 0.9rem;
-    margin-top: 0.3rem;
+    margin-top: auto;
 }
 
 .rating span:first-child {
@@ -1480,5 +1560,3 @@ img {
         margin: 0 auto;
     }
 }
-
-

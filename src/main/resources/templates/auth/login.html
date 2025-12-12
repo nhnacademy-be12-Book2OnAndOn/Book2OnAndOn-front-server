@@ -33,6 +33,11 @@
                         <p>Book2OnAndOn에 오신 것을 환영합니다</p>
                     </div>
 
+                    <!-- 서버에서 전달한 에러 메시지 -->
+                    <div class="alert alert-error" th:if="${error}">
+                        <p th:text="${error}">아이디 또는 비밀번호가 올바르지 않습니다.</p>
+                    </div>
+
                     <div class="alert alert-error" th:if="${param.error}">
                         <p>아이디 또는 비밀번호가 올바르지 않습니다.</p>
                     </div>

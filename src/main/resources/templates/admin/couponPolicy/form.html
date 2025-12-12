@@ -186,7 +186,7 @@
                         </div>
                     </div>
 
-                    <div id="categoryTreeContainer" class="category-tree-box checkbox-box">
+                    <div id="categoryTreeContainer" class="category-tree-box">
                         <div class="muted" th:if="${#lists.isEmpty(categoryList)}">등록된 카테고리가 없습니다.</div>
                         <ul class="tree-root" th:unless="${#lists.isEmpty(categoryList)}">
                             <th:block th:each="rootCat : ${categoryList}">
@@ -195,7 +195,7 @@
                         </ul>
                     </div>
                     <input id="removeTargetCategoryFlag" th:field="*{removeTargetCategory}" type="hidden">
-                    <button class="remove-btn" data-flag="removeTargetCategoryFlag" data-target=".checkbox-box input[type='checkbox']" style="margin-top:5px;" type="button">전체 제거</button>
+                    <button class="remove-btn" data-flag="removeTargetCategoryFlag" data-target=".category-tree-box input[type='checkbox']" style="margin-top:5px;" type="button">전체 제거</button>
                 </div>
 
                 <div class="form-field" style="margin-top:1rem;" th:if="${policy.couponPolicyId != null}">
@@ -213,6 +213,8 @@
         </section>
     </main>
 </div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 <th:block th:fragment="categoryNode(cat)">
     <li class="tree-item" th:if="${cat != null}">
@@ -316,7 +318,7 @@
             listEl.innerHTML = '<li class="no-result">검색 중...</li>';
 
             try {
-                const res = await fetch(`/admin/policies/books/search?keyword=${encodeURIComponent(keyword)}&page=0&size=5`);
+                const res = await fetch(`/admin/policies/books/search?keyword=${encodeURIComponent(keyword)}&page=0&size=10`);
                 if(!res.ok) throw new Error("검색 실패");
 
                 const data = await res.json();

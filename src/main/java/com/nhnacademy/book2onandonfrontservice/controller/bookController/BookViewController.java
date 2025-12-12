@@ -1,11 +1,5 @@
 package com.nhnacademy.book2onandonfrontservice.controller.bookController;
 
-import com.nhnacademy.book2onandonfrontservice.client.BookClient;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -15,6 +9,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import com.nhnacademy.book2onandonfrontservice.client.BookClient;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Controller
 @RequiredArgsConstructor
@@ -30,7 +32,7 @@ public class BookViewController {
         Page<BookDto> response = bookClient.getNewArrivals(null, page, 8);
 //        List<BookDto> bestsellerDaily = bookClient.getBestsellers("DAILY");
 //        List<BookDto> bestsellerWeek = bookClient.getBestsellers("WEEK");
-        Page<BookDto> likeBest = bookClient.getPopularBooks(page, 0);
+        Page<BookDto> likeBest = bookClient.getPopularBooks(page, 20);
 
         if (response != null) {
             model.addAttribute("newBooks", response.getContent());

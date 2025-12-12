@@ -116,15 +116,17 @@ public class AuthViewController {
 
             try {
                 String responseBody = e.contentUTF8();
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, Object> errorMap = objectMapper.readValue(responseBody, Map.class);
+                if (responseBody != null && !responseBody.isBlank()) {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map<String, Object> errorMap = objectMapper.readValue(responseBody, Map.class);
 
-                if (errorMap != null) {
-                    if (errorMap.containsKey("message")) {
-                        errorMessage = (String) errorMap.get("message");
-                    }
-                    if (errorMap.containsKey("error")) {
-                        errorCode = (String) errorMap.get("error");
+                    if (errorMap != null) {
+                        if (errorMap.containsKey("message")) {
+                            errorMessage = (String) errorMap.get("message");
+                        }
+                        if (errorMap.containsKey("error")) {
+                            errorCode = (String) errorMap.get("error");
+                        }
                     }
                 }
             } catch (Exception parsingEx) {
@@ -185,11 +187,13 @@ public class AuthViewController {
             try {
                 // JSON 본문에서 message 추출 로직
                 String responseBody = e.contentUTF8();
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, Object> errorMap = objectMapper.readValue(responseBody, Map.class);
+                if (responseBody != null && !responseBody.isBlank()) {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map<String, Object> errorMap = objectMapper.readValue(responseBody, Map.class);
 
-                if (errorMap != null && errorMap.containsKey("message")) {
-                    errorMessage += " (" + errorMap.get("message") + ")";
+                    if (errorMap != null && errorMap.containsKey("message")) {
+                        errorMessage += " (" + errorMap.get("message") + ")";
+                    }
                 }
             } catch (Exception parsingEx) {
                 log.error("에러 메시지 파싱 실패", parsingEx);

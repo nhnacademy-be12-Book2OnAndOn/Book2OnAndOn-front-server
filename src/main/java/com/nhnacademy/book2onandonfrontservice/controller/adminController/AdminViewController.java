@@ -89,7 +89,7 @@ public class AdminViewController {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
         try {
-            RestPage<UserResponseDto> userPage = userClient.getUsers(token, page, 5);
+            RestPage<UserResponseDto> userPage = userClient.getUsers(token, page, 10);
 
             model.addAttribute("users", userPage.getContent());
             model.addAttribute("page", userPage);
@@ -152,7 +152,7 @@ public class AdminViewController {
 
     @GetMapping("/coupons")
     public String listCoupons(@RequestParam(defaultValue = "0") int page,
-                              @RequestParam(defaultValue = "5") int size,
+                              @RequestParam(defaultValue = "10") int size,
                               @RequestParam(required = false) String status,
                               Model model) {
 
@@ -248,7 +248,7 @@ public class AdminViewController {
 
     @GetMapping("/deliveries")
     public String listDeliveries(@RequestParam(defaultValue = "0") int page,
-                                 @RequestParam(defaultValue = "5") int size,
+                                 @RequestParam(defaultValue = "10") int size,
                                  @RequestParam(required = false) OrderStatus status,
                                  Model model) {
 
@@ -295,7 +295,7 @@ public class AdminViewController {
 
     @GetMapping("/delivery-policies")
     public String getDeliveries(@RequestParam(defaultValue = "0") int page,
-                                @RequestParam(defaultValue = "5") int size,
+                                @RequestParam(defaultValue = "10") int size,
                                 Model model) {
         Page<DeliveryPolicyDto> deliveryPolicyPage = deliveryPolicyClient.getDeliveryPolicies(page, size);
         log.info("배송 정책 조회: {}", deliveryPolicyPage.getTotalElements());
@@ -355,13 +355,13 @@ public class AdminViewController {
     public String listUserPointHistory(@CookieValue(value = "accessToken", required = false) String accessToken,
                                        @RequestParam Long userId,
                                        @RequestParam(defaultValue = "0") int page,
-                                       @RequestParam(defaultValue = "5") int size,
+                                       @RequestParam(defaultValue = "10") int size,
                                        Model model) {
         if (accessToken == null) {
             return "redirect:/login";
         }
         page = Math.max(0, page);
-        size = size <= 0 ? 5 : size;
+        size = size <= 0 ? 10 : size;
         Page<PointHistoryResponseDto> historyPage = pointAdminClient.getUserPointHistory("Bearer " + accessToken,
                 userId, page, size);
         CurrentPointResponseDto currentPoint = pointAdminClient.getUserCurrentPoint("Bearer " + accessToken, userId);
