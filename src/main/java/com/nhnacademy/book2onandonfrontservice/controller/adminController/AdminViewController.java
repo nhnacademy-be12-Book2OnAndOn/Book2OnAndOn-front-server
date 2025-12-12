@@ -185,13 +185,11 @@ public class AdminViewController {
 
     /// 도서 등록
     @PostMapping("/books/create")
-
-    public String createBook(HttpServletRequest request, @ModelAttribute(value = "book") BookSaveRequest req,
+    public String createBook(HttpServletRequest request, @ModelAttribute BookSaveRequest req,
                              @RequestParam(value = "images", required = false) List<MultipartFile> images) {
-        log.info("북서비스 등록 BookSaveRequest: {}", req.toString());
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
-        bookClient.createBook(token,req, images);
+        bookClient.createBook(token, req, images);
         return "redirect:/admin/books";
     }
 
@@ -242,7 +240,7 @@ public class AdminViewController {
     @GetMapping("/grades")
     public String gradeList(HttpServletRequest request, Model model) {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
-        List<UserGradeDto> grades = userGradeClient.getAllGrades(token);
+        List<UserGradeDto> grades = userGradeClient.getAllGrades();
         model.addAttribute("grades", grades);
         return "admin/grades/list";
     }
