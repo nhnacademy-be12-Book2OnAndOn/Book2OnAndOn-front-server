@@ -5,12 +5,14 @@ import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.MemberCouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.PointUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.MyLikedBookResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.UserGradeDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PasswordChangeRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressCreateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressUpdateRequest;
@@ -55,6 +57,7 @@ public class MyPageViewController {
     private final BookClient bookClient;
     private final MemberCouponClient memberCouponClient;
     private final PointUserClient pointUserClient;
+    private final UserGradeClient userGradeClient;
 
     //마이페이지
     @GetMapping
@@ -290,6 +293,16 @@ public class MyPageViewController {
                     .build();
 
             model.addAttribute("userUpdateRequest", updateRequest);
+            model.addAttribute("gradeName", user.getGradeName());
+
+            try {
+                List<UserGradeDto> allGrades = userGradeClient.getAllGrades();
+                allGrades.sort(Comparator.comparingInt(UserGradeDto::getPointCutline));
+                model.addAttribute("allGrades", allGrades);
+            } catch (Exception e) {
+                log.warn("등급 목록 조회 실패", e);
+                model.addAttribute("allGrades", List.of());
+            }
 
             return "user/mypage/edit";
         } catch (Exception e) {

@@ -11,11 +11,165 @@
 
 <body>
 <div th:fragment="content">
+    <style>
+        /* 등급 안내 메시지 영역 */
+        .grade-info-box {
+            background-color: #f8fbf8;
+            border: 1px solid #e0e7e2;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #333;
+        }
+
+        .grade-text strong {
+            color: #2d5016;
+            font-size: 1.1rem;
+        }
+
+        .btn-grade-guide {
+            background-color: #fff;
+            border: 1px solid #2d5016;
+            color: #2d5016;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-grade-guide:hover {
+            background-color: #2d5016;
+            color: #fff;
+        }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-card {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            background: #2d5016;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* 등급 리스트 스타일 */
+        .grade-list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .grade-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .grade-badge {
+            min-width: 80px;
+            text-align: center;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: white;
+            margin-right: 15px;
+        }
+
+        /* 등급별 색상 (필요시 classappend로 사용) */
+        .bg-BASIC {
+            background-color: #6c757d;
+        }
+
+        .bg-ROYAL {
+            background-color: #17a2b8;
+        }
+
+        .bg-GOLD {
+            background-color: #ffc107;
+            color: #333 !important;
+        }
+
+        .bg-PLATINUM {
+            background-color: #6f42c1;
+        }
+
+        .grade-desc {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .grade-desc strong {
+            color: #2d5016;
+        }
+    </style>
 
     <div class="address-form-container no-card">
         <h2>정보 관리</h2>
 
         <div class="error-box" th:if="${error}" th:text="${error}"></div>
+        <div class="grade-info-box">
+            <div class="grade-text">
+                회원님의 현재 등급은 <strong th:text="${gradeName}">BASIC</strong> 입니다.
+            </div>
+            <button type="button" class="btn-grade-guide" onclick="openGradeModal()">등급안내</button>
+        </div>
 
         <form method="post" onsubmit="return validateForm()" th:action="@{/users/me/edit}"
               th:object="${userUpdateRequest}">
@@ -66,8 +220,57 @@
 
         </form>
     </div>
+    <div id="gradeModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>회원 등급 안내</h3>
+                <button class="close-btn" onclick="closeGradeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div th:if="${#lists.isEmpty(allGrades)}">
+                    <p style="text-align:center; color:#999;">등급 정책 정보를 불러올 수 없습니다.</p>
+                </div>
+                <div th:unless="${#lists.isEmpty(allGrades)}">
+                    <div class="grade-list-item" th:each="grade : ${allGrades}">
+                        <span class="grade-badge"
+                              th:classappend="|bg-${grade.gradeName}|"
+                              th:text="${grade.gradeName}">BASIC</span>
+
+                        <div class="grade-desc">
+                            <div>포인트 적립률: <strong
+                                    th:text="${#numbers.formatInteger(grade.pointAddRate * 100, 0, 'COMMA')} + '%'">1%</strong>
+                            </div>
+                            <div style="font-size:0.85rem; color:#888; margin-top:2px;">
+                                (최근 3개월 순수 주문 <span th:text="${#numbers.formatInteger(grade.pointCutline, 0, 'COMMA')}">0</span>원
+                                이상)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; font-size: 0.85rem; color: #888; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                    💡 등급은 매 분기(1, 4, 7, 10월) 1일에 최근 3개월 실적을 기준으로 반영됩니다.
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
+        // [4. 모달 제어 스크립트]
+        function openGradeModal() {
+            document.getElementById('gradeModal').style.display = 'flex';
+        }
+
+        function closeGradeModal() {
+            document.getElementById('gradeModal').style.display = 'none';
+        }
+
+        // 모달 배경 클릭 시 닫기
+        window.addEventListener('click', function (event) {
+            const modal = document.getElementById('gradeModal');
+            if (event.target === modal) {
+                closeGradeModal();
+            }
+        });
         const originalEmail = document.getElementById('originalEmail').value;
         let isEmailVerified = true;
 
