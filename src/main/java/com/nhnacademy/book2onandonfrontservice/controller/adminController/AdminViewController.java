@@ -151,12 +151,14 @@ public class AdminViewController {
     }
 
     @GetMapping("/coupons")
-    public String listCoupons(@RequestParam(defaultValue = "0") int page,
+    public String listCoupons(HttpServletRequest request,
+                              @RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "10") int size,
                               @RequestParam(required = false) String status,
                               Model model) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
-        Page<CouponDto> couponPage = couponClient.getCoupons(page, size, status);
+        Page<CouponDto> couponPage = couponClient.getCoupons(token, page, size, status);
 
         model.addAttribute("coupons", couponPage.getContent());
         model.addAttribute("currentPage", page);
@@ -168,11 +170,13 @@ public class AdminViewController {
     }
 
     @PostMapping("/coupons/{couponId}/update-quantity")
-    public String updateQuantity(@PathVariable("couponId") Long couponId,
+    public String updateQuantity(HttpServletRequest request,
+                                 @PathVariable("couponId") Long couponId,
                                  @RequestParam(required = false) Integer quantity) {
 
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
         CouponUpdateDto updateDto = new CouponUpdateDto(quantity);
-        couponClient.updateCouponQuantity(couponId, updateDto);
+        couponClient.updateCouponQuantity(token, couponId, updateDto);
 
         return "redirect:/admin/coupons";
     }
@@ -181,9 +185,12 @@ public class AdminViewController {
 
     /// 도서 등록
     @PostMapping("/books/create")
-    public String createBook(@ModelAttribute(value = "book") BookSaveRequest req,
+
+    public String createBook(HttpServletRequest request, @ModelAttribute(value = "book") BookSaveRequest req,
                              @RequestParam(value = "images", required = false) List<MultipartFile> images) {
         log.info("북서비스 등록 BookSaveRequest: {}", req.toString());
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
         bookClient.createBook(req, images);
         return "redirect:/admin/books";
     }
@@ -199,61 +206,75 @@ public class AdminViewController {
 
     /// 도서 수정
     @PutMapping("/books/{bookId}")
-    public String updateBook(@ModelAttribute BookUpdateRequest req,
+    public String updateBook(HttpServletRequest request,
+                             @ModelAttribute BookUpdateRequest req,
                              @PathVariable Long bookId,
                              @RequestParam(value = "images", required = false) List<MultipartFile> images) {
-        bookClient.updateBook(bookId, req, images);
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        bookClient.updateBook(token, bookId, req, images);
         return "redirect:/admin/books";
     }
 
     /// 도서 삭제
     @DeleteMapping("/books/{bookId}")
-    public String deleteBook(@PathVariable Long bookId) {
-        bookClient.deleteBook(bookId);
+    public String deleteBook(HttpServletRequest request,
+                             @PathVariable Long bookId) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        bookClient.deleteBook(token, bookId);
         return "redirect:/admin/books";
     }
 
     /// 도서 상태변경
     @PatchMapping("/books/{bookId}/status")
-    public String updateStatus(@PathVariable Long bookId, @RequestParam("status") BookStatus status) {
+    public String updateStatus(HttpServletRequest req, @PathVariable Long bookId,
+                               @RequestParam("status") BookStatus status) {
         BookStatusUpdateRequest request = new BookStatusUpdateRequest(status);
+        String token = "Bearer " + CookieUtils.getCookieValue(req, "accessToken");
 
-        bookClient.updateBookStatus(bookId, request);
+        bookClient.updateBookStatus(token, bookId, request);
 
         return "redirect:/admin/books";
     }
 
+    ///  -------------------------- Grades Admin --------------------------------------
+
     // 등급 목록 조회 페이지
     @GetMapping("/grades")
-    public String gradeList(Model model) {
-        List<UserGradeDto> grades = userGradeClient.getAllGrades();
+    public String gradeList(HttpServletRequest request, Model model) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        List<UserGradeDto> grades = userGradeClient.getAllGrades(token);
         model.addAttribute("grades", grades);
         return "admin/grades/list";
     }
 
     // 새 등급 생성
     @PostMapping("/grades")
-    public String createGrade(@ModelAttribute UserGradeRequestDto request) {
-        userGradeClient.createGrade(request);
+    public String createGrade(HttpServletRequest req, @ModelAttribute UserGradeRequestDto request) {
+        String token = "Bearer " + CookieUtils.getCookieValue(req, "accessToken");
+        userGradeClient.createGrade(token, request);
         return "redirect:/admin/grades";
     }
 
     // 등급 정보 수정
     @PostMapping("/grades/{gradeId}/update")
-    public String updateGrade(@PathVariable Long gradeId, @ModelAttribute UserGradeRequestDto request) {
-        userGradeClient.updateGrade(gradeId, request);
+    public String updateGrade(HttpServletRequest req, @PathVariable Long gradeId,
+                              @ModelAttribute UserGradeRequestDto request) {
+        String token = "Bearer " + CookieUtils.getCookieValue(req, "accessToken");
+        userGradeClient.updateGrade(token, gradeId, request);
         return "redirect:/admin/grades";
     }
 
     ///  -------------------------- Deliveries Admin --------------------------------------
 
     @GetMapping("/deliveries")
-    public String listDeliveries(@RequestParam(defaultValue = "0") int page,
+    public String listDeliveries(HttpServletRequest request,
+                                 @RequestParam(defaultValue = "0") int page,
                                  @RequestParam(defaultValue = "10") int size,
                                  @RequestParam(required = false) OrderStatus status,
                                  Model model) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
-        Page<DeliveryDto> deliveryPage = deliveryClient.getDeliveries(page, size, status);
+        Page<DeliveryDto> deliveryPage = deliveryClient.getDeliveries(token, page, size, status);
         log.info("배송: {}", deliveryPage.getTotalElements());
         model.addAttribute("deliveries", deliveryPage.getContent());
         model.addAttribute("currentPage", page);
@@ -275,10 +296,12 @@ public class AdminViewController {
 
     //운송장 등록 처리 (배송 시작)
     @PostMapping("/deliveries/{deliveryId}/waybill")
-    public String registerWaybill(@PathVariable Long deliveryId,
+    public String registerWaybill(HttpServletRequest request,
+                                  @PathVariable Long deliveryId,
                                   @ModelAttribute DeliveryWaybillUpdateDto requestDto) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
-        deliveryClient.registerWaybill(deliveryId, requestDto);
+        deliveryClient.registerWaybill(token, deliveryId, requestDto);
 
         return "redirect:/admin/deliveries?status=PREPARING";
     }
@@ -286,19 +309,24 @@ public class AdminViewController {
 
     //운송장 정보 수정 처리
     @PostMapping("/deliveries/{deliveryId}/info")
-    public String updateDeliveryInfo(@PathVariable Long deliveryId,
+    public String updateDeliveryInfo(HttpServletRequest request,
+                                     @PathVariable Long deliveryId,
                                      @ModelAttribute DeliveryWaybillUpdateDto requestDto) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
-        deliveryClient.updateDeliveryInfo(deliveryId, requestDto);
+        deliveryClient.updateDeliveryInfo(token, deliveryId, requestDto);
 
         return "redirect:/admin/deliveries";
     }
 
     @GetMapping("/delivery-policies")
-    public String getDeliveries(@RequestParam(defaultValue = "0") int page,
+    public String getDeliveries(HttpServletRequest request,
+                                @RequestParam(defaultValue = "0") int page,
                                 @RequestParam(defaultValue = "10") int size,
                                 Model model) {
-        Page<DeliveryPolicyDto> deliveryPolicyPage = deliveryPolicyClient.getDeliveryPolicies(page, size);
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
+        Page<DeliveryPolicyDto> deliveryPolicyPage = deliveryPolicyClient.getDeliveryPolicies(token, page, size);
         log.info("배송 정책 조회: {}", deliveryPolicyPage.getTotalElements());
         model.addAttribute("deliveryPolicies", deliveryPolicyPage.getContent());
         model.addAttribute("currentPage", page);
@@ -314,9 +342,12 @@ public class AdminViewController {
     }
 
     @PostMapping("/delivery-policies")
-    public String createDeliveries(@ModelAttribute DeliveryPolicyDto dto) {
+    public String createDeliveries(HttpServletRequest request,
+                                   @ModelAttribute DeliveryPolicyDto dto) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
         log.info("배송 정책 요청 값: {}", dto);
-        deliveryPolicyClient.createDeliveryPolicy(dto);
+        deliveryPolicyClient.createDeliveryPolicy(token, dto);
         log.info("deliveryPolicyName = {}", dto.getDeliveryPolicyName());
         log.info("deliveryFee = {}", dto.getDeliveryFee());
         log.info("freeDeliveryThreshold = {}", dto.getFreeDeliveryThreshold());
@@ -332,9 +363,10 @@ public class AdminViewController {
     }
 
     @GetMapping("/delivery-policies/update/{id}")
-    public String updateForm(@PathVariable Long id, Model model) {
+    public String updateForm(HttpServletRequest request, @PathVariable Long id, Model model) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
-        DeliveryPolicyDto policy = deliveryPolicyClient.getDeliveryPolicy(id);
+        DeliveryPolicyDto policy = deliveryPolicyClient.getDeliveryPolicy(token, id);
 
         model.addAttribute("deliveryPolicyDto", policy);
         model.addAttribute("pageTitle", "배송 정책 수정");
@@ -343,10 +375,12 @@ public class AdminViewController {
 
     @PostMapping("/delivery-policies/{id}")
     public String updateDeliveryPolicy(
+            HttpServletRequest request,
             @PathVariable Long id,
             @ModelAttribute DeliveryPolicyDto dto) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
-        deliveryPolicyClient.updateDeliveryPolicy(id, dto);
+        deliveryPolicyClient.updateDeliveryPolicy(token, id, dto);
         return "redirect:/admin/delivery-policies";
     }
 

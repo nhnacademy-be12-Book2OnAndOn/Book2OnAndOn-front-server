@@ -11,21 +11,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "gateway-service", contextId = "couponClient", url = "${gateway.base-url}")
 public interface CouponClient {
 
     @PostMapping("/api/admin/coupons")
-    void createCoupon(@RequestBody CouponCreateDto requestDto);
+    void createCoupon(@RequestHeader("Authorization") String accessToken, @RequestBody CouponCreateDto requestDto);
 
     @GetMapping("/api/admin/coupons")
-    Page<CouponDto> getCoupons(@RequestParam("page") int page,
+    Page<CouponDto> getCoupons(@RequestHeader("Authorization") String accessToken, @RequestParam("page") int page,
                                @RequestParam("size") int size,
-                               @RequestParam(value = "status",required = false) String status);
+                               @RequestParam(value = "status", required = false) String status);
 
     @PutMapping("/api/admin/coupons/{couponId}")
-    void updateCouponQuantity(@PathVariable Long couponId,
+    void updateCouponQuantity(@RequestHeader("Authorization") String accessToken, @PathVariable Long couponId,
                               @RequestBody CouponUpdateDto updateDto);
 
     @GetMapping("/api/coupons/appliable")
@@ -33,5 +34,5 @@ public interface CouponClient {
                                   @RequestParam("categoryIds") List<Long> categoryIds);
 
     @PostMapping("/api/coupons/{couponId}/issue")
-    void issueCoupon(@PathVariable("couponId") Long couponId);
+    void issueCoupon(@RequestHeader("Authorization") String accessToken, @PathVariable("couponId") Long couponId);
 }

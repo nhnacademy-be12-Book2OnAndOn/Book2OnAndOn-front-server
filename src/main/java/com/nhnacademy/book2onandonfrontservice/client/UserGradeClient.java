@@ -9,20 +9,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "gateway-service", contextId = "userGradeClient", url = "${gateway.base-url}")
 public interface UserGradeClient {
     // 전체 등급 조회
     @GetMapping("/api/admin/grades")
-    List<UserGradeDto> getAllGrades();
+    List<UserGradeDto> getAllGrades(@RequestHeader("Authorization") String accessToken);
 
     // 등급 생성
     @PostMapping("/api/admin/grades")
-    void createGrade(@RequestBody UserGradeRequestDto request);
+    void createGrade(@RequestHeader("Authorization") String accessToken, @RequestBody UserGradeRequestDto request);
 
     // 등급 수정
     @PutMapping("/api/admin/grades/{gradeId}")
-    void updateGrade(@PathVariable("gradeId") Long gradeId, @RequestBody UserGradeRequestDto request);
+    void updateGrade(@RequestHeader("Authorization") String accessToken, @PathVariable("gradeId") Long gradeId,
+                     @RequestBody UserGradeRequestDto request);
 
 
 }

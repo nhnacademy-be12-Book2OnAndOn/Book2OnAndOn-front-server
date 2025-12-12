@@ -56,7 +56,8 @@ public interface BookClient {
 
     /// 도서 수정
     @PutMapping(value = "/api/books/{bookId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    void updateBook(@PathVariable("bookId") Long bookId,
+    void updateBook(@RequestHeader("Authorization") String accessToken,
+                    @PathVariable("bookId") Long bookId,
                     @RequestPart("book") BookUpdateRequest request,
                     @RequestPart(value = "images", required = false) List<MultipartFile> images);
 
@@ -70,11 +71,12 @@ public interface BookClient {
 
     /// 도서 삭제
     @DeleteMapping("/api/books/{bookId}")
-    void deleteBook(@PathVariable Long bookId);
+    void deleteBook(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId);
 
     /// 도서 상태 변경
     @PatchMapping("/api/books/{bookId}/status")
-    void updateBookStatus(@PathVariable Long bookId, @RequestBody BookStatusUpdateRequest req);
+    void updateBookStatus(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId,
+                          @RequestBody BookStatusUpdateRequest req);
 
     /// 도서 최근 본 상품 조회
     @GetMapping("/api/books/recent-views")
@@ -87,7 +89,8 @@ public interface BookClient {
 
     /// 좋아요 토글 요청
     @PostMapping("/api/books/{bookId}/likes")
-    BookLikeToggleResponse toggleLike(@PathVariable("bookId") Long bookId);
+    BookLikeToggleResponse toggleLike(@RequestHeader("Authorization") String accessToken,
+                                      @PathVariable("bookId") Long bookId);
 
     /// 북 검색엔진
     @GetMapping("/api/books/search")
