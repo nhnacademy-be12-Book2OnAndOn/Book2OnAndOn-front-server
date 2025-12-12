@@ -2,6 +2,8 @@ package com.nhnacademy.book2onandonfrontservice.controller.bookController;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookLikeToggleResponse;
+import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,15 +22,17 @@ public class BookApiController {
     private final BookClient bookClient;
 
     @PostMapping("/{bookId}/likes")
-    public ResponseEntity<?> toggleLike(@PathVariable Long bookId){
-        try{
-            BookLikeToggleResponse response = bookClient.toggleLike(bookId);
+    public ResponseEntity<?> toggleLike(HttpServletRequest request,
+                                        @PathVariable Long bookId) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        try {
+            BookLikeToggleResponse response = bookClient.toggleLike(token, bookId);
             return ResponseEntity.ok(response);
-        }catch (Exception e){
+        } catch (Exception e) {
             String msg = e.getMessage();
             log.error("좋아요 요청 실패: {}", msg);
 
-            if(msg!= null && msg.contains("401")){
+            if (msg != null && msg.contains("401")) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
             }
 

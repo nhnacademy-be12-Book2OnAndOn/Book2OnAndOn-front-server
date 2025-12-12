@@ -5,6 +5,7 @@
             <!-- TODO: 아이콘 변경하기 -->
             <a th:classappend="${activeMenu}=='dashboard' ? ' active'" th:href="@{/admin}">대시보드</a>
             <a th:classappend="${activeMenu}=='users' ? ' active'" th:href="@{/admin/users}">회원 관리</a>
+            <a th:classappend="${activeMenu}=='grades' ? ' active'" th:href="@{/admin/grades}">등급 관리</a>
             <a th:classappend="${activeMenu}=='books' ? ' active'" th:href="@{/admin/books/create}">도서 관리</a>
             <a th:classappend="${activeMenu}=='orders' ? ' active'" th:href="@{/admin/orders}">주문 관리</a>
             <a th:classappend="${activeMenu}=='deliveries' ? ' active'" th:href="@{/admin/deliveries}">배송 관리</a>
