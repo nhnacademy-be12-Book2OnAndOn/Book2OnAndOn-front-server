@@ -19,6 +19,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserAddressR
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -164,7 +165,7 @@ public interface UserClient {
 
     // [User] 내 좋아요 목록 조회
     @GetMapping("/api/users/me/likes")
-    RestPage<MyLikedBookResponseDto> getMyLikedBooks(
+    Page<MyLikedBookResponseDto> getMyLikedBooks(
             @RequestHeader("Authorization") String accessToken,
             @RequestParam("page") int page,
             @RequestParam("size") int size

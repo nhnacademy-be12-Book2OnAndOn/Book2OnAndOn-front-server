@@ -11,6 +11,7 @@ import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -50,4 +51,6 @@ public class BookSaveRequest {
 
     // -- 설명 - WYSIWYG 편집 후 결과 HTML -> Book.book_description에 그대로 저장
     private String descriptionHtml;
+
+    private String imageUrl;
 }

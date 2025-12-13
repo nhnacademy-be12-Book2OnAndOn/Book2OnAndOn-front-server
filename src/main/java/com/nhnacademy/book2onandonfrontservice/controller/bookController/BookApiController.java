@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/front/books")
+@RequestMapping("/front/books")
 @RequiredArgsConstructor
 public class BookApiController {
 

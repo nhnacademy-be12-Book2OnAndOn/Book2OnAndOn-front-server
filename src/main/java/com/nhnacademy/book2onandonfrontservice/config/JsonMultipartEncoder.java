@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewCreateRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewUpdateRequest;
 import feign.RequestTemplate;
 import feign.codec.EncodeException;
 import feign.codec.Encoder;
@@ -65,6 +67,7 @@ public class JsonMultipartEncoder implements Encoder {
     }
 
     private boolean isDto(Object object) {
-        return object instanceof BookSaveRequest || object instanceof BookUpdateRequest;
+        return object instanceof BookSaveRequest || object instanceof BookUpdateRequest
+                || object instanceof ReviewCreateRequest || object instanceof ReviewUpdateRequest;
     }
 }

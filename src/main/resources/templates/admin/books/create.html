@@ -5,13 +5,30 @@
     <title>도서 등록 | 관리자</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
-    <!-- Toast UI Editor (CDN) -->
     <link href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" rel="stylesheet">
+
+    <style>
+        .loading-overlay {
+            display: none; /* 기본 숨김 */
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
 
     <th:block
             th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 </head>
 <body>
+
+<div id="loading" class="loading-overlay">도서 정보를 불러오는 중입니다...</div>
+
 <main>
     <div class="admin-container">
         <th:block th:replace="~{fragments/admin :: adminSidebar('books')}"></th:block>
@@ -24,12 +41,13 @@
                 </div>
                 <div aria-label="도서 관리 빠른 이동" class="chip-tabs">
                     <a class="chip-tab" href="#" onclick="history.back(); return false;">← 이전 페이지</a>
-                    <a class="chip-tab" th:href="@{/admin/books}">📚 도서 관리 목록</a>
+                    <a class="chip-tab" th:href="@{/admin/books}">도서 관리 목록</a>
                 </div>
             </div>
 
             <form class="admin-detail-card" enctype="multipart/form-data" id="bookCreateForm" method="post"
                   th:action="@{/admin/books/create}">
+
                 <div class="admin-toolbar" style="margin-bottom: 12px;">
                     <span class="muted">필수 항목을 모두 입력 후 등록해주세요.</span>
                     <div class="spacer"></div>
@@ -42,9 +60,15 @@
                     <div class="form-grid category-tag-grid">
                         <div class="form-field tag-field">
                             <label for="isbn">ISBN *</label>
-                            <input class="form-control" id="isbn" name="isbn" placeholder="ISBN을 입력하세요" required
-                                   type="text">
+                            <div style="display: flex; gap: 8px;">
+                                <input class="form-control" id="isbn" name="isbn" placeholder="ISBN을 입력하세요" required
+                                       type="text">
+                                <button type="button" class="btn-primary" id="btnSearchIsbn" style="white-space: nowrap;">검색 & 자동입력</button>
+                            </div>
+
                             <div class="field-note">숫자/하이픈 포함 형식 허용</div>
+                            <div class="field-note">숫자만 입력 후 검색 버튼을 누르면 정보를 자동으로 불러옵니다.</div>
+
                         </div>
                         <div class="form-field">
                             <label for="title">도서명 *</label>
@@ -176,14 +200,29 @@
                 <section class="form-section">
                     <h4>이미지</h4>
                     <div class="form-grid" style="grid-template-columns: 1fr;">
+
                         <div class="form-field">
-                            <label for="images">대표/상세 이미지</label>
+                            <label for="googleImageUrl">이미지 URL (검색 결과 / 직접 입력)</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input class="form-control" id="googleImageUrl" name="imageUrl"
+                                       type="text" placeholder="http://..." style="flex: 1;">
+
+                                <button type="button" class="btn-ghost"
+                                        onclick="window.open(document.getElementById('googleImageUrl').value)">
+                                    보기
+                                </button>
+                            </div>
+                            <div class="field-note">파일을 업로드하지 않으면 이 URL의 이미지가 등록됩니다.</div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="images">파일 직접 업로드 (우선순위 높음)</label>
                             <label class="file-upload">
                                 <span class="file-label">파일 선택</span>
                                 <span class="file-name" id="fileNameDisplay">선택된 파일 없음</span>
                                 <input accept="image/*" id="images" multiple name="images" type="file">
                             </label>
-                            <div class="field-note">최대 여러 장 업로드 가능. 썸네일은 등록 후 별도 지정 가능합니다.</div>
+
                             <div class="chip-tabs" id="preview" style="margin-top: 10px; display: none;"></div>
                         </div>
                     </div>
@@ -199,207 +238,314 @@
 </main>
 
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
-<!-- Toast UI Editor JS (CDN) -->
 <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 <script src="https://uicdn.toast.com/editor/latest/i18n/ko-kr.min.js"></script>
 
 <script th:inline="javascript">
-    (function () {
-        const tagInput = document.querySelector('[data-tag-input]');
-        const tagAddBtn = document.querySelector('[data-tag-add]');
-        const tagList = document.querySelector('[data-tag-list]');
-        const form = document.getElementById('bookCreateForm');
-        const tags = new Set();
+    // 전역 변수로 선언하여 검색 로직에서도 접근 가능하게 함
+    let bookDescriptionEditor;
 
-        function renderTags() {
-            tagList.innerHTML = '';
-            tags.forEach((tag) => {
-                const pill = document.createElement('span');
-                pill.className = 'chip-tab active tag-chip';
-                pill.textContent = tag;
-                pill.style.cursor = 'pointer';
-                pill.title = '클릭하여 태그 제거';
-                pill.onclick = () => {
-                    tags.delete(tag);
-                    renderTags();
-                };
-                tagList.appendChild(pill);
-            });
-        }
-
-        function addTag() {
-            const value = (tagInput.value || '').trim();
-            if (!value) return;
-            value.split(',')
-                .map(v => v.trim())
-                .filter(Boolean)
-                .map(v => v.replace(/\s+/g, '_'))
-                .forEach(v => tags.add(v));
-            tagInput.value = '';
-            renderTags();
-        }
-
-        tagAddBtn?.addEventListener('click', addTag);
-        tagInput?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addTag();
-            }
-        });
-
-        form?.addEventListener('submit', () => {
-            // 기존 hidden tagNames 제거
-            form.querySelectorAll('input[data-tag-hidden]').forEach(el => el.remove());
-            tags.forEach(tag => {
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = 'tagNames';
-                hidden.value = tag;
-                hidden.setAttribute('data-tag-hidden', 'true');
-                form.appendChild(hidden);
-            });
-        });
-
-        // 이미지 간단 프리뷰
-        const imageInput = document.getElementById('images');
-        const preview = document.getElementById('preview');
-        const fileNameDisplay = document.getElementById('fileNameDisplay');
-        imageInput?.addEventListener('change', () => {
-            const files = Array.from(imageInput.files || []);
-            if (fileNameDisplay) {
-                fileNameDisplay.textContent = files.length
-                    ? files.map(f => f.name).join(', ')
-                    : '선택된 파일 없음';
-            }
-            if (preview) preview.style.display = 'none';
-        });
-    })();
-
-    // 카테고리 계층 드롭다운
-    (function () {
-        function normalizeCategories(raw) {
-            if (Array.isArray(raw)) return raw;
-            if (typeof raw === 'string') {
-                try {
-                    const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed)) return parsed;
-                    if (parsed && typeof parsed === 'object') return Object.values(parsed);
-                } catch (e) {
-                    return [];
-                }
-            }
-            if (raw && typeof raw === 'object' && raw.length === undefined) {
-                return Object.values(raw);
-            }
-            return [];
-        }
-
-        const categories = normalizeCategories(/*[[${categories}]]*/ []);
-
-        const form = document.getElementById('bookCreateForm');
-        const level1 = document.getElementById('categoryLevel1');
-        const level2 = document.getElementById('categoryLevel2');
-        const level3 = document.getElementById('categoryLevel3');
-        const level4 = document.getElementById('categoryLevel4');
-        const hidden = document.getElementById('categorySelected');
-
-        function clearOptions(select, placeholder) {
-            select.innerHTML = '';
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = placeholder;
-            select.appendChild(opt);
-            select.disabled = true;
-        }
-
-        function fillOptions(select, list, placeholder) {
-            clearOptions(select, placeholder);
-            if (!list || !list.length) return;
-            list.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat.id;
-                opt.textContent = cat.name;
-                opt.dataset.hasChildren = (cat.children && cat.children.length) ? 'true' : 'false';
-                select.appendChild(opt);
-            });
-            select.disabled = false;
-        }
-
-        function findById(list, id) {
-            return list.find(c => String(c.id) === String(id));
-        }
-
-        function updateHidden() {
-            const chosen = level4.value || level3.value || level2.value || level1.value;
-            hidden.value = chosen || '';
-        }
-
-        level1?.addEventListener('change', () => {
-            const selected = findById(categories, level1.value);
-            fillOptions(level2, selected?.children || [], '중분류 선택');
-            clearOptions(level3, '소분류 선택');
-            clearOptions(level4, '세분류 선택');
-            updateHidden();
-        });
-
-        level2?.addEventListener('change', () => {
-            const parent = findById(categories, level1.value);
-            const selected = findById(parent?.children || [], level2.value);
-            fillOptions(level3, selected?.children || [], '소분류 선택');
-            clearOptions(level4, '세분류 선택');
-            updateHidden();
-        });
-
-        level3?.addEventListener('change', () => {
-            const p1 = findById(categories, level1.value);
-            const p2 = findById(p1?.children || [], level2.value);
-            const selected = findById(p2?.children || [], level3.value);
-            fillOptions(level4, selected?.children || [], '세분류 선택');
-            updateHidden();
-        });
-
-        level4?.addEventListener('change', updateHidden);
-
-        // 초기 로드
-        fillOptions(level1, categories, '대분류 선택');
-        updateHidden();
-        form?.addEventListener('submit', (e) => {
-            updateHidden();
-            if (!hidden.value) {
-                e.preventDefault();
-                alert('카테고리를 선택해주세요.');
-            }
-        });
-    })();
-
-    // 상세 설명 WYSIWYG (Toast UI Editor)
-    (function () {
+    document.addEventListener('DOMContentLoaded', function() {
+        // [1] Toast UI Editor 초기화
         const editorEl = document.getElementById('descriptionEditor');
         const hiddenField = document.getElementById('descriptionHtml');
-        const form = document.getElementById('bookCreateForm');
-        if (!editorEl || !hiddenField || !window.toastui) return;
 
-        const Editor = toastui.Editor;
-        const editor = new Editor({
-            el: editorEl,
-            height: '300px',
-            initialEditType: 'wysiwyg',
-            previewStyle: 'vertical',
-            initialValue: hiddenField.value || '',
-            language: 'ko-KR',
-            placeholder: '도서 소개/상세 설명을 입력하세요.',
-            toolbarItems: [
-                ['heading', 'bold', 'italic', 'strike'],
-                ['ul', 'ol', 'task'],
-                ['table', 'image', 'link'],
-                ['quote', 'codeblock']
-            ]
-        });
+        if (editorEl && window.toastui) {
+            const Editor = toastui.Editor;
+            bookDescriptionEditor = new Editor({
+                el: editorEl,
+                height: '300px',
+                initialEditType: 'wysiwyg',
+                previewStyle: 'vertical',
+                initialValue: hiddenField.value || '',
+                language: 'ko-KR',
+                placeholder: '도서 소개/상세 설명을 입력하세요.',
+                toolbarItems: [
+                    ['heading', 'bold', 'italic', 'strike'],
+                    ['ul', 'ol', 'task'],
+                    ['table', 'image', 'link'],
+                    ['quote', 'codeblock']
+                ]
+            });
+        }
 
-        form?.addEventListener('submit', () => {
-            hiddenField.value = editor.getHTML();
-        });
-    })();
+        // [2] 태그 기능
+        (function () {
+            const tagInput = document.querySelector('[data-tag-input]');
+            const tagAddBtn = document.querySelector('[data-tag-add]');
+            const tagList = document.querySelector('[data-tag-list]');
+            const form = document.getElementById('bookCreateForm');
+            const tags = new Set();
+
+            function renderTags() {
+                tagList.innerHTML = '';
+                tags.forEach((tag) => {
+                    const pill = document.createElement('span');
+                    pill.className = 'chip-tab active tag-chip';
+                    pill.textContent = tag;
+                    pill.style.cursor = 'pointer';
+                    pill.title = '클릭하여 태그 제거';
+                    pill.onclick = () => {
+                        tags.delete(tag);
+                        renderTags();
+                    };
+                    tagList.appendChild(pill);
+                });
+            }
+
+            function addTag() {
+                const value = (tagInput.value || '').trim();
+                if (!value) return;
+                value.split(',')
+                    .map(v => v.trim())
+                    .filter(Boolean)
+                    .map(v => v.replace(/\s+/g, '_'))
+                    .forEach(v => tags.add(v));
+                tagInput.value = '';
+                renderTags();
+            }
+
+            tagAddBtn?.addEventListener('click', addTag);
+            tagInput?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag();
+                }
+            });
+
+            form?.addEventListener('submit', () => {
+                // 기존 hidden tagNames 제거
+                form.querySelectorAll('input[data-tag-hidden]').forEach(el => el.remove());
+                tags.forEach(tag => {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'tagNames';
+                    hidden.value = tag;
+                    hidden.setAttribute('data-tag-hidden', 'true');
+                    form.appendChild(hidden);
+                });
+                // 에디터 내용 동기화
+                if(bookDescriptionEditor) {
+                    hiddenField.value = bookDescriptionEditor.getHTML();
+                }
+            });
+
+            // 이미지 간단 프리뷰
+            const imageInput = document.getElementById('images');
+            const preview = document.getElementById('preview');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            imageInput?.addEventListener('change', () => {
+                const files = Array.from(imageInput.files || []);
+                if (fileNameDisplay) {
+                    fileNameDisplay.textContent = files.length
+                        ? files.map(f => f.name).join(', ')
+                        : '선택된 파일 없음';
+                }
+                if (preview) preview.style.display = 'none';
+            });
+        })();
+
+        // [3] 카테고리 계층 드롭다운
+        (function () {
+            function normalizeCategories(raw) {
+                if (Array.isArray(raw)) return raw;
+                if (typeof raw === 'string') {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) return parsed;
+                        if (parsed && typeof parsed === 'object') return Object.values(parsed);
+                    } catch (e) {
+                        return [];
+                    }
+                }
+                if (raw && typeof raw === 'object' && raw.length === undefined) {
+                    return Object.values(raw);
+                }
+                return [];
+            }
+
+            const categories = normalizeCategories(/*[[${categories}]]*/ []);
+            const form = document.getElementById('bookCreateForm');
+            const level1 = document.getElementById('categoryLevel1');
+            const level2 = document.getElementById('categoryLevel2');
+            const level3 = document.getElementById('categoryLevel3');
+            const level4 = document.getElementById('categoryLevel4');
+            const hidden = document.getElementById('categorySelected');
+
+            function clearOptions(select, placeholder) {
+                select.innerHTML = '';
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = placeholder;
+                select.appendChild(opt);
+                select.disabled = true;
+            }
+
+            function fillOptions(select, list, placeholder) {
+                clearOptions(select, placeholder);
+                if (!list || !list.length) return;
+                list.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    opt.dataset.hasChildren = (cat.children && cat.children.length) ? 'true' : 'false';
+                    select.appendChild(opt);
+                });
+                select.disabled = false;
+            }
+
+            function findById(list, id) {
+                return list.find(c => String(c.id) === String(id));
+            }
+
+            function updateHidden() {
+                const chosen = level4.value || level3.value || level2.value || level1.value;
+                hidden.value = chosen || '';
+            }
+
+            level1?.addEventListener('change', () => {
+                const selected = findById(categories, level1.value);
+                fillOptions(level2, selected?.children || [], '중분류 선택');
+                clearOptions(level3, '소분류 선택');
+                clearOptions(level4, '세분류 선택');
+                updateHidden();
+            });
+
+            level2?.addEventListener('change', () => {
+                const parent = findById(categories, level1.value);
+                const selected = findById(parent?.children || [], level2.value);
+                fillOptions(level3, selected?.children || [], '소분류 선택');
+                clearOptions(level4, '세분류 선택');
+                updateHidden();
+            });
+
+            level3?.addEventListener('change', () => {
+                const p1 = findById(categories, level1.value);
+                const p2 = findById(p1?.children || [], level2.value);
+                const selected = findById(p2?.children || [], level3.value);
+                fillOptions(level4, selected?.children || [], '세분류 선택');
+                updateHidden();
+            });
+
+            level4?.addEventListener('change', updateHidden);
+
+            // 초기 로드
+            fillOptions(level1, categories, '대분류 선택');
+            updateHidden();
+            form?.addEventListener('submit', (e) => {
+                updateHidden();
+                if (!hidden.value) {
+                    e.preventDefault();
+                    alert('카테고리를 선택해주세요.');
+                }
+            });
+        })();
+
+        // ISBN 검색 및 자동 입력
+        (function() {
+            const searchBtn = document.getElementById('btnSearchIsbn');
+            const loadingOverlay = document.getElementById('loading');
+
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function() {
+                    const isbnInput = document.getElementById('isbn').value.trim();
+
+                    if (!isbnInput) {
+                        alert("ISBN을 입력해주세요.");
+                        return;
+                    }
+
+                    // 로딩 표시
+                    loadingOverlay.style.display = 'flex';
+                    console.log("ISBN 검색 시작: " + isbnInput);
+
+                    // 프론트 컨트롤러 경로로 수정
+                    fetch(`/admin/books/search?isbn=${encodeURIComponent(isbnInput)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('도서 정보를 찾을 수 없습니다.');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("데이터 수신:", data);
+
+                            // 필드 매핑 헬퍼 함수
+                            const setValue = (id, val) => {
+                                const el = document.getElementById(id);
+                                if(el) el.value = val || '';
+                            };
+
+                            // 기본 정보
+                            setValue('title', data.title);
+                            setValue('volume', data.volume);
+                            setValue('contributorName', data.contributorName);
+
+                            // 출판 정보
+                            setValue('publisherName', data.publisherName);
+                            setValue('priceStandard', data.priceStandard);
+                            setValue('priceSales', data.priceSales);
+
+                            // 출판일 처리
+                            if (data.publishDate) {
+                                setValue('publishDate', data.publishDate);
+                            }
+
+                            // 목차
+                            setValue('chapter', data.chapter);
+
+                            // Google Books 이미지 URL (히든 필드)
+                            if (data.imageUrl) {
+                                // 1. URL 입력칸에 주소를 꽂아줍니다
+                                setValue('googleImageUrl', data.imageUrl);
+
+                                // 2. 미리보기 영역에도 띄워줍니다
+                                const previewDiv = document.getElementById('preview');
+                                if (previewDiv) {
+                                    previewDiv.style.display = 'flex';
+                                    previewDiv.innerHTML = `
+                <div class="chip-tab active" style="padding: 10px; border: 1px solid #ddd;">
+                    <span style="display:block; margin-bottom:5px; font-size:12px; color:#666;">검색된 이미지 미리보기:</span>
+                    <img src="${data.imageUrl}" alt="책 표지" style="height: 150px; object-fit: contain;">
+                </div>
+            `;
+                                }
+                            } else {
+                                // 이미지가 없을 때 메시지 표시
+                                document.getElementById('googleImageUrl').value = '';
+                                document.getElementById('googleImageUrl').placeholder = '검색된 이미지가 없습니다. 직접 입력하거나 파일을 업로드하세요.';
+                            }
+
+                            // 상세 설명 (Toast UI Editor)
+                            if (bookDescriptionEditor && data.descriptionHtml) {
+                                bookDescriptionEditor.setHTML(data.descriptionHtml);
+                            } else if (data.descriptionHtml) {
+                                // 에디터 로드 실패 시 fallback
+                                const hiddenField = document.getElementById('descriptionHtml');
+                                if (hiddenField) {
+                                    hiddenField.value = data.descriptionHtml;
+                                }
+                            }
+
+                            alert("도서 정보를 불러왔습니다. 필요한 정보를 확인/수정 후 등록해주세요.");
+                        })
+                        .catch(error => {
+                            console.error('ISBN 검색 오류:', error);
+                            alert("검색 실패: " + error.message + "\n\nISBN을 확인하거나 수동으로 입력해주세요.");
+                        })
+                        .finally(() => {
+                            // 로딩 숨김
+                            loadingOverlay.style.display = 'none';
+                        });
+                });
+            }
+        })();
+    });
 </script>
 </body>
 </html>

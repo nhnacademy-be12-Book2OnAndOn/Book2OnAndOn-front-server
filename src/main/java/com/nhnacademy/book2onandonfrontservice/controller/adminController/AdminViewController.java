@@ -57,7 +57,6 @@ public class AdminViewController {
 
     private final UserClient userClient;
     private final CouponClient couponClient;
-    private final BookClient bookClient;
     private final UserGradeClient userGradeClient;
     private final DeliveryClient deliveryClient;
     private final DeliveryPolicyClient deliveryPolicyClient;
@@ -181,60 +180,7 @@ public class AdminViewController {
         return "redirect:/admin/coupons";
     }
 
-    /// --------------------------Book Admin ------------------------------------
 
-    /// 도서 등록
-    @PostMapping("/books/create")
-
-    public String createBook(HttpServletRequest request, @ModelAttribute(value = "book") BookSaveRequest req,
-                             @RequestParam(value = "images", required = false) List<MultipartFile> images) {
-        log.info("북서비스 등록 BookSaveRequest: {}", req.toString());
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
-
-        bookClient.createBook(token,req, images);
-        return "redirect:/admin/books";
-    }
-
-    /// 도서 등록 페이지
-    @GetMapping("/books/create")
-    public String bookCreateForm(Model model) {
-        List<CategoryDto> categories = bookClient.getCategories();
-        model.addAttribute("categories", categories);
-        model.addAttribute("statuses", BookStatus.values());
-        return "admin/books/create";
-    }
-
-    /// 도서 수정
-    @PutMapping("/books/{bookId}")
-    public String updateBook(HttpServletRequest request,
-                             @ModelAttribute BookUpdateRequest req,
-                             @PathVariable Long bookId,
-                             @RequestParam(value = "images", required = false) List<MultipartFile> images) {
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
-        bookClient.updateBook(token, bookId, req, images);
-        return "redirect:/admin/books";
-    }
-
-    /// 도서 삭제
-    @DeleteMapping("/books/{bookId}")
-    public String deleteBook(HttpServletRequest request,
-                             @PathVariable Long bookId) {
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
-        bookClient.deleteBook(token, bookId);
-        return "redirect:/admin/books";
-    }
-
-    /// 도서 상태변경
-    @PatchMapping("/books/{bookId}/status")
-    public String updateStatus(HttpServletRequest req, @PathVariable Long bookId,
-                               @RequestParam("status") BookStatus status) {
-        BookStatusUpdateRequest request = new BookStatusUpdateRequest(status);
-        String token = "Bearer " + CookieUtils.getCookieValue(req, "accessToken");
-
-        bookClient.updateBookStatus(token, bookId, request);
-
-        return "redirect:/admin/books";
-    }
 
     ///  -------------------------- Grades Admin --------------------------------------
 

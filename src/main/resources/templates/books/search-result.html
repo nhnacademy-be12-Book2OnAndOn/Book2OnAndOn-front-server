@@ -11,27 +11,26 @@
             padding: 1.5rem 2rem;
             border-radius: 20px;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* 변수 대체 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
         .search-keyword {
-            color: #2d5f3f; /* 변수 대체 */
+            color: #2d5f3f;
             font-weight: 700;
             font-size: 1.2rem;
         }
         .no-result {
             text-align: center;
             padding: 4rem 0;
-            color: #6b7280; /* 변수 대체 */
+            color: #6b7280;
         }
         .book-link-overlay {
             position: absolute;
             inset: 0;
             z-index: 1;
         }
-        /* 정렬 선택 박스 스타일 추가 */
         .sort-select {
             padding: 0.5rem;
             border: 1px solid #e5e7eb;
@@ -41,7 +40,6 @@
             outline: none;
             cursor: pointer;
         }
-        /* 페이지네이션 버튼 스타일 보완 */
         .pagination button {
             padding: 0.5rem 1rem;
             margin: 0 0.2rem;
@@ -62,39 +60,9 @@
 </head>
 <body>
 
-<header class="main-header">
-    <div class="container header-bar">
-        <div class="logo-wrap">
-            <a href="/" class="logo-link">
-                <span class="brand-name">BOOK2</span>
-            </a>
-        </div>
+<th:block th:replace="~{fragments/layout :: commonHeader(${currentUser}, ${cartCount}, null, null, false)}"></th:block>
 
-        <div class="global-search">
-            <form action="/books/search" method="get" class="group">
-                <input type="hidden" name="sort" th:value="${condition.sort}">
-
-                <input type="text" class="input" name="keyword"
-                       th:value="${condition.keyword}"
-                       placeholder="찾으시는 도서명, 저자, ISBN을 입력하세요" />
-                <button type="submit" style="background:none; border:none; cursor:pointer; position:absolute; right:1rem;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#2d5f3f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            </form>
-        </div>
-
-        <div class="header-actions">
-            <a href="/cart" class="icon-btn cart">
-                <span class="fi fi-rs-cart">🛒</span>
-            </a>
-            <a href="/login" class="text-link">로그인</a>
-        </div>
-    </div>
-</header>
-
-<main class="container book-section">
+<main class="container book-section" style="margin-top: 2rem;">
 
     <div class="search-summary">
         <div>
@@ -107,14 +75,20 @@
 
         <div class="section-actions">
             <select class="sort-select" onchange="location.href=this.value">
-                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='RECENT')}"
-                        th:selected="${condition.sort == 'RECENT' or condition.sort == null}">최신순</option>
-                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='LIKE_DESC')}"
-                        th:selected="${condition.sort == 'LIKE_DESC'}">인기순</option>
-                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='PRICE_ASC')}"
-                        th:selected="${condition.sort == 'PRICE_ASC'}">가격 낮은순</option>
-                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='PRICE_DESC')}"
-                        th:selected="${condition.sort == 'PRICE_DESC'}">가격 높은순</option>
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='score')}"
+                        th:selected="${condition.sort == null or condition.sort.toString() == 'score'}">정확도순</option>
+
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='publishDate,desc')}"
+                        th:selected="${condition.sort != null and condition.sort.toString().contains('publishDate')}">최신순</option>
+
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='popularity,desc')}"
+                        th:selected="${condition.sort != null and condition.sort.toString().contains('popularity')}">인기순</option>
+
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='priceSales,asc')}"
+                        th:selected="${condition.sort != null and condition.sort.toString() == 'priceSales,asc'}">가격 낮은순</option>
+
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='priceSales,desc')}"
+                        th:selected="${condition.sort != null and condition.sort.toString() == 'priceSales,desc'}">가격 높은순</option>
             </select>
         </div>
     </div>
@@ -126,10 +100,9 @@
     </div>
 
     <div th:unless="${books.isEmpty()}" class="book-grid">
-
         <div th:each="book : ${books}" class="book-card">
             <div class="book-cover">
-                <img th:src="${book.imagePath != null and book.imagePath != '' ? book.imagePath : 'https://via.placeholder.com/200x300?text=No+Image'}"
+                <img th:src="${book.thumbnail != null and book.thumbnail != '' ? book.thumbnail : 'https://via.placeholder.com/200x300?text=No+Image'}"
                      alt="도서 표지"
                      style="width: 100%; height: 280px; object-fit: cover;" />
             </div>
@@ -141,12 +114,12 @@
                 </h3>
 
                 <p class="book-author"
-                   th:text="${#strings.listJoin(book.contributorNames, ', ')}">저자명</p>
+                   th:text="${book.contributorNames != null ? #strings.listJoin(book.contributorNames, ', ') : ''}">저자명</p>
 
                 <div class="book-meta">
                     <div class="rating">
                         <span>★</span>
-                        <span th:text="${book.rating != null ? book.rating : '0.0'}">0.0</span>
+                        <span th:text="${book.reviewRating != null ? book.reviewRating : '0.0'}">0.0</span>
                     </div>
                     <div class="price-info">
                         <span class="price" th:text="${#numbers.formatInteger(book.priceSales, 0, 'COMMA') + '원'}">15,000원</span>
@@ -166,11 +139,9 @@
                 장바구니 담기
             </button>
         </div>
-
     </div>
 
     <div th:if="${!books.isEmpty()}" class="pagination" style="margin-top: 2rem; display: flex; justify-content: center;">
-
         <button th:if="${page.hasPrevious()}"
                 th:onclick="|location.href='@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number - 1})}'|">
             &lt;
@@ -193,19 +164,7 @@
 
 </main>
 
-<footer class="site-footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div>
-                <h4>BOOK2 ON & ON</h4>
-                <p>당신의 지식을 깨우는 시간</p>
-            </div>
-            <div class="copyright">
-                &copy; 2025 Book2OnAndOn. All rights reserved.
-            </div>
-        </div>
-    </div>
-</footer>
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 </body>
 </html>
