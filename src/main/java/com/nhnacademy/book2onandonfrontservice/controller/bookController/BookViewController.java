@@ -69,7 +69,7 @@ public class BookViewController {
 //        model.addAttribute("popularTags", bookClient.getPopularTags());
     }
 
-    @PostMapping("/books/search")
+    @GetMapping("/books/search")
     public String searchBooks(@ModelAttribute BookSearchCondition condition,
                               @PageableDefault(size = 20) Pageable pageable,
                               Model model) {

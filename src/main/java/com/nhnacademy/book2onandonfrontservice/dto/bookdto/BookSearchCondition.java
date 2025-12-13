@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 // BookList - 목록 조회에서 검색 조건용 dto
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
