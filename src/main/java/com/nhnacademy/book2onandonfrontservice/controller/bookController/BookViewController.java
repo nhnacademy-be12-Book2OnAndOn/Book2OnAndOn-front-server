@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
@@ -68,7 +69,7 @@ public class BookViewController {
 //        model.addAttribute("popularTags", bookClient.getPopularTags());
     }
 
-    @GetMapping("/books/search")
+    @PostMapping("/books/search")
     public String searchBooks(@ModelAttribute BookSearchCondition condition,
                               @PageableDefault(size = 20) Pageable pageable,
                               Model model) {
@@ -77,14 +78,6 @@ public class BookViewController {
         model.addAttribute("page", result);
         model.addAttribute("condition", condition);
 
-        /**
-         * <form action="/books/search" method="get" class="search-form">
-         *     <input type="text" name="keyword" placeholder="책 제목, 저자, ISBN 검색..." required>
-         *
-         *     <button type="submit">검색</button>
-         * </form>
-         */
-        //TODO: 밍서가 작성하시오.
         return "books/search-result";
     }
 }

@@ -9,6 +9,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatusUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewCreateRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewUpdateRequest;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
@@ -49,6 +52,11 @@ public interface BookClient {
     @GetMapping("/api/books/popular")
     Page<BookDto> getPopularBooks(@RequestParam("page") int page, @RequestParam("size") int size);
 
+    /// 도서 등록 GoogleBooksApi
+    @GetMapping("/api/admin/books/lookup")
+    BookSaveRequest lookupBook(@RequestHeader("Authorization") String accessToken,
+                               @RequestParam String isbn);
+
     /// 도서등록
     @PostMapping(value = "/api/admin/books", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     Long createBook(@RequestHeader("Authorization") String accessToken,
@@ -56,7 +64,7 @@ public interface BookClient {
                     @RequestPart(value = "images", required = false) List<MultipartFile> images);
 
     /// 도서 수정
-    @PutMapping(value = "/api/books/{bookId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/api/admin/books/{bookId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     void updateBook(@RequestHeader("Authorization") String accessToken,
                     @PathVariable("bookId") Long bookId,
                     @RequestPart("book") BookUpdateRequest request,
@@ -64,7 +72,7 @@ public interface BookClient {
 
     /// 도서 썸네일 지정 컨트롤러
     @PutMapping("/api/admin/books/{bookId}/images/{imageId}/thumbnail")
-    void updateThumbnail(@PathVariable Long bookId, @PathVariable Long imageId);
+    void updateThumbnail(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId, @PathVariable Long imageId);
 
     /// 도서 상세 정보
     @GetMapping("/api/books/{bookId}")
@@ -93,8 +101,39 @@ public interface BookClient {
     BookLikeToggleResponse toggleLike(@RequestHeader("Authorization") String accessToken,
                                       @PathVariable("bookId") Long bookId);
 
+    /// --------------- elastic search -----------------
     /// 북 검색엔진
-    @GetMapping("/api/books/search")
+    @PostMapping("/api/books/search")
     Page<BookDto> searchBooks(@SpringQueryMap BookSearchCondition condition,//필드들을 뜯어서 검색조건으로 만듦 즉, 쿼리 파라미터로 만들수 있음
-                              @PageableDefault(size = 20) Pageable pageable);
+                              @PageableDefault Pageable pageable);
+
+
+
+    /// ----------------- Review -------------------
+    /// 리뷰생성
+    @PostMapping(value = "/api/books/{bookId}/reivews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    Long createReview(@RequestHeader("Authorization") String accessToken,
+                      @PathVariable("bookId") Long bookId,
+                      @RequestPart("request") ReviewCreateRequest request,
+                      @RequestPart(value = "images", required = false) List<MultipartFile> images);
+
+    /// 리뷰 수정
+    @PutMapping(value = "/api/books/reviews/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    void updateReview(@RequestHeader("Authorization") String accessToken,
+                      @PathVariable("reviewId") Long reviewId,
+                      @RequestPart(value = "request") @Valid ReviewUpdateRequest request,
+                      @RequestPart(value = "images", required = false) List<MultipartFile> newImages);
+
+    /// --------------할인율 변경 및 가격 상태조회---------------
+    /// 할인율 변경 요청 (비동기 실행됨)
+    @PostMapping("/api/admin/price/discount")
+    String updateDiscountRate(@RequestHeader("Authorization") String accessToken, @RequestParam("rate") int rate);
+
+    /**
+     * 가격 상태조회
+     * 현재 상시 할인율이 변경되고 있는지 db가 전부 리프레쉬 됐는지 확인하는 버튼? 아님 알림 창
+     */
+    @GetMapping("/api/admin/price/status")
+    String getUpdateStatus(@RequestHeader("Authorization") String accessToken);
+
 }

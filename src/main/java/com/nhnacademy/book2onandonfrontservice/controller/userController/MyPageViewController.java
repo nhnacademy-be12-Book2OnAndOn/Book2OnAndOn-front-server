@@ -254,7 +254,7 @@ public class MyPageViewController {
             UserResponseDto myInfo = userClient.getMyInfo("Bearer " + accessToken);
             model.addAttribute("user", myInfo);
 
-            RestPage<MyLikedBookResponseDto> rest = userClient.getMyLikedBooks("Bearer " + accessToken, page, 12);
+            Page<MyLikedBookResponseDto> rest = userClient.getMyLikedBooks("Bearer " + accessToken, page, 12);
 
             model.addAttribute("books", rest.getContent());
             model.addAttribute("currentPage", page);

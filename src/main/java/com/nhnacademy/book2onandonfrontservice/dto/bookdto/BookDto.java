@@ -28,6 +28,8 @@ public class BookDto {
 
     private String thumbnail;
 
+    private String aiRecommendation;
+
     // 좋아요 UI용
     private Boolean likedByCurrentUser = false;
     private Long likeCount = 0L;
