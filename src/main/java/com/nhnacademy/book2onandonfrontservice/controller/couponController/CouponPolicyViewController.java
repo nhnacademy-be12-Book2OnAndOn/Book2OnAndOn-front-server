@@ -227,7 +227,7 @@ public class CouponPolicyViewController {
         return "redirect:/admin/policies/details/" + id;
     }
 
-    @GetMapping("/books/search")
+    @PostMapping("/books/search")
     @ResponseBody
     public ResponseEntity<Page<BookDto>> searchBooksForPolicy(@RequestParam("keyword") String keyword,
                                                               @PageableDefault(size = 10) Pageable pageable) {
