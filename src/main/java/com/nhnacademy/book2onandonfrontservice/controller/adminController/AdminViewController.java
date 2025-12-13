@@ -188,7 +188,7 @@ public class AdminViewController {
     @GetMapping("/grades")
     public String gradeList(HttpServletRequest request, Model model) {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
-        List<UserGradeDto> grades = userGradeClient.getAllGrades(token);
+        List<UserGradeDto> grades = userGradeClient.getAllGrades();
         model.addAttribute("grades", grades);
         return "admin/grades/list";
     }

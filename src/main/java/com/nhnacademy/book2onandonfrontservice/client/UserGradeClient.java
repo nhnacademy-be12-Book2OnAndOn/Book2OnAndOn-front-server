@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface UserGradeClient {
     // 전체 등급 조회
     @GetMapping("/api/admin/grades")
-    List<UserGradeDto> getAllGrades(@RequestHeader("Authorization") String accessToken);
+    List<UserGradeDto> getAllGrades();
 
     // 등급 생성
     @PostMapping("/api/admin/grades")
