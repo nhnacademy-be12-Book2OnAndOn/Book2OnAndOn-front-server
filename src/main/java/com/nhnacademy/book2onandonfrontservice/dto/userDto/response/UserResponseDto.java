@@ -21,5 +21,4 @@ public class UserResponseDto {
     private String role;
     private String gradeName;
     private String status;
-    private String provider;
 }

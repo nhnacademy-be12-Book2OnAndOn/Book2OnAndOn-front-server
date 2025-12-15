@@ -54,9 +54,7 @@ public class AdminInterceptor implements HandlerInterceptor {
      */
     private boolean hasPermission(String uri, String role) {
         // [회원 관리자] : 회원, 등급, 포인트 내역
-        if (uri.startsWith("/admin/users") || uri.startsWith("/admin/grades") || uri.startsWith("/admin/points")
-                || uri.startsWith(
-                "/admin/point-policies")) {
+        if (uri.startsWith("/admin/users") || uri.startsWith("/admin/grades") || uri.startsWith("/admin/points")) {
             return "ROLE_MEMBER_ADMIN".equals(role);
         }
 
@@ -66,7 +64,8 @@ public class AdminInterceptor implements HandlerInterceptor {
         }
 
         // [쿠폰 관리자] : 쿠폰, 쿠폰 정책, 포인트 정책
-        if (uri.startsWith("/admin/coupons") || uri.startsWith("/admin/policies")) {
+        if (uri.startsWith("/admin/coupons") || uri.startsWith("/admin/policies") || uri.startsWith(
+                "/admin/point-policies")) {
             return "ROLE_COUPON_ADMIN".equals(role);
         }
 
