@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>장바구니 - Book2OnAndOn</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/cart.css}">
+</head>
+<body>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+<main>
+    <section class="cart-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">장바구니</h1>
+                <p class="page-subtitle">담아둔 상품을 확인하고 한 번에 주문하세요.</p>
+            </div>
+        </div>
+
+        <div class="cart-header">
+            <div class="select-all">
+                <input id="selectAll" onchange="toggleSelectAll()" type="checkbox">
+                <label for="selectAll">전체선택</label>
+            </div>
+            <div class="cart-actions">
+                <button class="btn btn-delete" onclick="deleteSelected()">선택삭제</button>
+                <button class="btn btn-secondary" onclick="clearCart()">전체삭제</button>
+            </div>
+        </div>
+
+        <div id="cartContent">
+            <!-- 장바구니 아이템이 여기에 표시됩니다 -->
+        </div>
+
+        <div class="cart-summary" id="cartSummary" style="display: none;">
+            <div class="summary-row">
+                <span>상품금액</span>
+                <span id="subtotal">0원</span>
+            </div>
+            <div class="summary-row">
+                <span>배송비</span>
+                <span id="shipping">무료</span>
+            </div>
+            <div class="summary-row total">
+                <span>총 결제금액</span>
+                <span id="total">0원</span>
+            </div>
+            <button class="btn-checkout" onclick="checkout()">주문하기</button>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script th:src="@{/js/cart.js}"></script>
+</body>
+</html>

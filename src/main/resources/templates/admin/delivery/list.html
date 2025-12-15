@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 - 배송 관리</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+<main>
+    <div class="admin-container">
+        <th:block th:replace="~{fragments/admin :: adminSidebar('deliveries')}"></th:block>
+
+        <section class="admin-content">
+            <div class="admin-header">
+                <div>
+                    <p class="eyebrow">주문 / 배송</p>
+                    <h2>배송 관리</h2>
+                    <p class="muted" th:text="${searchStatus != null} ? searchStatus.description : '전체 배송 보기'">전체 배송
+                        보기</p>
+                </div>
+            </div>
+
+            <form action="/admin/deliveries" class="admin-toolbar" method="get">
+                <label for="status">주문 상태</label>
+                <select id="status" name="status">
+                    <option value="">전체 보기</option>
+                    <option th:each="st : ${orderStatuses}"
+                            th:selected="${st == searchStatus}"
+                            th:text="${st.description != null ? st.description : st.name()}"
+                            th:value="${st}">
+                    </option>
+                </select>
+                <div class="spacer"></div>
+                <button class="btn-primary" type="submit">검색</button>
+                <a class="btn-ghost" href="/admin/deliveries">초기화</a>
+            </form>
+
+            <div class="table-card">
+                <table class="admin-table">
+                    <thead>
+                    <tr>
+                        <th>배송 ID</th>
+                        <th>주문 번호</th>
+                        <th>택배사</th>
+                        <th>운송장 번호</th>
+                        <th>배송 시작일</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="delivery : ${deliveries}">
+                        <td th:text="${delivery.deliveryId}"></td>
+                        <td th:text="${delivery.orderId}"></td>
+                        <td th:text="${delivery.deliveryCompany != null ? delivery.deliveryCompany : '-'}"></td>
+                        <td th:text="${delivery.waybill != null ? delivery.waybill : '-'}"></td>
+                        <td th:text="${delivery.deliveryStartedAt != null ? #temporals.format(delivery.deliveryStartedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+
+                        <td class="table-actions">
+                            <button class="btn-small"
+                                    th:attr="onclick=|openModal('REGISTER', '${delivery.deliveryId}', '', '')|"
+                                    th:if="${delivery.waybill == null}"
+                                    type="button">
+                                🚚 운송장 등록
+                            </button>
+
+                            <button class="btn-small"
+                                    th:attr="onclick=|openModal('UPDATE', '${delivery.deliveryId}', '${delivery.deliveryCompany}', '${delivery.waybill}')|"
+                                    th:if="${delivery.waybill != null}"
+                                    type="button">
+                                ✏️ 정보 수정
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(deliveries)}">
+                        <td colspan="6" style="text-align: center; padding: 3rem; color: #999;">
+                            조회된 배송 내역이 없습니다.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" th:if="${totalPages > 0}">
+                <a class="page-link"
+                   th:href="@{/admin/deliveries(page=${currentPage - 1}, status=${searchStatus})}"
+                   th:if="${currentPage > 0}">&lt;</a>
+
+                <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                    <a class="page-link"
+                       th:classappend="${i == currentPage} ? 'active'"
+                       th:href="@{/admin/deliveries(page=${i}, status=${searchStatus})}"
+                       th:text="${i + 1}">1</a>
+                </th:block>
+
+                <a class="page-link"
+                   th:href="@{/admin/deliveries(page=${currentPage + 1}, status=${searchStatus})}"
+                   th:if="${currentPage < totalPages - 1}">&gt;</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div class="modal-overlay" id="waybillModal">
+    <div class="modal-card">
+        <h3 id="modalTitle" style="margin-top: 0; margin-bottom: 18px;">운송장 등록</h3>
+
+        <form id="waybillForm" method="post">
+            <div class="form-field">
+                <label for="deliveryCompany">택배사</label>
+                <select id="deliveryCompany" name="deliveryCompany" required>
+                    <option value="">선택하세요</option>
+                    <option th:each="comp : ${deliveryCompanies}"
+                            th:text="${comp.name}"
+                            th:value="${comp.name}">CJ대한통운
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label for="waybill">운송장 번호</label>
+                <input id="waybill" name="waybill" pattern="[0-9]+"
+                       placeholder="숫자만 입력하세요" required type="text">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-ghost" onclick="closeModal()" type="button">취소</button>
+                <button class="btn-primary" type="submit">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+<script>
+    const modal = document.getElementById('waybillModal');
+    const form = document.getElementById('waybillForm');
+    const title = document.getElementById('modalTitle');
+    const companySelect = document.getElementById('deliveryCompany');
+    const waybillInput = document.getElementById('waybill');
+
+    /**
+     * 모달 열기 함수
+     * mode: 'REGISTER' (등록) 또는 'UPDATE' (수정)
+     */
+    function openModal(mode, id, currentCompany, currentWaybill) {
+        modal.classList.add('show');
+
+        if (mode === 'REGISTER') {
+            title.innerText = '운송장 등록 (배송 시작)';
+            form.action = `/admin/deliveries/${id}/waybill`;
+            companySelect.value = '';
+            waybillInput.value = '';
+        } else {
+            title.innerText = '배송 정보 수정';
+            form.action = `/admin/deliveries/${id}/info`;
+
+            if (currentCompany) companySelect.value = currentCompany;
+            if (currentWaybill) waybillInput.value = currentWaybill;
+        }
+
+        setTimeout(() => waybillInput.focus(), 100);
+    }
+
+    function closeModal() {
+        modal.classList.remove('show');
+    }
+
+    // 모달 외부 클릭 시 닫기
+    window.onclick = function (event) {
+        if (event.target === modal) closeModal();
+    }
+</script>
+
+</body>
+</html>

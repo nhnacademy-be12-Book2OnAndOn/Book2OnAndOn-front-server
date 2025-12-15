@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>도서 수정 | 관리자</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-books-form.css}">
+    <link href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" rel="stylesheet">
+
+    <th:block
+            th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+</head>
+<body>
+
+<div id="loading" class="loading-overlay">도서 정보를 불러오는 중입니다...</div>
+
+<main>
+    <div class="admin-container">
+        <th:block th:replace="~{fragments/admin :: adminSidebar('books')}"></th:block>
+
+        <section class="admin-content">
+            <div class="admin-header">
+                <div>
+                    <div class="eyebrow">BOOKS</div>
+                    <h2>도서 수정</h2>
+                    <p class="muted" th:text="'ID: ' + ${book != null ? book.id : ''}"></p>
+                </div>
+                <div aria-label="도서 관리 빠른 이동" class="chip-tabs">
+                    <a class="chip-tab" href="#" onclick="history.back(); return false;">← 이전 페이지</a>
+                    <a class="chip-tab" th:href="@{/admin/books}">도서 관리 목록</a>
+                    <a class="chip-tab" th:href="@{/admin/books/create}">+ 도서 등록</a>
+                </div>
+            </div>
+
+            <form class="admin-detail-card" enctype="multipart/form-data" id="bookEditForm" method="post"
+                  th:action="@{/admin/books/{id}(id=${book.id})}">
+                <input type="hidden" name="_method" value="put">
+
+                <div class="admin-toolbar toolbar-space">
+                    <span class="muted">필수 항목을 모두 입력 후 저장해주세요.</span>
+                    <div class="spacer"></div>
+                    <button class="btn-ghost" onclick="history.back()" type="button">취소</button>
+                    <button class="btn-primary" type="submit">저장</button>
+                </div>
+
+                <section class="form-section">
+                    <h4>기본 정보</h4>
+                    <div class="form-grid category-tag-grid">
+                        <div class="form-field tag-field">
+                            <label for="isbn">ISBN *</label>
+                            <div class="flex-gap-8">
+                                <input class="form-control" id="isbn" name="isbn" placeholder="ISBN을 입력하세요" required
+                                       th:value="${book?.isbn}" type="text" readonly>
+                                <button type="button" class="btn-primary nowrap" id="btnSearchIsbn">검색 & 자동입력</button>
+                            </div>
+                            <div class="field-note">ISBN은 수정할 수 없습니다. 검색 버튼으로 기존 ISBN 정보를 다시 불러올 수 있습니다.</div>
+                        </div>
+                        <div class="form-field">
+                            <label for="title">도서명 *</label>
+                            <input class="form-control" id="title" name="title" placeholder="도서 제목" required
+                                   th:value="${book?.title}" type="text">
+                        </div>
+                        <div class="form-field">
+                            <label for="volume">권 정보</label>
+                            <input class="form-control" id="volume" name="volume" placeholder="시리즈/권 제목 (선택)"
+                                   th:value="${book?.volume}" type="text">
+                        </div>
+                        <div class="form-field">
+                            <label for="contributorName">저자/기여자</label>
+                            <input class="form-control" id="contributorName" name="contributorName"
+                                   placeholder="저자, 역자 등"
+                                   th:value="${book?.contributorName}" type="text">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>출판 정보</h4>
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="publisherName">출판사 *</label>
+                            <input class="form-control" id="publisherName" name="publisherName" placeholder="출판사명"
+                                   required
+                                   th:value="${book?.publishers != null && !#lists.isEmpty(book.publishers) ? book.publishers[0].name : ''}"
+                                   type="text">
+                        </div>
+                        <div class="form-field">
+                            <label for="publishDate">출판일 *</label>
+                            <input class="form-control" id="publishDate" name="publishDate" required th:value="${book?.publishDate}"
+                                   type="date">
+                        </div>
+                        <div class="form-field">
+                            <label for="priceStandard">정가 (원) *</label>
+                            <input class="form-control" id="priceStandard" min="0" name="priceStandard"
+                                   placeholder="예: 15000"
+                                   required step="100" th:value="${book?.priceStandard}" type="number">
+                        </div>
+                        <div class="form-field">
+                            <label for="priceSales">판매가 (원) *</label>
+                            <input class="form-control" id="priceSales" min="0" name="priceSales" placeholder="예: 13500"
+                                   required step="100" th:value="${book?.priceSales}" type="number">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>재고 및 판매 설정</h4>
+                    <div class="form-grid inventory-grid">
+                        <div class="form-field compact-field">
+                            <label for="stockCount">재고 수량 *</label>
+                            <input class="form-control" id="stockCount" min="0" name="stockCount" placeholder="예: 100"
+                                   required th:value="${book?.stockCount}" type="number">
+                        </div>
+                        <div class="form-field compact-field">
+                            <label for="statusSelect">판매 상태 *</label>
+                            <select class="form-control" id="statusSelect" name="status" required>
+                                <option th:each="status : ${statuses}"
+                                        th:selected="${book != null && book.status != null ? book.status.name() == status.name() : status.name() == 'ON_SALE'}"
+                                        th:text="${status}"
+                                        th:value="${status}">ON_SALE
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="isWrapped">선물 포장</label>
+                            <div class="pill-option wrap-option">
+                                <input name="isWrapped" type="hidden" value="false">
+                                <input id="isWrapped" name="isWrapped" th:checked="${book?.isWrapped}" type="checkbox" value="true">
+                                <span class="muted">선택 시 포장 가능 상품으로 표시됩니다.</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>카테고리/태그</h4>
+                    <div class="form-grid category-tag-vertical">
+                        <div class="form-field">
+                            <label>카테고리</label>
+                            <div class="category-select-grid">
+                                <select class="form-control" id="categoryLevel1">
+                                    <option value="">대분류 선택</option>
+                                </select>
+                                <select class="form-control" disabled id="categoryLevel2">
+                                    <option value="">중분류 선택</option>
+                                </select>
+                                <select class="form-control" disabled id="categoryLevel3">
+                                    <option value="">소분류 선택</option>
+                                </select>
+                                <select class="form-control" disabled id="categoryLevel4">
+                                    <option value="">세분류 선택</option>
+                                </select>
+                            </div>
+                            <input id="categorySelected" name="categoryId" required th:value="${selectedCategoryId}" type="hidden">
+                            <div class="field-note">대분류→중분류→소분류→세분류 순으로 선택 후 가장 하위 선택이 제출됩니다.</div>
+                        </div>
+                        <div class="form-field">
+                            <label for="tagInput">태그</label>
+                            <div class="inline-control tag-control tag-inline">
+                                <input class="form-control" data-tag-input id="tagInput" placeholder="태그 입력 후 Enter"
+                                       type="text">
+                                <button class="btn-ghost-link dense" data-tag-add type="button">추가</button>
+                            </div>
+                            <div class="chip-tabs tag-control mt-8" data-tag-list id="tagList"></div>
+                            <div class="field-note">등록 시 검색/추천에 활용됩니다.</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>상세 정보</h4>
+                    <div class="form-grid grid-single">
+                        <div class="form-field">
+                            <label for="chapter">목차</label>
+                            <textarea class="form-control" id="chapter" name="chapter" placeholder="목차를 라인 단위로 작성해주세요."
+                                      rows="4" th:text="${book?.chapter}"></textarea>
+                        </div>
+                        <div class="form-field">
+                            <label for="descriptionHtml">상세 설명</label>
+                            <div class="editor-box" id="descriptionEditor"></div>
+                            <textarea class="hidden-field" id="descriptionHtml" name="descriptionHtml"
+                                      th:text="${book?.descriptionHtml}"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h4>이미지</h4>
+                    <div class="form-grid grid-single">
+
+                        <div class="form-field">
+                            <label for="googleImageUrl">이미지 URL (검색 결과 / 직접 입력)</label>
+                            <div class="flex-gap-8">
+                                <input class="form-control flex-1" id="googleImageUrl" name="imageUrl"
+                                       th:value="${(book != null && book.images != null && !#lists.isEmpty(book.images)) ? book.images[0].url : ''}"
+                                       type="text" placeholder="http://...">
+
+                                <button type="button" class="btn-ghost"
+                                        onclick="window.open(document.getElementById('googleImageUrl').value)">
+                                    보기
+                                </button>
+                            </div>
+                            <div class="field-note">파일을 업로드하지 않으면 이 URL의 이미지가 등록됩니다.</div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="images">파일 직접 업로드 (우선순위 높음)</label>
+                            <label class="file-upload">
+                                <span class="file-label">파일 선택</span>
+                                <span class="file-name" id="fileNameDisplay">선택된 파일 없음</span>
+                                <input accept="image/*" id="images" multiple name="images" type="file">
+                            </label>
+
+                            <div class="chip-tabs" id="preview"></div>
+                            <p class="field-note">선택한 이미지가 기존 이미지에 추가 업로드됩니다. (필요 시 기존 이미지는 별도 삭제 처리)</p>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="modal-actions mt-5">
+                    <button class="btn-ghost" onclick="history.back()" type="button">취소</button>
+                    <button class="btn-primary" type="submit">저장</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+
+<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+<script src="https://uicdn.toast.com/editor/latest/i18n/ko-kr.min.js"></script>
+
+<script th:inline="javascript">
+    // 전역 변수로 선언하여 검색 로직에서도 접근 가능하게 함
+    let bookDescriptionEditor;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('bookEditForm');
+        const editorEl = document.getElementById('descriptionEditor');
+        const hiddenField = document.getElementById('descriptionHtml');
+        const initialTags = /*[[${tagString}]]*/ '';
+        const categoriesRaw = /*[[${categories}]]*/ [];
+        const preselectedId = /*[[${selectedCategoryId}]]*/ null;
+        const existingImages = /*[[${(book != null && book.images != null) ? book.images : null}]]*/ [];
+        const deleteImageIds = new Set();
+        const googleImageInput = document.getElementById('googleImageUrl');
+        const initialImageUrl = googleImageInput?.value || '';
+
+        // [1] Toast UI Editor 초기화
+        if (editorEl && window.toastui) {
+            const Editor = toastui.Editor;
+            bookDescriptionEditor = new Editor({
+                el: editorEl,
+                height: '300px',
+                initialEditType: 'wysiwyg',
+                previewStyle: 'vertical',
+                initialValue: hiddenField.value || '',
+                language: 'ko-KR',
+                placeholder: '도서 소개/상세 설명을 입력하세요.',
+                toolbarItems: [
+                    ['heading', 'bold', 'italic', 'strike'],
+                    ['ul', 'ol', 'task'],
+                    ['table', 'image', 'link'],
+                    ['quote', 'codeblock']
+                ]
+            });
+        } else if (hiddenField) {
+            // 에디터 로드 실패 시 textarea로 노출
+            hiddenField.style.display = 'block';
+            hiddenField.style.minHeight = '300px';
+        }
+
+        // [2] 태그 기능
+        (function () {
+            const tagInput = document.querySelector('[data-tag-input]');
+            const tagAddBtn = document.querySelector('[data-tag-add]');
+            const tagList = document.querySelector('[data-tag-list]');
+            const tags = new Set();
+
+            function renderTags() {
+                tagList.innerHTML = '';
+                tags.forEach((tag) => {
+                    const pill = document.createElement('span');
+                    pill.className = 'chip-tab active tag-chip';
+                    pill.textContent = tag;
+                    pill.style.cursor = 'pointer';
+                    pill.title = '클릭하여 태그 제거';
+                    pill.onclick = () => {
+                        tags.delete(tag);
+                        renderTags();
+                    };
+                    tagList.appendChild(pill);
+                });
+            }
+
+            function addTag() {
+                const value = (tagInput.value || '').trim();
+                if (!value) return;
+                value.split(',')
+                    .map(v => v.trim())
+                    .filter(Boolean)
+                    .map(v => v.replace(/\s+/g, '_'))
+                    .forEach(v => tags.add(v));
+                tagInput.value = '';
+                renderTags();
+            }
+
+            if (initialTags) {
+                initialTags.split(',')
+                    .map(v => v.trim())
+                    .filter(Boolean)
+                    .forEach(v => tags.add(v));
+                renderTags();
+            }
+
+            tagAddBtn?.addEventListener('click', addTag);
+            tagInput?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag();
+                }
+            });
+
+            form?.addEventListener('submit', () => {
+                // 기존 hidden tagNames 제거
+                form.querySelectorAll('input[data-tag-hidden]').forEach(el => el.remove());
+                tags.forEach(tag => {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'tagNames';
+                    hidden.value = tag;
+                    hidden.setAttribute('data-tag-hidden', 'true');
+                    form.appendChild(hidden);
+                });
+                // controller에서 tags 파라미터를 기대하는 경우를 대비해 문자열도 넣어준다.
+                const tagStringField = document.createElement('input');
+                tagStringField.type = 'hidden';
+                tagStringField.name = 'tags';
+                tagStringField.value = Array.from(tags).join(', ');
+                tagStringField.setAttribute('data-tag-hidden', 'true');
+                form.appendChild(tagStringField);
+
+                // 에디터 내용 동기화
+                if(bookDescriptionEditor) {
+                    hiddenField.value = bookDescriptionEditor.getHTML();
+                }
+
+                // 삭제할 이미지 ID 전달
+                deleteImageIds.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'deleteImageIds';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+
+                // 이미지 URL이 변경되지 않았다면 전송 생략하여 기존 이미지 유지
+                if (googleImageInput && googleImageInput.value === initialImageUrl) {
+                    googleImageInput.removeAttribute('name');
+                }
+            });
+
+            // 이미지 간단 프리뷰
+            const imageInput = document.getElementById('images');
+            const preview = document.getElementById('preview');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            imageInput?.addEventListener('change', () => {
+                const files = Array.from(imageInput.files || []);
+                if (fileNameDisplay) {
+                    fileNameDisplay.textContent = files.length
+                        ? files.map(f => f.name).join(', ')
+                        : '선택된 파일 없음';
+                }
+                if (preview) preview.style.display = 'none';
+            });
+
+            // 기존 이미지/URL 프리뷰 표시
+            const existingUrl = googleImageInput?.value;
+            if (preview && (existingImages?.length || existingUrl)) {
+                preview.style.display = 'flex';
+                preview.innerHTML = '';
+                const list = existingImages && Array.isArray(existingImages) ? existingImages : [];
+                [...list, existingUrl ? {url: existingUrl} : null]
+                    .filter(Boolean)
+                    .forEach((img, idx) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'chip-tab active preview-chip';
+                        const label = document.createElement('span');
+                        label.className = 'preview-chip-label';
+                        label.textContent = idx === 0 ? '기존 이미지:' : '추가 이미지/URL:';
+
+                        const imageEl = document.createElement('img');
+                        imageEl.src = img.url;
+                        imageEl.alt = '기존 이미지';
+
+                        wrapper.appendChild(label);
+                        wrapper.appendChild(imageEl);
+
+                        // 기본(첫) 이미지는 삭제 버튼을 붙이지 않고, 추가 이미지만 삭제 가능
+                        if (img.id && idx > 0) {
+                            const delBtn = document.createElement('button');
+                            delBtn.type = 'button';
+                            delBtn.className = 'delete-image-btn';
+                            delBtn.textContent = '삭제';
+                            delBtn.onclick = () => {
+                                deleteImageIds.add(img.id);
+                                wrapper.remove();
+                            };
+                            wrapper.appendChild(delBtn);
+                        }
+                        preview.appendChild(wrapper);
+                    });
+            }
+        })();
+
+        // [3] 카테고리 계층 드롭다운
+        (function () {
+            function normalizeCategories(raw) {
+                if (Array.isArray(raw)) return raw;
+                if (typeof raw === 'string') {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) return parsed;
+                        if (parsed && typeof parsed === 'object') return Object.values(parsed);
+                    } catch (e) {
+                        return [];
+                    }
+                }
+                if (raw && typeof raw === 'object' && raw.length === undefined) {
+                    return Object.values(raw);
+                }
+                return [];
+            }
+
+            const categories = normalizeCategories(categoriesRaw);
+            const level1 = document.getElementById('categoryLevel1');
+            const level2 = document.getElementById('categoryLevel2');
+            const level3 = document.getElementById('categoryLevel3');
+            const level4 = document.getElementById('categoryLevel4');
+            const hidden = document.getElementById('categorySelected');
+
+            function clearOptions(select, placeholder) {
+                select.innerHTML = '';
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = placeholder;
+                select.appendChild(opt);
+                select.disabled = true;
+            }
+
+            function fillOptions(select, list, placeholder) {
+                clearOptions(select, placeholder);
+                if (!list || !list.length) return;
+                list.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    opt.dataset.hasChildren = (cat.children && cat.children.length) ? 'true' : 'false';
+                    select.appendChild(opt);
+                });
+                select.disabled = false;
+            }
+
+            function findById(list, id) {
+                return list.find(c => String(c.id) === String(id));
+            }
+
+            function findPath(list, targetId, path = []) {
+                for (const node of list) {
+                    const next = [...path, node];
+                    if (String(node.id) === String(targetId)) return next;
+                    const childPath = findPath(node.children || [], targetId, next);
+                    if (childPath) return childPath;
+                }
+                return null;
+            }
+
+            function updateHidden() {
+                const chosen = level4.value || level3.value || level2.value || level1.value;
+                hidden.value = chosen || '';
+            }
+
+            level1?.addEventListener('change', () => {
+                const selected = findById(categories, level1.value);
+                fillOptions(level2, selected?.children || [], '중분류 선택');
+                clearOptions(level3, '소분류 선택');
+                clearOptions(level4, '세분류 선택');
+                updateHidden();
+            });
+
+            level2?.addEventListener('change', () => {
+                const parent = findById(categories, level1.value);
+                const selected = findById(parent?.children || [], level2.value);
+                fillOptions(level3, selected?.children || [], '소분류 선택');
+                clearOptions(level4, '세분류 선택');
+                updateHidden();
+            });
+
+            level3?.addEventListener('change', () => {
+                const p1 = findById(categories, level1.value);
+                const p2 = findById(p1?.children || [], level2.value);
+                const selected = findById(p2?.children || [], level3.value);
+                fillOptions(level4, selected?.children || [], '세분류 선택');
+                updateHidden();
+            });
+
+            level4?.addEventListener('change', updateHidden);
+
+            // 초기 로드
+            fillOptions(level1, categories, '대분류 선택');
+
+            if (preselectedId) {
+                const path = findPath(categories, preselectedId);
+                if (path) {
+                    if (path[0]) {
+                        level1.value = path[0].id;
+                        fillOptions(level2, path[0].children || [], '중분류 선택');
+                    }
+                    if (path[1]) {
+                        level2.value = path[1].id;
+                        fillOptions(level3, path[1].children || [], '소분류 선택');
+                    }
+                    if (path[2]) {
+                        level3.value = path[2].id;
+                        fillOptions(level4, path[2].children || [], '세분류 선택');
+                    }
+                    if (path[3]) {
+                        level4.value = path[3].id;
+                    }
+                }
+            }
+            updateHidden();
+            form?.addEventListener('submit', (e) => {
+                updateHidden();
+                if (!hidden.value) {
+                    e.preventDefault();
+                    alert('카테고리를 선택해주세요.');
+                }
+            });
+        })();
+
+        // [4] ISBN 검색 및 자동 입력 (기존 ISBN 기준 재조회)
+        (function() {
+            const searchBtn = document.getElementById('btnSearchIsbn');
+            const loadingOverlay = document.getElementById('loading');
+
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function() {
+                    const isbnInputEl = document.getElementById('isbn');
+                    const isbnInput = (isbnInputEl?.value || '').trim();
+
+                    if (!isbnInput) {
+                        alert("ISBN이 비어 있습니다.");
+                        return;
+                    }
+
+                    // 로딩 표시
+                    loadingOverlay.style.display = 'flex';
+
+                    fetch(`/admin/books/search?isbn=${encodeURIComponent(isbnInput)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('도서 정보를 찾을 수 없습니다.');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // 필드 매핑 헬퍼 함수
+                            const setValue = (id, val) => {
+                                const el = document.getElementById(id);
+                                if(el) el.value = val || '';
+                            };
+
+                            // 기본 정보
+                            setValue('title', data.title);
+                            setValue('volume', data.volume);
+                            setValue('contributorName', data.contributorName);
+
+                            // 출판 정보
+                            setValue('publisherName', data.publisherName);
+                            setValue('priceStandard', data.priceStandard);
+                            setValue('priceSales', data.priceSales);
+
+                            // 출판일 처리
+                            if (data.publishDate) {
+                                setValue('publishDate', data.publishDate);
+                            }
+
+                            // 목차
+                            setValue('chapter', data.chapter);
+
+                            // Google Books 이미지 URL (히든 필드)
+                            if (data.imageUrl) {
+                                // 1. URL 입력칸에 주소를 꽂아줍니다
+                                setValue('googleImageUrl', data.imageUrl);
+
+                                // 2. 미리보기 영역에도 띄워줍니다
+                                const previewDiv = document.getElementById('preview');
+                                if (previewDiv) {
+                                    previewDiv.style.display = 'flex';
+                                    previewDiv.innerHTML = `
+                <div class="chip-tab active preview-chip">
+                    <span class="preview-chip-label">검색된 이미지 미리보기:</span>
+                    <img src="${data.imageUrl}" alt="책 표지">
+                </div>
+            `;
+                                }
+                            } else {
+                                const imageInput = document.getElementById('googleImageUrl');
+                                if (imageInput) {
+                                    imageInput.value = '';
+                                    imageInput.placeholder = '검색된 이미지가 없습니다. 직접 입력하거나 파일을 업로드하세요.';
+                                }
+                            }
+
+                            // 상세 설명 (Toast UI Editor)
+                            if (bookDescriptionEditor && data.descriptionHtml) {
+                                bookDescriptionEditor.setHTML(data.descriptionHtml);
+                            } else if (data.descriptionHtml) {
+                                // 에디터 로드 실패 시 fallback
+                                if (hiddenField) {
+                                    hiddenField.value = data.descriptionHtml;
+                                }
+                            }
+                            alert("도서 정보를 불러왔습니다. 필요한 정보를 확인/수정 후 저장해주세요.");
+                        })
+                        .catch(error => {
+                            console.error('ISBN 검색 오류:', error);
+                            alert("검색 실패: " + error.message + "\\n\\nISBN을 확인하거나 수동으로 입력해주세요.");
+                        })
+                        .finally(() => {
+                            // 로딩 숨김
+                            loadingOverlay.style.display = 'none';
+                        });
+                });
+            }
+        })();
+    });
+</script>
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+</body>
+</html>

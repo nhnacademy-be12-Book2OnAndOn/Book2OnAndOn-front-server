@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html th:fragment="layout (title, sidebarActive, content)"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/mypage.css}">
+</head>
+
+<body class="mypage-page">
+
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
+<main>
+    <section class="mypage-shell">
+        <div class="container">
+            <div class="dashboard-wrapper">
+
+                <aside class="dashboard-sidebar">
+                    <h3>마이페이지</h3>
+
+                    <ul class="dashboard-menu">
+                        <li>
+                            <a th:classappend="${sidebarActive=='dashboard'} ? 'active'"
+                               th:href="@{/users/me}">대시보드</a>
+                        </li>
+
+                        <li>
+                            <a th:classappend="${sidebarActive=='orders'} ? 'active'"
+                               th:href="@{/orders/me}">주문 내역</a>
+                        </li>
+
+                        <li>
+                            <a th:classappend="${sidebarActive=='likes'} ? 'active'"
+                               th:href="@{/users/me/likes}">마음에 담은 책</a>
+                        </li>
+
+                        <li>
+                            <a th:classappend="${sidebarActive=='reviews'} ? 'active'"
+                               th:href="@{/users/me/reviews}">작성한 리뷰</a>
+                        </li>
+
+                        <li>
+                            <a th:classappend="${sidebarActive=='coupons'} ? 'active'"
+                               th:href="@{/users/me/coupons}">쿠폰함</a>
+                        </li>
+
+                        <li>
+                            <a th:classappend="${sidebarActive=='points'} ? 'active'"
+                               th:href="@{/user/me/points}">포인트 내역</a>
+                        </li>
+
+                        <li>
+                            <a th:classappend="${sidebarActive=='edit'} ? 'active'"
+                               th:href="@{/users/me/edit}">정보 관리</a>
+                        </li>
+
+                        <li>
+                            <a th:classappend="${sidebarActive=='addresses'} ? 'active'"
+                               th:href="@{/users/me/addresses}">주소 목록 관리</a>
+                        </li>
+
+                        <li>
+                            <a class="password-link"
+                               th:classappend="${sidebarActive=='password'} ? 'active'"
+                               th:href="@{/users/me/password}">비밀번호 변경</a>
+                        </li>
+
+                        <li>
+                            <a class="withdraw-link"
+                               th:classappend="${sidebarActive=='withdraw'} ? 'active'"
+                               th:href="@{/users/me/withdraw}">회원 탈퇴</a>
+                        </li>
+
+                        <li>
+                            <a class="logout-link" th:href="@{/logout}">로그아웃</a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <section class="dashboard-main">
+                    <div th:replace="${content}"></div>
+                </section>
+
+            </div>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+</body>
+</html>

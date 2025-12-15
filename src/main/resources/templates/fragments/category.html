@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="categoryBranch(cat, depth)">
+    <li class="category-item" th:classappend="' depth-' + ${depth}">
+
+        <div class="category-row"
+             onclick="window.toggleSubcategory ? toggleSubcategory(this) : null"
+             th:data-has-children="${cat.children != null and !#lists.isEmpty(cat.children)}"
+             th:data-depth="${depth}">
+
+            <a th:href="@{/books/categories/{id}(id=${cat.id})}"
+               onclick="event.stopPropagation()"
+               th:text="${cat.name}">카테고리명</a>
+
+            <span class="subcategory-toggle"
+                  th:if="${cat.children != null and !#lists.isEmpty(cat.children)}"></span>
+        </div>
+
+        <ul class="subcategory-list"
+            th:if="${cat.children != null and !#lists.isEmpty(cat.children)}"
+            style="display: none;">
+
+            <th:block th:each="child : ${cat.children}">
+                <th:block th:replace="~{fragments/category :: categoryBranch(${child}, ${depth} + 1)}">
+                </th:block>
+            </th:block>
+        </ul>
+    </li>
+</th:block>
+<script>
+    // 안전장치: 전역 함수가 없을 때도 하위 카테고리 토글 가능하도록 정의
+    if (!window.toggleSubcategory) {
+        window.toggleSubcategory = function (row) {
+            if (!row || row.dataset.hasChildren !== 'true') return;
+            const item = row.closest('.category-item');
+            if (!item) return;
+            item.classList.toggle('open');
+            const list = item.querySelector(':scope > .subcategory-list');
+            if (!list) return;
+            if (item.classList.contains('open')) {
+                list.style.display = 'block';
+                list.style.maxHeight = list.scrollHeight + 'px';
+                const onEnd = (event) => {
+                    if (event.target !== list) return;
+                    if (item.classList.contains('open')) {
+                        list.style.maxHeight = 'none';
+                    }
+                    list.removeEventListener('transitionend', onEnd);
+                };
+                list.addEventListener('transitionend', onEnd);
+            } else {
+                list.style.maxHeight = list.scrollHeight + 'px';
+                requestAnimationFrame(() => {
+                    list.style.maxHeight = '0';
+                });
+            }
+        };
+    }
+</script>
+</html>

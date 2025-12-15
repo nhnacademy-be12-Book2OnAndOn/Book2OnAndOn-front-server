@@ -1,0 +1,223 @@
+/* ===== 레이아웃 설정 ===== */
+.coupon-container {
+    max-width: 1100px;
+    /*margin: 0 auto 2.5rem;*/
+    /*padding: 0 1.5rem 3rem;*/
+}
+
+.page-header {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #2d5016;
+    padding-bottom: 1rem;
+}
+
+.page-title {
+    font-size: 1.8rem;
+    color: #2d5016;
+    font-weight: bold;
+}
+
+/* ===== 탭 스타일 (필터) ===== */
+.status-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab-item {
+    padding: 12px 24px;
+    text-decoration: none;
+    color: #666;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.tab-item:hover {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.tab-item.active {
+    background: #2d5016;
+    color: white;
+    font-weight: bold;
+}
+
+/* ===== 쿠폰 그리드 (카드 배치) ===== */
+.coupon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    /*gap: 24px;*/
+    justify-items: stretch;
+    align-items: start;
+    margin-top: 1.2rem;
+    justify-content: start;
+    flex: 1;
+}
+
+/* ===== 쿠폰 카드 디자인 ===== */
+.coupon-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    padding: 1.0rem 1.8rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 20px;
+    height: 160px;
+    position: relative;
+    overflow: hidden;
+}
+
+.coupon-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(45, 80, 22, 0.15);
+    border-color: #2d5016;
+}
+
+/* 사용 불가(사용됨/만료) 스타일 */
+.coupon-card.deactive {
+    background-color: #f9f9f9;
+    border-color: #eee;
+    opacity: 0.8;
+}
+
+.coupon-card.deactive .discount-val {
+    color: #aaa;
+}
+
+.coupon-card.deactive:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #eee;
+}
+
+/* 카드 내용 레이아웃 */
+.card-body {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 0;
+}
+
+/* 왼쪽 할인율 영역 */
+.discount-display {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    min-width: 100px;
+    padding-right: 16px;
+    border-right: 2px dashed #e6efe7;
+}
+
+.discount-val {
+    font-size: 60px;
+    font-weight: 900;
+    color: #1f5a2f;
+    line-height: 1;
+}
+
+.discount-unit {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1f5a2f;
+    margin-top: 0;
+}
+
+/* 오른쪽 정보 영역 */
+.coupon-info {
+    flex: 1;
+}
+
+.coupon-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #1f4a30;
+    margin-bottom: 6px;
+    line-height: 1.3;
+    word-break: keep-all;
+}
+
+.coupon-condition {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+/* 하단: 날짜 및 상태 */
+.card-footer {
+    margin-top: 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e6efe7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.date-info {
+    font-size: 0.95rem;
+    color: #2f4c36;
+    font-weight: 700;
+}
+
+/* 상태 배지 */
+.badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.status-NOT_USED {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+/* 사용가능 */
+.status-USED {
+    background-color: #eceff1;
+    color: #546e7a;
+}
+
+/* 사용됨 */
+.status-EXPIRED {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+/* 만료됨 */
+
+/* 페이지네이션 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+    padding-bottom: 1.5rem;
+    gap: 5px;
+    align-self: flex-start;
+    width: auto;
+}
+
+.page-link {
+    padding: 8px 14px;
+    border: 1px solid #ddd;
+    background: white;
+    color: #333;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.page-link.active {
+    background-color: #2d5016;
+    color: white;
+    border-color: #2d5016;
+}

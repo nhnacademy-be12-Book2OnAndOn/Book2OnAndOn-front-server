@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 - 쿠폰 발급 관리</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('coupons')}"></th:block>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">쿠폰 센터</p>
+                <h2>쿠폰 발급 관리</h2>
+                <p class="muted"
+                   th:text="${searchStatus == null} ? '모든 쿠폰' : (searchStatus == 'ACTIVE' ? '활성 쿠폰' : '비활성 쿠폰')">모든
+                    쿠폰</p>
+            </div>
+            <a class="btn-ghost" th:href="@{/admin/policies}">정책으로 이동</a>
+        </div>
+
+        <div class="chip-tabs">
+            <a class="chip-tab" th:classappend="${searchStatus == null} ? 'active'"
+               th:href="@{/admin/coupons}">전체</a>
+            <a class="chip-tab" th:classappend="${searchStatus == 'ACTIVE'} ? 'active'"
+               th:href="@{/admin/coupons(status='ACTIVE')}">활성</a>
+            <a class="chip-tab" th:classappend="${searchStatus == 'DEACTIVE'} ? 'active'"
+               th:href="@{/admin/coupons(status='DEACTIVE')}">비활성</a>
+        </div>
+
+        <div class="table-card">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>쿠폰명</th>
+                    <th>혜택</th>
+                    <th>유효기간</th>
+                    <th>상태</th>
+                    <th>잔여 수량</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="coupon : ${coupons}">
+                    <td th:text="${coupon.couponId}">1</td>
+                    <td>
+                        <span style="font-weight: bold;" th:text="${coupon.couponName}"></span>
+                    </td>
+
+                    <td th:text="${coupon.discountDescription}">5,000원 할인</td>
+
+                    <td>
+                        <span th:if="${coupon.endDate != null}"
+                              th:style="${coupon.endDate.isBefore(today) ? 'color: #d73a3a;' : ''}"
+                              th:text="|~ ${coupon.endDate} 까지|"></span>
+
+                        <span th:if="${coupon.durationDays != null}"
+                              th:text="|발급 후 ${coupon.durationDays}일|"></span>
+                    </td>
+
+                    <td>
+                        <span class="status-chip status-delivered" th:if="${coupon.status.name() == 'ACTIVE'}">활성</span>
+                        <span class="status-chip status-pending" th:if="${coupon.status.name() != 'ACTIVE'}">비활성</span>
+                    </td>
+
+                    <td style="font-weight: bold; color: #2d5f3f;">
+                        <span th:if="${coupon.couponRemainingQuantity == null}">♾️ 무제한</span>
+                        <span th:if="${coupon.couponRemainingQuantity != null}"
+                              th:text="${#numbers.formatInteger(coupon.couponRemainingQuantity, 0, 'COMMA')} + '개'"></span>
+                    </td>
+
+                    <td class="table-actions">
+                        <button class="btn-small"
+                                th:if="${coupon.status.name() == 'ACTIVE' and (coupon.endDate == null or !coupon.endDate.isBefore(today))}"
+                                th:onclick="openQuantityModal([[${coupon.couponId}]], [[${coupon.couponRemainingQuantity}]])"
+                                type="button">
+                            수량 수정
+                        </button>
+
+                        <span class="muted"
+                              style="color: #e53935; font-weight: 800;"
+                              th:if="${coupon.endDate != null and coupon.endDate.isBefore(today)}">만료됨</span>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(coupons)}">
+                    <td colspan="7" style="text-align: center; padding: 3rem; color: #999;">
+                        조회된 쿠폰이 없습니다.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" th:if="${totalPage > 0}">
+            <a class="page-link"
+               th:href="@{/admin/coupons(page=${currentPage - 1}, size=${param.size != null ? param.size : 5}, status=${searchStatus})}"
+               th:if="${currentPage > 0}">&lt;</a>
+
+            <th:block th:each="i : ${#numbers.sequence(0, totalPage - 1)}">
+                <a class="page-link"
+                   th:classappend="${i == currentPage} ? 'active'"
+                   th:href="@{/admin/coupons(page=${i}, size=${param.size != null ? param.size : 5}, status=${searchStatus})}"
+                   th:text="${i + 1}">1</a>
+            </th:block>
+
+            <a class="page-link"
+               th:href="@{/admin/coupons(page=${currentPage + 1}, size=${param.size != null ? param.size : 5}, status=${searchStatus})}"
+               th:if="${currentPage < totalPage - 1}">&gt;</a>
+        </div>
+    </main>
+</div>
+
+<div class="modal-overlay" id="quantityModal">
+    <div class="modal-card">
+        <h3 style="margin-top: 0;">재고 수량 수정</h3>
+        <p class="muted" style="margin-top: 6px;">현재 발급 가능한 쿠폰 수량을 변경합니다.</p>
+
+        <form id="quantityForm" method="post" style="margin-top: 16px;">
+            <div class="form-field" style="margin-bottom: 10px;">
+                <input class="form-control" id="modalQuantity" name="quantity" placeholder="수량 입력"
+                       type="number">
+            </div>
+
+            <label class="muted" style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
+                <input id="modalUnlimited" onchange="toggleModalInput()" style="width: 18px; height: 18px;"
+                       type="checkbox"> 무제한
+            </label>
+
+            <div class="modal-actions">
+                <button class="btn-ghost" onclick="closeQuantityModal()" type="button">취소</button>
+                <button class="btn-primary" type="submit">수정 완료</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+<script>
+    const modal = document.getElementById('quantityModal');
+    const form = document.getElementById('quantityForm');
+    const quantityInput = document.getElementById('modalQuantity');
+    const unlimitedCheck = document.getElementById('modalUnlimited');
+
+    // 모달 열기 (쿠폰 ID와 현재 수량을 받음)
+    function openQuantityModal(couponId, currentQty) {
+        // 폼 Action URL 업데이트 (/admin/coupons/{id}/update-quantity)
+        form.action = `/admin/coupons/${couponId}/update-quantity`;
+
+        // 기존 값 세팅
+        if (currentQty === null) {
+            unlimitedCheck.checked = true;
+            quantityInput.value = '';
+            quantityInput.disabled = true;
+        } else {
+            unlimitedCheck.checked = false;
+            quantityInput.value = currentQty;
+            quantityInput.disabled = false;
+        }
+
+        modal.classList.add('show'); // 보이게 하기
+    }
+
+    // 모달 닫기
+    function closeQuantityModal() {
+        modal.classList.remove('show');
+    }
+
+    // 무제한 체크 토글 로직
+    function toggleModalInput() {
+        if (unlimitedCheck.checked) {
+            quantityInput.value = '';
+            quantityInput.disabled = true;
+            quantityInput.placeholder = "무제한";
+        } else {
+            quantityInput.disabled = false;
+            quantityInput.placeholder = "수량 입력";
+            quantityInput.focus();
+        }
+    }
+
+    // 배경 클릭 시 닫기
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            closeQuantityModal();
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,432 @@
+/* 기존 스타일 유지 + 쿠폰 정책 전용 스타일 */
+.remove-option {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: #666;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* 카테고리 트리 스타일 */
+.category-tree-box {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 5px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #fff;
+    user-select: none;
+}
+
+.tree-root, .sub-tree {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.sub-tree {
+    padding-left: 24px;
+    border-left: 1px solid #eee;
+    display: none;
+}
+
+.tree-item {
+    margin-bottom: 2px;
+}
+
+.tree-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tree-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* 토글 버튼 */
+.toggle-btn {
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    font-size: 11px;
+    color: #888;
+    transition: transform 0.2s ease;
+    z-index: 2;
+}
+
+.toggle-btn.open {
+    transform: rotate(90deg);
+    color: #333;
+}
+
+.toggle-placeholder {
+    width: 24px;
+    height: 24px;
+    margin-right: 5px;
+    display: inline-block;
+}
+
+/* 체크박스 커스텀 */
+.checkbox-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    position: relative;
+}
+
+.checkbox-label input[type="checkbox"] {
+    appearance: auto;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: #2d5f3f;
+    border: 1px solid #ccc;
+    z-index: 1;
+}
+
+.checkbox-label span {
+    font-size: 14px;
+    color: #555;
+}
+
+.checkbox-label input:checked + span {
+    font-weight: bold;
+    color: #000;
+}
+
+/* 칩(Chip) 스타일 */
+.selected-items-box {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    border: 1px solid #ddd;
+    background: #f3f4f6;
+    gap: 5px;
+}
+
+.chip.category {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.chip small {
+    color: #888;
+    font-size: 0.8em;
+}
+
+/* 칩 내부 삭제 버튼 */
+.chip-remove {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 1.2em;
+    line-height: 1;
+    padding: 0 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.chip-remove:hover {
+    color: #ff4d4f;
+    background-color: #ffe5e5;
+}
+
+/* 텍스트 버튼 스타일 (검색, 제거 공통) */
+.text-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    transition: all 0.2s;
+    border-radius: 4px;
+}
+
+.text-btn:hover {
+    background-color: #f1f3f5;
+    color: #333;
+}
+
+.text-btn.remove-btn:hover {
+    color: #e03131;
+    background-color: #fff5f5;
+}
+
+/* 모달 스타일 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.modal-content {
+    background: #fff;
+    width: 540px;
+    max-width: 95%;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    border: 1px solid #e7e9ed;
+}
+
+.modal-header {
+    padding: 16px 18px;
+    border-bottom: 1px solid #eef0f3;
+    background: linear-gradient(180deg, #f9fafb 0%, #f2f5f3 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1f2d28;
+}
+
+.close-modal {
+    background: #fff;
+    border: 1px solid #d9dfe3;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    color: #555;
+    display: grid;
+    place-items: center;
+    transition: all 0.2s;
+}
+
+.close-modal:hover {
+    background: #f8f9fa;
+    color: #000;
+}
+
+.modal-body {
+    padding: 16px 18px;
+    flex: 1;
+    overflow-y: auto;
+    background: #fbfcfd;
+}
+
+.search-bar-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.search-bar-group input {
+    flex: 1;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid #cdd6d1;
+    padding: 0 12px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.search-bar-group button {
+    height: 44px;
+    border-radius: 12px;
+    padding: 0 16px;
+}
+
+.result-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.result-item {
+    padding: 12px;
+    border: 1px solid #e4e8eb;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+}
+
+.result-item:hover {
+    border-color: #2f5d3f;
+    box-shadow: 0 6px 16px rgba(47, 93, 63, 0.08);
+    transform: translateY(-1px);
+}
+
+.result-item img {
+    width: 44px;
+    height: 60px;
+    object-fit: cover;
+    background: #ddd;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.book-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.book-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1f2d28;
+}
+
+.book-author {
+    font-size: 12px;
+    color: #5f6b66;
+}
+
+.no-result {
+    text-align: center;
+    padding: 24px 12px;
+    color: #8a9390;
+    font-size: 13px;
+}
+
+/* 리모델링: 도서 검색 CTA & 전체 제거 버튼 */
+.book-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.book-search-cta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f0f5f2;
+    border: 1px solid #d3e2d9;
+    border-radius: 12px;
+    padding: 12px 14px;
+    flex: 1;
+    min-width: 280px;
+}
+
+.book-search-cta .cta-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #2f5d3f;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.book-search-cta .cta-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.book-search-cta .cta-text strong {
+    font-size: 14px;
+    color: #1f2d28;
+}
+
+.book-search-cta .cta-text .muted {
+    font-size: 12px;
+}
+
+.remove-btn-outline {
+    background: #fff;
+    border: 1px solid;
+    color: #444;
+    padding: 10px 14px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.remove-btn-outline:hover {
+    border-color: #b33a3a;
+    color: #b33a3a;
+    background: #fff6f6;
+}
+
+/* 메인 그린 색상 적용 (도서 추가/검색 버튼) */
+.book-search-cta .btn-accent,
+.modal-body .btn-accent {
+    background: #2f5d3f;
+    border-color: #2f5d3f;
+    color: #fff;
+    box-shadow: none;
+}
+
+.book-search-cta .btn-accent:hover,
+.modal-body .btn-accent:hover {
+    background: #254a32;
+    border-color: #254a32;
+    box-shadow: none;
+}
+
+/* 유틸리티 */
+.mt-1 { margin-top: 1rem; }
+.mt-2rem { margin-top: 2rem; }
+.mt-5 { margin-top: 5px; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+.hidden { display: none; }
+.mr-4 { margin-right: 4px; }
+.fw-500 { font-weight: 500; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }

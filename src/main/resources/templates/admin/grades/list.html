@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 - 회원 등급 관리</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-grades.css}">
+</head>
+<body>
+
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('grades')}"></th:block>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">회원 설정</p>
+                <h2>회원 등급 관리</h2>
+            </div>
+            <button class="btn-accent" onclick="openCreateModal()">+ 미등록 등급 활성화</button>
+        </div>
+
+        <div th:if="${param.error}"
+             class="grade-alert">
+            ❌ 이미 존재하는 등급이거나 잘못된 요청입니다.
+        </div>
+
+        <div class="table-card">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>등급명</th>
+                    <th>적립률</th>
+                    <th>기준 금액</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="grade : ${grades}">
+                    <td th:text="${grade.gradeId}">1</td>
+                    <td>
+                        <span class="grade-badge" th:classappend="|grade-${grade.gradeName}|"
+                              th:text="${grade.gradeName}">BASIC</span>
+                    </td>
+                    <td>
+                        <strong class="text-green"
+                                th:text="${grade.pointAddRate != null ? #numbers.formatPercent(grade.pointAddRate, 1, 1) : '0%'}"></strong>
+                    </td>
+                    <td th:text="${#numbers.formatInteger(grade.pointCutline, 0, 'COMMA')} + '원'"></td>
+                    <td class="table-actions">
+                        <button class="btn-small" type="button"
+                                th:onclick="openUpdateModal([[${grade.gradeId}]], [[${grade.gradeName}]], [[${grade.pointAddRate}]], [[${grade.pointCutline}]])">
+                            수정
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="admin-toolbar mt-20">
+            <p class="muted muted-note">
+                ℹ️ <strong>기준 금액</strong>: 최근 3개월간의 순수 주문 금액(배송비/포장비 제외) 합계입니다.<br>
+                ℹ️ 등급 산정은 매 분기(1, 4, 7, 10월) 1일 새벽에 자동으로 수행됩니다.<br>
+                ⚠️ <strong>주의:</strong> 새로운 등급을 추가하려면 먼저 개발팀을 통해 <strong>서버 코드(Enum)에 등급명이 반영</strong>되어야 합니다.<br>
+                코드가 배포된 후, 이 화면에서 '미등록 등급 활성화'를 통해 세부 정책(적립률, 기준금액)을 설정해 주세요.
+            </p>
+        </div>
+    </main>
+</div>
+
+<div id="gradeModal" class="modal-overlay">
+    <div class="modal-card">
+        <h3 id="modalTitle" class="modal-title-grade">등급 설정</h3>
+
+        <form id="gradeForm" method="post">
+            <div class="form-field">
+                <label for="gradeName">등급명</label>
+                <input type="text" id="gradeName" name="gradeName" class="form-control" placeholder="예: DIAMOND"
+                       required>
+                <p class="helper-text helper-note" id="nameHelper">
+                    * 개발팀으로부터 먼저 <strong>등급명을 제공받은 후</strong> 입력해주세요.
+                </p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="pointAddRate">적립률 (소수점)</label>
+                    <input type="number" id="pointAddRate" name="pointAddRate" class="form-control" placeholder="0.05"
+                           step="0.001" min="0" max="1" required>
+                </div>
+                <div class="form-field">
+                    <label for="pointCutline">기준 금액 (원)</label>
+                    <input type="number" id="pointCutline" name="pointCutline" class="form-control" placeholder="500000"
+                           min="0" step="1000" required>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" onclick="closeModal()">취소</button>
+                <button type="submit" class="btn-primary" id="submitBtn">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+<script>
+    const modal = document.getElementById('gradeModal');
+    const form = document.getElementById('gradeForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const nameInput = document.getElementById('gradeName');
+    const nameHelper = document.getElementById('nameHelper');
+    const rateInput = document.getElementById('pointAddRate');
+    const cutlineInput = document.getElementById('pointCutline');
+
+    function closeModal() {
+        modal.classList.remove('show');
+    }
+
+    // [등록 모달] : 코드엔 있지만 DB엔 없는 등급 추가용
+    function openCreateModal() {
+        modalTitle.textContent = '미등록 등급 활성화';
+        submitBtn.textContent = '등록';
+        form.action = '/admin/grades'; // POST (생성)
+
+        nameInput.value = '';
+        nameInput.readOnly = false;
+        nameInput.style.backgroundColor = '#fff';
+        nameHelper.style.display = 'block';
+
+        rateInput.value = '';
+        cutlineInput.value = '';
+
+        modal.classList.add('show');
+    }
+
+    // [수정 모달] : 기존 등급 정책 변경
+    function openUpdateModal(id, name, rate, cutline) {
+        modalTitle.textContent = '등급 정책 수정';
+        submitBtn.textContent = '수정 완료';
+        form.action = `/admin/grades/${id}/update`; // POST -> Controller에서 처리
+
+        nameInput.value = name;
+        nameInput.readOnly = true;
+        nameInput.style.backgroundColor = '#f0f0f0';
+        nameHelper.style.display = 'none';
+
+        rateInput.value = rate;
+        cutlineInput.value = cutline;
+
+        modal.classList.add('show');
+    }
+
+    window.onclick = function (event) {
+        if (event.target === modal) closeModal();
+    }
+</script>
+
+</body>
+</html>

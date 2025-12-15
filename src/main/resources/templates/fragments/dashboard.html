@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="sliderSection(sliderId, books, badgeText)">
+    <div class="book-slider"
+         th:id="${sliderId}"
+         th:with="list=${books}, total=${list != null ? #lists.size(list) : 0}, sliceCount=${total > 0 ? (total + 4) / 5 : 0}">
+        <button class="slider-btn slider-prev" type="button" aria-label="이전 도서" th:if="${total > 0}">‹</button>
+        <div class="slider-viewport">
+            <div class="slider-track" th:if="${total > 0}">
+                <th:block th:each="slice : ${#numbers.sequence(0, sliceCount - 1)}"
+                          th:with="start=${slice * 5}, end=${T(java.lang.Math).min((slice + 1) * 5 - 1, total - 1)}">
+                    <div class="book-slide">
+                        <div class="book-grid slice-grid">
+                            <th:block th:each="i : ${#numbers.sequence(start, end)}" th:with="b=${list[i] instanceof T(com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto) ? list[i] : null}">
+                                <div class="book-card" th:if="${b != null}">
+                                    <span class="book-badge" th:text="${badgeText}" style="background-color: #7950f2; color: white;">TAG</span>
+                                    <a class="book-cover" th:href="@{/books/{id}(id=${b.id})}">
+                                        <img class="book-image" th:alt="${b.title}" th:if="${b.thumbnail != null}" th:src="${b.thumbnail}">
+                                        <div class="thumb-fallback" th:unless="${b.thumbnail != null}">표지 준비중</div>
+                                    </a>
+                                    <div class="book-details">
+                                        <a class="no-deco" th:href="@{/books/{id}(id=${b.id})}">
+                                            <p class="book-title" th:text="${b.title} ?: '제목 없음'">제목 없음</p>
+                                        </a>
+                                        <p class="book-author" th:text="${b.contributorNames != null and !b.contributorNames.isEmpty()} ? ${b.contributorNames[0]} : '저자 정보 없음'">저자</p>
+                                        <div class="book-meta">
+                                            <div class="rating"><span>★</span> <span th:text="${b.rating} ?: '0.0'">0.0</span></div>
+                                            <div class="price-info">
+                                                <span class="price" th:text="${b.priceSales != null} ? '₩' + ${#numbers.formatInteger(b.priceSales, 0, 'COMMA')} : '가격미정'">₩0</span>
+                                            </div>
+                                            <button class="like-btn" th:classappend="${b.likedByCurrentUser} ? 'active' : ''" th:onclick="'toggleLike(this, ' + ${b.id} + ')'" type="button">
+                                                <span class="heart-icon"></span>
+                                                <span class="like-count" th:text="${b.likeCount}">0</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button class="cart-button" th:onclick="'addToCart(' + ${b.id} + ')'"><span>장바구니</span></button>
+                                </div>
+                            </th:block>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+            <div class="book-grid slice-grid" th:if="${total == 0}">
+                <div class="book-card placeholder" style="min-height: 260px; align-items: center; justify-content: center;">
+                    <div class="book-details" style="align-items: center; gap: 0.4rem;">
+                        <p class="book-title">집계 중입니다</p>
+                        <p class="book-author">도서 데이터를 준비하고 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="slider-btn slider-next" type="button" aria-label="다음 도서" th:if="${total > 0}">›</button>
+    </div>
+</th:block>
+</body>
+</html>

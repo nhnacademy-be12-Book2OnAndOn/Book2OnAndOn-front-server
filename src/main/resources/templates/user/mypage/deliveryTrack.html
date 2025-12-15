@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>배송 조회</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/mypage-delivery-track.css">
+</head>
+<body class="delivery-track">
+
+<div class="track-container">
+
+    <div class="track-header">
+        <h2>📦 배송 정보</h2>
+
+        <span class="badge"
+              th:classappend="|status-${delivery.orderStatus}|"
+              th:switch="${delivery.orderStatus}">
+            <span th:case="'PREPARING'">배송준비중</span>
+            <span th:case="'SHIPPING'">배송중</span>
+            <span th:case="'DELIVERED'">배송완료</span>
+            <span th:case="*">[[${delivery.orderStatus}]]</span> </span>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <th>주문 번호</th>
+            <td th:text="${delivery.orderId}"></td>
+        </tr>
+        <tr>
+            <th>택배사</th>
+            <td th:text="${delivery.deliveryCompany != null ? delivery.deliveryCompany : '-'}"></td>
+        </tr>
+        <tr>
+            <th>운송장 번호</th>
+            <td th:text="${delivery.waybill != null ? delivery.waybill : '등록 대기 중'}"></td>
+        </tr>
+        <tr>
+            <th>발송 일자</th>
+            <td th:text="${delivery.deliveryStartedAt != null ? #temporals.format(delivery.deliveryStartedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+        </tr>
+    </table>
+
+    <div th:if="${delivery.trackingUrl != null && !#strings.isEmpty(delivery.trackingUrl)}" class="tracking-section">
+        <div class="tracking-title">
+            🔍 상세 배송 흐름
+        </div>
+
+        <div class="iframe-wrapper">
+            <div id="loadingMsg" class="loading-overlay">
+                <div class="spinner spinner-large">⏳</div>
+                <div>택배사 정보를 불러오는 중입니다...</div>
+            </div>
+
+            <iframe class="tracking-frame"
+                    th:src="${delivery.trackingUrl}"
+                    onload="document.getElementById('loadingMsg').style.opacity='0'; setTimeout(()=>document.getElementById('loadingMsg').style.display='none', 300);">
+            </iframe>
+        </div>
+    </div>
+
+    <div th:if="${delivery.trackingUrl == null}" class="no-info">
+        <div class="empty-icon">🚚</div>
+        <p>아직 운송장이 등록되지 않았습니다.<br>판매자가 발송 처리를 하면 배송 조회가 가능합니다.</p>
+    </div>
+
+    <button type="button" class="btn-close" onclick="window.close()">닫기</button>
+
+</div>
+
+</body>
+</html>

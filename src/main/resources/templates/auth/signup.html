@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>회원가입 - Book2OnAndOn</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+
+</head>
+<body class="auth-page">
+<th:block th:replace="~{fragments/layout :: commonHeader(${user}, ${cartCount}, null, null, false)}"></th:block>
+
+<main>
+    <section class="hero auth-hero">
+        <div class="container hero-inner">
+            <div class="hero-text">
+                <p class="hero-badge">Book2OnAndOn과 끝없는 발견</p>
+                <h1>당신의 문장을 <br> 찾아드립니다.</h1>
+                <p class="hero-desc">신간부터 오래 사랑받아온 책까지, <br> 당신에게 필요한 책을 가장 먼저 전해드립니다. <br> 지금, 멤버가 되어 더 가까이 느껴보세요.</p>
+                <div class="hero-actions">
+                    <a class="btn secondary" th:href="@{/books/new}">신간 둘러보기</a>
+                    <a class="btn ghost" th:href="@{/books/bestseller}">베스트셀러 둘러보기</a>
+                </div>
+            </div>
+
+            <form class="auth-form" method="post" onsubmit="return validateForm()" th:action="@{/signup}"
+                  th:object="${signupForm}">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1>회원가입</h1>
+                        <p>Book2OnAndOn의 멤버가 되어주세요</p>
+                    </div>
+
+                    <div class="social-login" style="margin-bottom: 2rem;">
+                        <a class="btn-social btn-payco" th:href="${paycoLoginUrl}">
+                            <span class="icon">P</span>
+                            PAYCO로 3초 만에 시작하기
+                        </a>
+                    </div>
+
+                    <div class="alert alert-error" th:if="${error}">
+                        <p th:text="${error}"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userLoginId">아이디</label>
+                        <input id="userLoginId" placeholder="4~30자 이내" required th:field="*{userLoginId}" type="text"
+                               onblur="checkIdDuplicate()">
+                        <div class="error-text" th:errors="*{userLoginId}" th:if="${#fields.hasErrors('userLoginId')}">
+                            Error
+                        </div>
+
+                        <p id="id-message" style="font-size: 0.85rem; margin-top: 5px;"></p>
+                        <input type="hidden" id="isIdChecked" value="false">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">비밀번호</label>
+                        <input id="password" placeholder="영문, 숫자, 특수문자 포함 8~16자" required th:field="*{password}"
+                               type="password">
+                        <div class="error-text" th:errors="*{password}" th:if="${#fields.hasErrors('password')}">Error
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">이름</label>
+                        <input id="name" placeholder="이름을 입력하세요" required th:field="*{name}" type="text">
+                        <div class="error-text" th:errors="*{name}" th:if="${#fields.hasErrors('name')}">Error</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nickname">닉네임</label>
+                        <div class="input-inline">
+                            <input id="nickname" name="nickname" placeholder="사용하실 닉네임을 입력하세요" required type="text"
+                                   onblur="checkNicknameDuplicate()">
+                        </div>
+                        <p id="nickname-message" style="font-size: 0.85rem; margin-top: 5px;"></p>
+                        <input type="hidden" id="isNicknameChecked" value="false">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">이메일</label>
+                        <div class="input-inline">
+                            <input id="email" placeholder="example@email.com" required th:field="*{email}" type="email">
+                            <button class="btn-small" id="btn-send" onclick="sendVerification()" type="button">인증번호 전송
+                            </button>
+                        </div>
+                        <div class="error-text" th:errors="*{email}" th:if="${#fields.hasErrors('email')}">Error</div>
+                    </div>
+
+                    <div class="form-group" id="verification-group" style="display: none;">
+                        <label for="verifyCode">인증번호</label>
+                        <div class="input-inline">
+                            <input id="verifyCode" placeholder="6자리 코드 입력" type="text">
+                            <button class="btn-small" id="btn-verify" onclick="checkVerification()" type="button">확인
+                            </button>
+                        </div>
+                        <p id="verify-message" style="font-size: 0.85rem; margin-top: 5px;"></p>
+                        <input id="isEmailVerified" type="hidden" value="false">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">휴대폰 번호</label>
+                        <input id="phone" placeholder="01012345678 (하이픈 없이)" required th:field="*{phone}" type="text">
+                        <div class="error-text" th:errors="*{phone}" th:if="${#fields.hasErrors('phone')}">Error</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birth">생년월일</label>
+                        <input id="birth" required th:field="*{birth}" type="date">
+                        <div class="error-text" th:errors="*{birth}" th:if="${#fields.hasErrors('birth')}">Error</div>
+                    </div>
+
+                    <button class="btn primary" type="submit">가입하기</button>
+
+                    <div class="auth-footer">
+                        <p>이미 계정이 있으신가요?
+                            <a class="link-primary" th:href="@{/login}">로그인</a>
+                        </p>
+                    </div>
+                </div>
+            </form>
+        </div> <!-- container -->
+    </section>
+</main>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+<script>
+    function sendVerification() {
+        const email = document.getElementById('email').value;
+        if (!email) {
+            alert("이메일을 입력해주세요.");
+            return;
+        }
+
+        const btn = document.getElementById('btn-send');
+        btn.disabled = true;
+        btn.innerText = "전송중...";
+
+        fetch('/email/send', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `email=${encodeURIComponent(email)}`
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert("인증번호가 발송되었습니다. 메일함을 확인해주세요.");
+                    document.getElementById('verification-group').style.display = 'block';
+                    btn.innerText = "재전송";
+                } else {
+                    response.text().then(text => alert(text));
+                    btn.innerText = "인증번호 전송";
+                }
+                btn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("서버 통신 오류가 발생했습니다.");
+                btn.disabled = false;
+                btn.innerText = "인증번호 전송";
+            });
+    }
+
+    function checkVerification() {
+        const email = document.getElementById('email').value;
+        const code = document.getElementById('verifyCode').value;
+        const msg = document.getElementById('verify-message');
+        const verifyBtn = document.getElementById('btn-verify');
+
+        if (!code) {
+            alert("인증번호를 입력해주세요.");
+            return;
+        }
+
+        fetch('/email/verify', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`
+        })
+            .then(response => {
+                if (response.ok) {
+                    msg.style.color = 'green';
+                    msg.innerText = "인증되었습니다.";
+                    document.getElementById('isEmailVerified').value = "true";
+
+                    document.getElementById('email').readOnly = true;
+                    document.getElementById('verifyCode').disabled = true;
+                    verifyBtn.disabled = true;
+                    document.getElementById('btn-send').disabled = true;
+                } else {
+                    msg.style.color = 'red';
+                    msg.innerText = "인증번호가 일치하지 않습니다.";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                msg.style.color = 'red';
+                msg.innerText = "인증 중 오류가 발생했습니다.";
+            });
+    }
+
+    function checkIdDuplicate() {
+        const idInput = document.getElementById('userLoginId');
+        const id = idInput.value;
+        const msg = document.getElementById('id-message');
+        const hiddenInput = document.getElementById('isIdChecked');
+
+        if (!id) {
+            msg.innerText = "";
+            hiddenInput.value = "false";
+            return;
+        }
+
+        // 아이디 길이 유효성 검사 (4~30자)
+        if (id.length < 4 || id.length > 30) {
+            msg.style.color = 'red';
+            msg.innerText = "아이디는 4~30자 사이여야 합니다.";
+            hiddenInput.value = "false";
+            return;
+        }
+
+        fetch('/check-id?userLoginId=' + encodeURIComponent(id))
+            .then(response => response.json())
+            .then(isDuplicate => {
+                if (isDuplicate) {
+                    msg.style.color = 'red';
+                    msg.innerText = "이미 사용 중인 아이디입니다.";
+                    hiddenInput.value = "false";
+                } else {
+                    msg.style.color = 'green';
+                    msg.innerText = "사용 가능한 아이디입니다.";
+                    hiddenInput.value = "true";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                msg.style.color = 'red';
+                msg.innerText = "중복 확인 중 오류가 발생했습니다.";
+                hiddenInput.value = "false";
+            });
+    }
+
+    function checkNicknameDuplicate() {
+        const nickname = document.getElementById('nickname').value;
+        const msg = document.getElementById('nickname-message');
+        const hiddenInput = document.getElementById('isNicknameChecked');
+
+        if (!nickname) {
+            msg.innerText = "";
+            hiddenInput.value = "false";
+            return;
+        }
+
+        if (nickname.length < 2 || nickname.length > 20) {
+            msg.style.color = 'red';
+            msg.innerText = "닉네임은 2~20자 사이여야 합니다.";
+            hiddenInput.value = "false";
+            return;
+        }
+
+        fetch('/check-nickname?nickname=' + encodeURIComponent(nickname))
+            .then(response => response.json())
+            .then(isDuplicate => {
+                if (isDuplicate) {
+                    msg.style.color = 'red';
+                    msg.innerText = "이미 사용 중인 닉네임입니다.";
+                    hiddenInput.value = "false";
+                } else {
+                    msg.style.color = 'green';
+                    msg.innerText = "사용 가능한 닉네임입니다.";
+                    hiddenInput.value = "true";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                msg.style.color = 'red';
+                msg.innerText = "중복 확인 중 오류가 발생했습니다.";
+                hiddenInput.value = "false";
+            });
+    }
+
+    function validateForm() {
+        const isVerified = document.getElementById('isEmailVerified').value;
+        if (isVerified !== "true") {
+            alert("이메일 인증을 완료해주세요.");
+            document.getElementById('email').focus();
+            return false;
+        }
+
+        const isIdOk = document.getElementById('isIdChecked').value;
+        if (isIdOk !== "true") {
+            alert("아이디 중복 확인이 필요합니다 (이미 사용 중이거나 확인되지 않음).");
+            document.getElementById('userLoginId').focus();
+            return false;
+        }
+
+        const isNicknameOk = document.getElementById('isNicknameChecked').value;
+        if (isNicknameOk !== "true") {
+            alert("닉네임 중복 확인이 필요합니다 (이미 사용 중이거나 확인되지 않음)");
+            document.getElementById('nickname').focus();
+            return false;
+        }
+        return true;
+    }
+</script>
+</body>
+</html>

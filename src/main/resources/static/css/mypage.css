@@ -1,0 +1,1245 @@
+/* ============================
+   마이페이지 전체 레이아웃
+   ============================ */
+
+.mypage-page {
+    background: var(--ivory);
+    color: #123423;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.mypage-shell {
+    padding: 4rem 0 4rem;
+}
+
+.mypage-shell .container {
+    min-height: 59.3vb;
+}
+
+.dashboard-wrapper {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+    gap: 2rem;
+}
+
+/* ============================
+   사이드바
+   ============================ */
+
+.dashboard-sidebar {
+    width: 260px;
+    background: #ffffff;
+    border: 1px solid #e0e7e2;
+    border-radius: 18px;
+    padding: 1.8rem 1.2rem;
+    /*height: fit-content;*/
+    box-shadow: 0 25px 60px rgba(7, 28, 15, 0.1);
+}
+
+.dashboard-sidebar h3 {
+    margin-bottom: 1.1rem;
+    color: #205433;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.dashboard-menu {
+    list-style: none;
+    padding: 0;
+    align-content: center;
+}
+
+.dashboard-menu li {
+    margin-bottom: 0.8rem;
+}
+
+.dashboard-menu a {
+    color: #234132;
+    text-decoration: none;
+    padding: 0.75rem 0.95rem;
+    display: block;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s;
+}
+
+.dashboard-menu a:hover,
+.dashboard-menu .active {
+    background: rgba(47, 98, 66, 0.12);
+    color: #205433;
+    box-shadow: inset 0 0 0 1px rgba(47, 98, 66, 0.2);
+}
+
+.dashboard-menu .logout-link {
+    color: #e53935;
+    font-weight: 700;
+}
+
+.dashboard-menu .logout-link:hover {
+    background: rgba(229, 57, 53, 0.1);
+    color: #ff6f60;
+    box-shadow: inset 0 0 0 1px rgba(229, 57, 53, 0.25);
+}
+
+.dashboard-menu .password-link {
+    color: #1f6aa5;
+    font-weight: 700;
+}
+
+.dashboard-menu .password-link:hover,
+.dashboard-menu .password-link.active {
+    background: rgba(31, 106, 165, 0.12);
+    color: #4b7fb0;
+    box-shadow: inset 0 0 0 1px rgba(31, 106, 165, 0.25);
+}
+
+.dashboard-menu .withdraw-link {
+    color: #e53935;
+    font-weight: 700;
+}
+
+.dashboard-menu .withdraw-link:hover,
+.dashboard-menu .withdraw-link.active {
+    background: rgba(200, 52, 52, 0.1);
+    color: #ff6f60;
+    box-shadow: inset 0 0 0 1px rgba(200, 52, 52, 0.25);
+}
+
+/* ============================
+   메인 영역
+   ============================ */
+
+.dashboard-main {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e0e7e2;
+    border-radius: 22px;
+    padding: 2.4rem 2.6rem;
+    box-shadow: 0 25px 60px rgba(7, 28, 15, 0.1);
+}
+
+.dashboard-main h2 {
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #205433;
+    color: #205433;
+    font-size: 1.7rem;
+}
+
+/* ============================
+   카드 그리드 (마이페이지 상단 카드)
+   ============================ */
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.8rem;
+    margin-bottom: 1.2rem;
+}
+
+.card-grid.quick-stats {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.8rem;
+    align-items: stretch;
+}
+
+.dashboard-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e0e7e2;
+    padding: 2.1rem;
+    min-height: 280px;
+    box-shadow: 0 18px 40px rgba(7, 28, 15, 0.08);
+}
+
+.dashboard-card h4 {
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+    color: #205433;
+}
+
+.dashboard-header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #205433;
+    color: #205433;
+    font-size: 1.7rem;
+}
+
+.dashboard-header h2 {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.muted {
+    color: #6b7b6c;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.address-line {
+    margin-top: 0.3rem;
+}
+
+.link-card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.link-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 44px rgba(7, 28, 15, 0.12);
+    border-color: #c9d7ce;
+}
+
+.card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.card-label {
+    font-weight: 800;
+    color: #1f4a30;
+    letter-spacing: -0.01em;
+}
+
+.card-link {
+    color: #2f6242;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1f4a30;
+    margin: 0.2rem 0 0.4rem;
+}
+
+.subtext {
+    color: #6b7b6c;
+    margin: 0;
+}
+
+.order-status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+}
+
+.order-status-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.65rem;
+    background: #f7faf7;
+    border: 1px solid #e0e7e2;
+    border-radius: 12px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.in-transit {
+    background: #f4b73f;
+    box-shadow: 0 0 0 3px rgba(244, 183, 63, 0.25);
+}
+
+.status-dot.delivered {
+    background: #2f8f4f;
+    box-shadow: 0 0 0 3px rgba(47, 143, 79, 0.22);
+}
+
+.status-count {
+    font-weight: 800;
+    color: #1f4a30;
+}
+
+.order-status-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0.6rem 0 0.2rem;
+}
+
+.summary-label {
+    color: #6b7b6c;
+    font-weight: 700;
+}
+
+.summary-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 12px;
+    background: #f3f7f3;
+    border: 1px solid #e0e7e2;
+    font-weight: 700;
+    color: #234132;
+}
+
+.summary-pill .pill-text {
+    color: #6b7b6c;
+    font-weight: 600;
+}
+
+.order-mini-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.order-mini-item {
+    padding: 0.75rem 0.85rem;
+    border: 1px solid #e0e7e2;
+    border-radius: 12px;
+    background: #f8fbf8;
+}
+
+.order-mini-row {
+    display: flex;
+    justify-content: space-between;
+    color: #234132;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.order-mini-row + .order-mini-row {
+    margin-top: 0.25rem;
+    color: #55675c;
+    font-weight: 600;
+}
+
+.order-mini-item .order-id {
+    color: #1f4a30;
+}
+
+.order-mini-item .order-status {
+    color: #2f6242;
+}
+
+.order-mini-item .order-date {
+    color: #6b7b6c;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.mini-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.mini-item {
+    padding: 0.75rem 0.85rem;
+    border: 1px solid #e0e7e2;
+    border-radius: 12px;
+    background: #f8fbf8;
+}
+
+.mini-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    color: #234132;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.mini-row + .mini-row {
+    margin-top: 0.2rem;
+    color: #55675c;
+    font-weight: 600;
+}
+
+.mini-title {
+    color: #1f4a30;
+}
+
+.mini-meta {
+    color: #6b7b6c;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.mini-amount {
+    color: #2f6242;
+    font-weight: 800;
+}
+
+.review-card {
+    /*margin-top: 0.5rem;*/
+}
+
+@media (min-width: 980px) {
+    .card-grid.quick-stats {
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-areas:
+            "info point order"
+            "coupon review order";
+    }
+
+    .info-card {
+        grid-area: info;
+    }
+
+    .coupon-card {
+        grid-area: coupon;
+    }
+
+    .order-status-card {
+        grid-area: order;
+    }
+
+    .point-card {
+        grid-area: point;
+    }
+
+    .review-card {
+        grid-area: review;
+    }
+
+    .point-card .stat-value {
+        font-size: 2.4rem;
+    }
+}
+
+.review-preview + .review-preview {
+    border-top: 1px solid #e7ede8;
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+}
+
+.review-title {
+    font-weight: 700;
+    color: #234132;
+    margin-bottom: 0.2rem;
+}
+
+.review-content {
+    color: #55675c;
+    margin: 0.15rem 0 0.4rem;
+    line-height: 1.4;
+}
+
+.review-meta {
+    color: #2f6242;
+    font-weight: 700;
+}
+
+/* ============================
+   찜한 도서 페이지 스타일
+   ============================ */
+.likes-page {
+    display: flex;
+    flex-direction: column;
+}
+
+.liked-empty {
+    background: #f8fbf8;
+    border: 1px dashed #d5ddd6;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    color: #55675c;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.liked-btn-verify {
+    padding: 0.9rem 1.3rem;
+    background: linear-gradient(135deg, #2f6242, #2d5f3f);
+    color: #ffffff;
+    border: 1px solid #2f6242;
+    border-radius: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 12px 24px rgba(47, 98, 66, 0.2);
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.liked-btn-verify:hover {
+    background: linear-gradient(135deg, #2f714d, #2d6a48);
+    transform: translateY(-1px);
+    text-decoration: underline;
+    box-shadow: 0 16px 28px rgba(47, 98, 66, 0.25);
+}
+
+.liked-btn-verify:active {
+    transform: translateY(0);
+    box-shadow: 0 10px 20px rgba(47, 98, 66, 0.18);
+}
+
+.liked-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.2rem;
+}
+
+.liked-card {
+    background: #ffffff;
+    border: 1px solid #e0e7e2;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 16px 34px rgba(7, 28, 15, 0.08);
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.liked-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 44px rgba(7, 28, 15, 0.14);
+    border-color: #c9d7ce;
+}
+
+.liked-thumb {
+    position: relative;
+    padding-top: 140%;
+    background: #f5f7f4;
+}
+
+.liked-thumb img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.liked-body {
+    padding: 1rem 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.liked-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1f4a30;
+    line-height: 1.4;
+}
+
+.liked-authors {
+    margin: 0;
+    color: #6b7b6c;
+    font-size: 0.92rem;
+}
+
+.liked-price {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.15rem;
+}
+
+.liked-price .price-sale {
+    color: #e53935;
+    font-weight: 800;
+}
+
+.liked-price .price-origin {
+    color: #8b9b8d;
+    text-decoration: line-through;
+    font-size: 0.9rem;
+}
+
+.liked-meta {
+    margin-top: auto;
+    color: #6b7b6c;
+    font-size: 0.9rem;
+}
+
+/* ============================
+   포인트 내역 페이지 스타일
+   ============================ */
+.points-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.point-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.point-balance-card {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fbf8, #eef5ef);
+    border-color: #d6e0d8;
+    box-shadow: 0 16px 36px rgba(7, 28, 15, 0.08);
+}
+
+.point-amount {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1f4a30;
+    margin: 0.4rem 0 0.2rem;
+}
+
+.point-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.8rem;
+}
+
+.point-metric-card {
+    background: #ffffff;
+    border: 1px solid #e0e7e2;
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    box-shadow: 0 12px 26px rgba(7, 28, 15, 0.06);
+}
+
+.metric-label {
+    color: #6b7b6c;
+    font-weight: 700;
+}
+
+.metric-value {
+    display: block;
+    margin-top: 0.35rem;
+    font-weight: 800;
+    color: #1f4a30;
+}
+
+.point-history-card {
+    padding: 1.4rem;
+}
+
+.filter-tabs {
+    display: inline-flex;
+    gap: 0.4rem;
+    background: #f5f7f4;
+    border: 1px solid #d5ddd6;
+    border-radius: 12px;
+    padding: 0.25rem;
+}
+
+.filter-tab {
+    border: none;
+    background: transparent;
+    padding: 0.45rem 0.9rem;
+    border-radius: 10px;
+    font-weight: 700;
+    color: #234132;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.filter-tab:hover {
+    background: #e9f1ea;
+}
+
+.filter-tab.active {
+    background: linear-gradient(135deg, #2f6242, #2d5f3f);
+    color: #ffffff;
+    box-shadow: 0 10px 20px rgba(47, 98, 66, 0.18);
+}
+
+.history-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.8rem;
+}
+
+.history-table th,
+.history-table td {
+    text-align: left;
+    padding: 0.75rem 0.65rem;
+    border-bottom: 1px solid #e7ede8;
+    color: #234132;
+}
+
+.history-table th {
+    font-weight: 800;
+    color: #1f4a30;
+    background: #f8fbf8;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.badge-earn {
+    background: rgba(47, 98, 66, 0.12);
+    color: #2f6242;
+}
+
+.badge-use {
+    background: rgba(200, 52, 52, 0.12);
+    color: #e53935;
+}
+
+.point-change {
+    font-weight: 800;
+}
+
+.point-plus {
+    color: #2f8f4f;
+}
+
+.point-minus {
+    color: #e53935;
+}
+
+.empty-state {
+    text-align: center;
+    color: #6b7b6c;
+}
+
+.empty-state-icon {
+    font-size: 1.2rem;
+    margin-bottom: 0.2rem;
+}
+
+.point-pagination {
+    justify-content: flex-end;
+    margin-top: 1.2rem;
+}
+
+.page-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 1.8rem;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.page-btn {
+    min-width: 44px;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #d5ddd6;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #234132;
+    text-align: center;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.page-btn:hover:not(.disabled):not(.active) {
+    background: #f3f7f3;
+    border-color: #c9d7ce;
+}
+
+.page-btn.active {
+    background: linear-gradient(135deg, #2f6242, #2d5f3f);
+    color: #ffffff;
+    border-color: #2f6242;
+    box-shadow: 0 10px 20px rgba(47, 98, 66, 0.18);
+}
+
+.page-btn.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* ============================
+   최근 리뷰 스타일
+   ============================ */
+
+.review-list-item {
+    border-bottom: 1px solid #eee;
+    padding: 0.8rem 0;
+}
+
+.review-list-item:last-child {
+    border-bottom: none;
+}
+
+/* ============================
+   주소 리스트 카드
+   ============================ */
+
+.address-card {
+    background: #ffffff;
+    border: 1px solid #e0e7e2;
+    border-radius: 14px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 16px 30px rgba(7, 28, 15, 0.07);
+}
+
+.address-card h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    color: #205433;
+}
+
+.address-content p {
+    margin: 0.2rem 0;
+}
+
+.default-badge {
+    color: #2f6242;
+    font-weight: bold;
+    margin-top: 0.4rem;
+    display: block;
+}
+
+/* ============================
+   이메일 인증 인라인 버튼 정리
+   ============================ */
+.input-inline {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.input-inline input {
+    flex: 1;
+}
+
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+    margin-top: 12px;
+}
+
+.btn-verify {
+    padding: 0.82rem 1.35rem;
+    min-height: 48px;
+    background: linear-gradient(135deg, #2f6242, #2d5f3f);
+    color: #fff;
+    border: 1px solid #2f6242;
+    border-radius: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 0.95rem;
+    font-weight: 700;
+    box-shadow: 0 10px 20px rgba(47, 98, 66, 0.18);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-verify:hover:not(:disabled) {
+    background: #2f714d;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(47, 98, 66, 0.22);
+}
+
+.btn-verify:disabled {
+    background: #c7d3c9;
+    border-color: #c7d3c9;
+    cursor: not-allowed;
+    color: #ffffff;
+    box-shadow: none;
+}
+
+.input-inline .btn-small {
+    padding: 0.82rem 1.35rem;
+    min-height: 48px;
+    background: linear-gradient(135deg, #2f6242, #2d5f3f);
+    color: #fff;
+    border: 1px solid #2f6242;
+    border-radius: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 0.95rem;
+    font-weight: 700;
+    box-shadow: 0 10px 20px rgba(47, 98, 66, 0.18);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.input-inline .btn-small:hover {
+    background: #2f714d;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(47, 98, 66, 0.22);
+}
+
+.input-inline .btn-small:disabled {
+    background: #c7d3c9;
+    border-color: #c7d3c9;
+    cursor: not-allowed;
+    color: #ffffff;
+}
+
+/* ============================
+   주소 리스트 버튼 영역
+   ============================ */
+
+.address-actions {
+    margin-top: 0.8rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-edit {
+    border: 1px solid #2d5016;
+    background: white;
+    color: #2d5016;
+    border-radius: 12px;
+    padding: 3px 16px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: medium;
+}
+
+.btn-edit:hover {
+    text-decoration: underline;
+}
+
+.btn-delete {
+    border: 1px solid #d9534f;
+    background: white;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 0.45rem 1.1rem;
+    cursor: pointer;
+    font-size: medium;
+}
+
+.btn-delete:hover {
+    text-decoration: underline;
+}
+
+/* ============================
+   주소 추가 버튼
+   ============================ */
+
+.add-address-btn {
+    display: inline-block;
+    background: #2f6242;
+    color: white;
+    padding: 0.65rem 1.2rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+}
+
+/* ============================
+   주소 폼 (address-form)
+   ============================ */
+
+.address-form-container {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid #e0e7e2;
+    max-width: 640px;
+    box-shadow: 0 18px 40px rgba(7, 28, 15, 0.08);
+}
+
+.address-form-container.no-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    max-width: none;
+    width: 100%;
+}
+
+.withdraw-warning {
+    padding: 1rem 1.2rem;
+    border-radius: 12px;
+    background: #fff5f5;
+    border: 1px solid #f5c2c2;
+    color: #c0392b;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.withdraw-form {
+    padding: 0;
+}
+
+.withdraw-form h2 {
+    margin-bottom: 0.9rem;
+}
+
+.withdraw-form .withdraw-warning {
+    margin-bottom: 1.25rem;
+    width: 100%;
+    max-width: 100%;
+}
+
+.withdraw-form form {
+    width: 100%;
+    max-width: 100%;
+    background: #f8fbf8;
+    border: 1px solid #e0e7e2;
+    border-radius: 16px;
+    padding: 1.6rem 1.4rem;
+    box-shadow: 0 14px 32px rgba(7, 28, 15, 0.06);
+}
+
+.withdraw-form .form-actions {
+    width: 100%;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.withdraw-form .btn-cancel,
+.withdraw-form .btn-danger {
+    flex: 1;
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    font-weight: 800;
+}
+
+.withdraw-form .btn-cancel {
+    background: #f2f2f2;
+    color: #4a4a4a;
+    border: 1px solid #d9d9d9;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.withdraw-form .btn-cancel:hover {
+    background: #e6e6e6;
+    color: #333333;
+    transform: translateY(-1px);
+}
+
+.withdraw-form .btn-danger {
+    background: linear-gradient(135deg, #e25656, #c83434);
+    color: #ffffff;
+    border: 1px solid #e53935;
+    box-shadow: 0 12px 24px rgba(200, 52, 52, 0.15);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.withdraw-form .btn-danger:hover {
+    background: linear-gradient(135deg, #e76969, #d23a3a);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px rgba(200, 52, 52, 0.22);
+}
+
+.withdraw-form .btn-danger:active {
+    transform: translateY(0);
+    box-shadow: 0 10px 20px rgba(200, 52, 52, 0.15);
+}
+
+.address-form-container.no-card form {
+    max-width: 100%;
+}
+
+.address-form-container h2 {
+    color: #2d5016;
+    margin-bottom: 1.5rem;
+}
+
+.form-field {
+    margin-bottom: 1.2rem;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: bold;
+}
+
+.form-field input,
+.form-field textarea,
+.input-inline input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 1px solid #d5ddd6;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #123423;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.input-inline input:focus {
+    outline: none;
+    border-color: #2f6242;
+    box-shadow: 0 0 0 3px rgba(47, 98, 66, 0.15);
+}
+
+.form-field textarea {
+    min-height: 160px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--green-700);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    margin-top: 1rem;
+    cursor: pointer;
+    font-size: medium;
+    font-weight: bold;
+}
+
+.default-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 0.95rem;
+    margin-top: 0.4rem;
+    border: 1px solid #e0e7e2;
+    border-radius: 12px;
+    background: #f8fbf8;
+    font-weight: 700;
+    color: #234132;
+    user-select: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    width: fit-content;
+}
+
+.default-toggle span {
+    margin-left: 8px;
+}
+
+.default-toggle:hover {
+    border-color: #2d5016;
+    background: #f3f7f3;
+    box-shadow: 0 6px 14px rgba(47, 98, 66, 0.08);
+}
+
+.default-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #2d5016;
+    cursor: pointer;
+    border-radius: 6px;
+    transform: translateY(0.18rem);
+    /*vertical-align: middle;*/
+}
+
+/* ============================
+   반응형
+   ============================ */
+
+@media (max-width: 768px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+    }
+
+    .dashboard-sidebar {
+        width: 100%;
+    }
+
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================
+   추가: 회원정보 수정 페이지 전용 스타일
+   ============================ */
+
+/* 버튼들을 가로로 배치하기 위한 컨테이너 */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+/* 기존 submit-btn이 width: 100%로 되어 있으므로,
+   가로 배치 시 비율을 조정하거나 flex-grow를 줍니다. */
+.form-actions .submit-btn {
+    flex: 2; /* 저장 버튼을 더 넓게 */
+    margin-top: 0; /* 기존 margin-top 제거 */
+}
+
+/* 취소 버튼 스타일 */
+.btn-cancel {
+    flex: 1; /* 취소 버튼은 조금 좁게 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    padding: 0.8rem;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #e0e0e0;
+}
+
+/* 에러 메시지 박스 */
+.error-box {
+    background-color: #fde8e8;
+    color: #d9534f;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f8b4b4;
+    font-size: 0.95rem;
+}
+
+/* 우편번호 찾기 버튼 */
+.btn-postcode {
+    padding: 0.65rem 1.1rem;
+    background: #2f6242;
+    color: #fff;
+    border: 1px solid #2f6242;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(45, 80, 22, 0.18);
+}
+
+.btn-postcode:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(45, 80, 22, 0.24);
+    opacity: 0.94;
+}
+
+.btn-postcode:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 14px rgba(45, 80, 22, 0.2);
+}

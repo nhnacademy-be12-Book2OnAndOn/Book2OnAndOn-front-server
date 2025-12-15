@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 - 쿠폰 정책 등록/수정</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-coupon-policy.css}">
+</head>
+
+<th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: (${session.user} ?: null), ${cartCount}, null, null, false)}"></th:block>
+
+<body>
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('couponpolicies')}"></th:block>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">쿠폰 정책</p>
+                <h2 th:text="${pageTitle}">쿠폰 정책 등록</h2>
+            </div>
+            <a class="btn-ghost" th:href="@{/admin/policies}">← 목록으로</a>
+        </div>
+
+        <section class="admin-detail-card form-section">
+            <h4>기본 정보</h4>
+            <form method="post" id="policyForm"
+                  th:action="${policy.couponPolicyId == null ? '/admin/policies/create' : '/admin/policies/update/' + policy.couponPolicyId}"
+                  th:object="${policy}">
+
+                <div class="form-field">
+                    <label for="couponPolicyName">정책 이름</label>
+                    <input class="form-control" id="couponPolicyName" placeholder="예: 신규 회원 웰컴 쿠폰" required th:field="*{couponPolicyName}" type="text">
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="couponPolicyType">쿠폰 타입</label>
+                        <select class="form-control" id="couponPolicyType" th:field="*{couponPolicyType}">
+                            <option th:each="type : ${policyTypes}" th:text="${type}" th:value="${type}"></option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="couponPolicyDiscountType">할인 방식</label>
+                        <select class="form-control" id="couponPolicyDiscountType" th:field="*{couponPolicyDiscountType}">
+                            <option th:each="dtype : ${discountTypes}" th:text="${dtype}" th:value="${dtype}"></option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="couponDiscountValue">할인값 <span id="discountUnitLabel">(원)</span></label>
+                        <input class="form-control" id="couponDiscountValue" required th:field="*{couponDiscountValue}" type="number">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="minPrice">최소 주문 금액</label>
+                        <input class="form-control" id="minPrice" th:field="*{minPrice}" type="number" value="0">
+                    </div>
+                    <div class="form-field">
+                        <label for="maxPrice">최대 할인 금액</label>
+                        <div class="inline-control">
+                            <input class="form-control" id="maxPrice" th:field="*{maxPrice}" type="number">
+                            <input id="removeMaxPriceFlag" th:field="*{removeMaxPrice}" type="hidden">
+                            <button class="remove-btn" data-flag="removeMaxPriceFlag" data-target="#maxPrice" type="button">제거</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section mt-1">
+                    <h4>유효 기간 설정</h4>
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="durationDays">발급 후 유효 일수</label>
+                            <div class="inline-control">
+                                <input class="form-control" id="durationDays" placeholder="예: 30" th:field="*{durationDays}" type="number">
+                                <input id="removeDurationDaysFlag" th:field="*{removeDurationDays}" type="hidden">
+                                <button class="remove-btn" data-flag="removeDurationDaysFlag" data-target="#durationDays" type="button">제거</button>
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label>고정 기간</label>
+                            <div class="inline-control flex-wrap">
+                                <input class="form-control flex-1" id="fixedStartDate" th:field="*{fixedStartDate}" type="date">
+                                <input class="form-control flex-1" id="fixedEndDate" th:field="*{fixedEndDate}" type="date">
+                                <input id="removeFixedDateFlag" th:field="*{removeFixedDate}" type="hidden">
+                                <button class="remove-btn" data-flag="removeFixedDateFlag" data-target="#fixedStartDate,#fixedEndDate" type="button">제거</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-field mt-1">
+                    <label>적용 대상 도서</label>
+
+                    <input type="hidden" id="targetBookIds" th:field="*{targetBookIds}">
+
+                    <div id="selectedBooksBox" class="selected-items-box">
+                        <th:block th:if="${bookNameMap != null and not #maps.isEmpty(bookNameMap)}">
+                            <div class="chip" th:each="entry : ${bookNameMap}" th:id="'book-chip-' + ${entry.key}">
+                                <span class="mr-4">📕</span>
+                                <span class="fw-500" th:text="${entry.value}">책 제목</span>
+                                <small th:text="'(ID:' + ${entry.key} + ')'"></small>
+                                <button type="button" class="chip-remove" th:onclick="|removeBookId('${entry.key}')|">×</button>
+                            </div>
+                        </th:block>
+                    </div>
+
+                    <div class="book-actions">
+                        <div class="book-search-cta">
+                            <div class="cta-icon">🔎</div>
+                            <div class="cta-text">
+                                <strong>도서 검색 및 추가</strong>
+                                <span class="muted">쿠폰 적용 도서를 빠르게 찾아 추가하세요.</span>
+                            </div>
+                            <button type="button" class="btn-accent dense" onclick="openBookSearchModal()">도서 추가</button>
+                        </div>
+
+                        <input id="removeTargetBookFlag" th:field="*{removeTargetBook}" type="hidden">
+                        <button class="remove-btn-outline" data-flag="removeTargetBookFlag" data-target="#targetBookIds" type="button" onclick="clearAllBooks()">
+                            🗑️ 적용 도서 전체 제거
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label>적용 대상 카테고리</label>
+
+                    <div class="selected-items-box"
+                         th:if="${categoryNameMap != null and not #maps.isEmpty(categoryNameMap)}">
+                        <div class="chip category" th:each="entry : ${categoryNameMap}">
+                            <span class="mr-4">📂</span>
+                            <span class="fw-500" th:text="${entry.value}">카테고리명</span>
+                        </div>
+                    </div>
+
+                    <div id="categoryTreeContainer" class="category-tree-box">
+                        <div class="muted" th:if="${#lists.isEmpty(categoryList)}">등록된 카테고리가 없습니다.</div>
+                        <ul class="tree-root" th:unless="${#lists.isEmpty(categoryList)}">
+                            <th:block th:each="rootCat : ${categoryList}">
+                                <th:block th:replace="~{::categoryNode(${rootCat})}"></th:block>
+                            </th:block>
+                        </ul>
+                    </div>
+                    <input id="removeTargetCategoryFlag" th:field="*{removeTargetCategory}" type="hidden">
+                    <button class="remove-btn mt-5" data-flag="removeTargetCategoryFlag" data-target=".category-tree-box input[type='checkbox']" type="button">전체 제거</button>
+                </div>
+
+                <div class="form-field mt-1" th:if="${policy.couponPolicyId != null}">
+                    <label for="couponPolicyStatus">정책 상태</label>
+                    <select class="form-control" id="couponPolicyStatus" th:field="*{couponPolicyStatus}">
+                        <option th:each="status : ${statuses}" th:text="${status}" th:value="${status}"></option>
+                    </select>
+                </div>
+
+                <div class="modal-actions mt-2rem">
+                    <a class="btn-ghost" th:href="@{/admin/policies}">취소</a>
+                    <button class="btn-primary" type="submit">저장하기</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+<th:block th:fragment="categoryNode(cat)">
+    <li class="tree-item" th:if="${cat != null}">
+        <div class="tree-row">
+            <span th:if="${cat.children != null and not #lists.isEmpty(cat.children)}" class="toggle-btn">▶</span>
+            <span th:unless="${cat.children != null and not #lists.isEmpty(cat.children)}" class="toggle-placeholder"></span>
+
+            <label class="checkbox-label">
+                <input type="checkbox"
+                       name="targetCategoryIds"
+                       th:value="${cat.id}"
+                       th:checked="${policy.targetCategoryIds != null and #lists.contains(policy.targetCategoryIds, cat.id)}"
+                       th:id="${'cat_' + cat.id}">
+                <span th:text="${cat.name}">카테고리명</span>
+            </label>
+        </div>
+        <ul th:if="${cat.children != null and not #lists.isEmpty(cat.children)}" class="sub-tree">
+            <th:block th:each="child : ${cat.children}">
+                <th:block th:replace="~{::categoryNode(${child})}"></th:block>
+            </th:block>
+        </ul>
+    </li>
+</th:block>
+
+<div id="bookSearchModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>도서 검색</h3>
+            <button type="button" class="close-modal" onclick="closeBookSearchModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="search-bar-group">
+                <input type="text" id="modalSearchKeyword" class="form-control" placeholder="도서명, 저자, ISBN 검색" onkeypress="if(event.key === 'Enter') searchBooks()">
+                <button type="button" class="btn-accent" onclick="searchBooks()">검색</button>
+            </div>
+            <ul id="bookResultList" class="result-list"><li class="no-result">검색어를 입력하세요.</li></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // ==========================================
+        // 1. 카테고리 트리 (이벤트 분리)
+        // ==========================================
+        const treeContainer = document.getElementById('categoryTreeContainer');
+
+        if (treeContainer) {
+            // (1) CLICK 이벤트: 오직 토글 버튼(▶)만 처리
+            treeContainer.addEventListener('click', function(e) {
+                const toggleBtn = e.target.closest('.toggle-btn');
+                if (toggleBtn) {
+                    e.preventDefault(); e.stopPropagation();
+                    const subList = toggleBtn.closest('.tree-item').querySelector('.sub-tree');
+                    if (subList) {
+                        const isHidden = window.getComputedStyle(subList).display === 'none';
+                        if (isHidden) { subList.style.display = 'block'; toggleBtn.classList.add('open'); }
+                        else { subList.style.display = 'none'; toggleBtn.classList.remove('open'); }
+                    }
+                }
+            });
+
+            // (2) CHANGE 이벤트: 체크박스 값 변경 처리 (자식 동기화)
+            treeContainer.addEventListener('change', function(e) {
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+                    const isChecked = e.target.checked;
+                    const subList = e.target.closest('.tree-item').querySelector('.sub-tree');
+                    // 자식 체크박스 상태 동기화
+                    if (subList) {
+                        subList.querySelectorAll('input[type="checkbox"]').forEach(child => child.checked = isChecked);
+                        // 체크 시 자동 펼치기 (선택 사항)
+                        if (isChecked) {
+                            subList.style.display = 'block';
+                            const btn = e.target.closest('.tree-item').querySelector('.toggle-btn');
+                            if(btn) btn.classList.add('open');
+                        }
+                    }
+                    const flag = document.getElementById('removeTargetCategoryFlag');
+                    if (flag) flag.value = 'false';
+                }
+            });
+        }
+
+
+        // 도서 검색 모달
+        window.openBookSearchModal = function() {
+            document.getElementById('bookSearchModal').style.display = 'flex';
+            const input = document.getElementById('modalSearchKeyword');
+            input.value = ''; setTimeout(() => input.focus(), 100);
+        };
+        window.closeBookSearchModal = function() {
+            document.getElementById('bookSearchModal').style.display = 'none';
+        };
+
+        window.searchBooks = async function() {
+            const keyword = document.getElementById('modalSearchKeyword').value.trim();
+            if (!keyword) { alert("검색어를 입력하세요."); return; }
+
+            const listEl = document.getElementById('bookResultList');
+            listEl.innerHTML = '<li class="no-result">검색 중...</li>';
+
+            try {
+                const res = await fetch(`/admin/policies/books/search?keyword=${encodeURIComponent(keyword)}&page=0&size=10`);
+                if(!res.ok) throw new Error("검색 실패");
+
+                const data = await res.json();
+                const books = data.content;
+                listEl.innerHTML = '';
+
+                if(!books || books.length === 0) { listEl.innerHTML = '<li class="no-result">결과가 없습니다.</li>'; return; }
+
+                books.forEach(b => {
+                    const li = document.createElement('li');
+                    li.className = 'result-item';
+                    const author = b.contributorNames?.join(', ') || b.publisherNames?.join(', ') || '정보 없음';
+                    const img = b.imagePath || '/images/no-image.png';
+
+                    li.innerHTML = `
+                        <img src="${img}" alt="book">
+                        <div class="book-info">
+                            <span class="book-title">${b.title}</span>
+                            <span class="book-author">${author} | ID: ${b.id}</span>
+                        </div>
+                    `;
+                    li.onclick = () => selectBook(b.id, b.title);
+                    listEl.appendChild(li);
+                });
+            } catch(e) {
+                console.error(e); listEl.innerHTML = '<li class="no-result">오류 발생</li>';
+            }
+        };
+
+        window.selectBook = function(id, title) {
+            const input = document.getElementById('targetBookIds');
+            let vals = input.value ? input.value.split(',').map(s=>s.trim()).filter(s=>s) : [];
+
+            if(vals.includes(String(id))) { alert("이미 추가된 도서입니다."); return; }
+
+            vals.push(id);
+            input.value = vals.join(', ');
+
+            // 칩 추가
+            addBookChip(id, title);
+
+            document.getElementById('removeTargetBookFlag').value = 'false';
+            input.disabled = false;
+            closeBookSearchModal();
+            input.dispatchEvent(new Event('input'));
+        };
+
+        function addBookChip(id, title) {
+            const box = document.getElementById('selectedBooksBox');
+            if(box) {
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.id = 'book-chip-' + id;
+                chip.innerHTML = `
+                    <span class="mr-4">📕</span>
+                    <span class="fw-500">${title}</span>
+                    <small>(ID:${id})</small>
+                    <button type="button" class="chip-remove" onclick="removeBookId('${id}')">×</button>
+                `;
+                box.appendChild(chip);
+            }
+        }
+
+        window.removeBookId = function(id) {
+            const input = document.getElementById('targetBookIds');
+            let vals = input.value ? input.value.split(',').map(s=>s.trim()).filter(s=>s) : [];
+
+            // ID 제거
+            vals = vals.filter(v => v !== String(id));
+            input.value = vals.join(', ');
+
+            // 칩 제거
+            const chip = document.getElementById('book-chip-' + id);
+            if(chip) chip.remove();
+
+            input.dispatchEvent(new Event('input'));
+        };
+
+        window.clearAllBooks = function() {
+            const input = document.getElementById('targetBookIds');
+            input.value = '';
+            const box = document.getElementById('selectedBooksBox');
+            if(box) box.innerHTML = ''; // 칩 전체 삭제
+
+            document.getElementById('removeTargetBookFlag').value = 'true';
+            input.dispatchEvent(new Event('input'));
+        };
+
+        const searchModal = document.getElementById('bookSearchModal');
+        if(searchModal) searchModal.addEventListener('click', (e) => { if (e.target === searchModal) closeBookSearchModal(); });
+
+        // 할인 방식에 따른 최대 할인/단위 처리
+        const discountTypeSelect = document.getElementById('couponPolicyDiscountType');
+        const maxPriceInput = document.getElementById('maxPrice');
+        const maxPriceFlag = document.getElementById('removeMaxPriceFlag');
+        const discountUnitLabel = document.getElementById('discountUnitLabel');
+        const discountValueInput = document.getElementById('couponDiscountValue');
+
+        function syncDiscountControls() {
+            const isPercent = discountTypeSelect && discountTypeSelect.value === 'PERCENT';
+            if (discountUnitLabel) discountUnitLabel.textContent = isPercent ? '(%)' : '(원)';
+
+            if (maxPriceInput && maxPriceFlag) {
+                if (isPercent) {
+                    maxPriceInput.disabled = false;
+                    maxPriceInput.style.backgroundColor = '';
+                    maxPriceFlag.value = 'false';
+                } else {
+                    maxPriceInput.value = '';
+                    maxPriceInput.disabled = true;
+                    maxPriceInput.style.backgroundColor = '#e9ecef';
+                    maxPriceFlag.value = 'true';
+                }
+            }
+
+            if (discountValueInput) {
+                discountValueInput.placeholder = isPercent ? '예: 10 (퍼센트)' : '예: 5000 (원)';
+            }
+        }
+
+        if (discountTypeSelect) {
+            discountTypeSelect.addEventListener('change', syncDiscountControls);
+            syncDiscountControls();
+        }
+
+        // 3. 유효기간/제거버튼 등 (기존 동일, 상호 배타)
+        const syncDuration = () => {
+            const dInput = document.getElementById('durationDays');
+            const sInput = document.getElementById('fixedStartDate');
+            const eInput = document.getElementById('fixedEndDate');
+            const dFlag = document.getElementById('removeDurationDaysFlag');
+            const fFlag = document.getElementById('removeFixedDateFlag');
+
+            const hasD = dInput.value && !dInput.disabled;
+            const hasF = (sInput.value || eInput.value) && !sInput.disabled;
+
+            if(hasD) {
+                sInput.disabled = true; eInput.disabled = true;
+                sInput.value=''; eInput.value='';
+                fFlag.value='true';
+                sInput.style.backgroundColor = '#e9ecef';
+                eInput.style.backgroundColor = '#e9ecef';
+            } else if(dFlag.value !== 'true') {
+                sInput.disabled = false; eInput.disabled = false;
+                sInput.style.backgroundColor = ''; eInput.style.backgroundColor = '';
+            }
+
+            if(hasF) {
+                dInput.disabled = true; dInput.value='';
+                dFlag.value='true';
+                dInput.style.backgroundColor = '#e9ecef';
+            } else if(fFlag.value !== 'true') {
+                dInput.disabled = false;
+                dInput.style.backgroundColor = '';
+            }
+        };
+
+        ['durationDays', 'fixedStartDate', 'fixedEndDate'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.addEventListener('input', syncDuration);
+        });
+
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const flagId = btn.dataset.flag;
+                const targets = btn.dataset.target.split(',');
+                if(flagId) document.getElementById(flagId).value = 'true';
+                targets.forEach(sel => {
+                    const el = document.querySelector(sel);
+                    if(el) {
+                        if(el.type==='checkbox') el.checked=false; else el.value='';
+                        el.disabled=true; el.style.backgroundColor='#e9ecef';
+                    }
+                });
+                // Chip 제거 로직 (선택 사항)
+                if (flagId === 'removeTargetBookFlag') {
+                    const box = document.getElementById('selectedBooksBox');
+                    if(box) box.innerHTML = '';
+                }
+
+                // 유효기간 상호 활성화 처리
+                if (flagId === 'removeDurationDaysFlag') {
+                    const sInput = document.getElementById('fixedStartDate');
+                    const eInput = document.getElementById('fixedEndDate');
+                    const fFlag = document.getElementById('removeFixedDateFlag');
+                    if (fFlag) fFlag.value = 'false';
+                    [sInput, eInput].forEach(el => { if (el) { el.disabled = false; el.style.backgroundColor = ''; } });
+                }
+                if (flagId === 'removeFixedDateFlag') {
+                    const dInput = document.getElementById('durationDays');
+                    const dFlag = document.getElementById('removeDurationDaysFlag');
+                    if (dFlag) dFlag.value = 'false';
+                    if (dInput) { dInput.disabled = false; dInput.style.backgroundColor = ''; }
+                }
+
+                syncDuration();
+            });
+        });
+
+        const flagMap = [ {input: document.getElementById('maxPrice'), flagId: 'removeMaxPriceFlag'}, {input: document.getElementById('targetBookIds'), flagId: 'removeTargetBookFlag'} ];
+        flagMap.forEach(({input, flagId}) => {
+            if(input) input.addEventListener('input', () => {
+                const f = document.getElementById(flagId);
+                if(f) { f.value='false'; input.disabled=false; input.style.backgroundColor=''; }
+            });
+        });
+
+        syncDuration();
+    });
+</script>
+</body>
+</html>

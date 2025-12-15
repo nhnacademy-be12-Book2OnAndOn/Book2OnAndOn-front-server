@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>검색 결과</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/books-search.css}">
+</head>
+<body>
+
+<th:block th:replace="~{fragments/layout :: commonHeader(${currentUser}, ${cartCount}, null, null, false)}"></th:block>
+
+<main class="book-section">
+
+    <div class="search-summary">
+        <div>
+            <span class="search-keyword">
+                "<span th:text="${condition.keyword}">자바</span>"
+            </span>
+            검색 결과
+            <span class="search-count">
+                (총 <span th:text="${page.totalElements}">0</span>건)
+            </span>
+        </div>
+
+        <div>
+            <select class="search-sort" onchange="location.href=this.value">
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='score')}"
+                        th:selected="${condition.sort == null or condition.sort.toString() == 'score'}">정확도순</option>
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='publishDate,desc')}"
+                        th:selected="${condition.sort != null and condition.sort.toString().contains('publishDate')}">최신순</option>
+            </select>
+        </div>
+    </div>
+
+    <div th:if="${books.isEmpty()}" class="search-empty">
+        <h3>검색 결과가 없습니다</h3>
+        <a class="btn-green" href="/">홈으로 가기</a>
+    </div>
+
+    <div th:unless="${books.isEmpty()}" class="book-grid">
+
+        <div th:each="book : ${books}" class="book-card">
+
+            <a class="card-overlay-link" th:href="@{/books/{id}(id=${book.id})}"></a>
+
+            <div class="book-cover">
+                <img th:src="${book.thumbnail != null and book.thumbnail != '' ? book.thumbnail : '/images/no-image.png'}"
+                     alt="책 표지"
+                     onerror="this.src='https://via.placeholder.com/240x300?text=No+Image'"/>
+            </div>
+
+            <div class="book-details">
+                <div class="book-title" th:text="${book.title}">책 제목</div>
+                <div class="book-author" th:text="${book.contributorNames != null ? #strings.listJoin(book.contributorNames, ', ') : ''}">저자</div>
+
+                <div class="price-row">
+                    <span class="book-price" th:text="${#numbers.formatInteger(book.priceSales, 0, 'COMMA') + '원'}">15,000원</span>
+                    <span class="book-rating">★ <span th:text="${book.rating}">0.0</span></span>
+                </div>
+            </div>
+
+            <button type="button" class="btn-outline-green" onclick="alert('장바구니 기능 연결 필요')">
+                장바구니
+            </button>
+        </div>
+    </div>
+
+    <div th:if="${!books.isEmpty()}" class="pagination">
+        <a th:if="${page.hasPrevious()}" th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number - 1})}">&lt;</a>
+
+        <th:block th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+            <a th:if="${i >= page.number - 2 and i <= page.number + 2}"
+               th:classappend="${i == page.number} ? 'active'"
+               th:text="${i + 1}"
+               th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${i})}">1</a>
+        </th:block>
+
+        <a th:if="${page.hasNext()}" th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number + 1})}">&gt;</a>
+    </div>
+
+</main>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+</body>
+</html>

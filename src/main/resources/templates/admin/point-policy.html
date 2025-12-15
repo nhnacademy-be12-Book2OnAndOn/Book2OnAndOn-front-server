@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>포인트 정책 관리 - Book2OnAndOn</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link href="/css/pointPolicy.css" rel="stylesheet">
+</head>
+<body>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('pointpolicies')}"></th:block>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">포인트 정책</p>
+                <h2>포인트 정책 관리</h2>
+            </div>
+            <button class="btn-primary" onclick="loadPolicies()">🔄 새로고침</button>
+        </div>
+
+        <div class="table-card policies-table">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>정책 ID</th>
+                    <th>정책명</th>
+                    <th>적립 비율(%)</th>
+                    <th>고정 포인트</th>
+                    <th>상태</th>
+                    <th>작업</th>
+                </tr>
+                </thead>
+                <tbody id="policiesTableBody">
+                <tr>
+                    <td class="empty-state" colspan="6">
+                        <div class="empty-state-icon">⏳</div>
+                        <div>데이터를 불러오는 중...</div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- 수정 모달 -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title">포인트 정책 수정</h3>
+            <button class="close-btn" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form id="editForm" onsubmit="submitEdit(event)">
+            <div class="form-group">
+                <label class="form-label">정책 ID</label>
+                <input class="form-input" disabled id="editPolicyId" type="text">
+            </div>
+            <div class="form-group">
+                <label class="form-label">정책명</label>
+                <input class="form-input" disabled id="editPolicyName" type="text">
+            </div>
+            <div class="form-group">
+                <label class="form-label">적립 비율 (%)</label>
+                <input class="form-input" id="editAccrualRate" max="100" min="0" step="0.1" type="number">
+                <div class="form-help">0-100 사이의 값을 입력하세요</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">고정 포인트</label>
+                <input class="form-input" id="editAccrualPoint" min="0" step="1" type="number">
+                <div class="form-help">고정 지급 포인트를 입력하세요</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeEditModal()" type="button">취소</button>
+                <button class="btn btn-primary" type="submit">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 활성화 상태 변경 모달 -->
+<div class="modal-overlay" id="activeModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title">정책 상태 변경</h3>
+            <button class="close-btn" onclick="closeActiveModal()">&times;</button>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <p><strong id="activePolicyName"></strong> 정책의 상태를 변경하시겠습니까?</p>
+        </div>
+        <div class="form-group">
+            <label class="form-label">
+                활성 상태
+                <label class="toggle-switch" style="margin-left: 10px;">
+                    <input id="activeToggle" type="checkbox">
+                    <span class="toggle-slider"></span>
+                </label>
+            </label>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeActiveModal()" type="button">취소</button>
+            <button class="btn btn-primary" onclick="submitActiveChange()" type="button">확인</button>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script src="/js/pointPolicy.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko" th:replace="~{layout/mypage-layout :: layout(
+        title = ~{::title},
+        sidebarActive = 'edit',
+        content = ~{::content}
+      )}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>내 정보 수정</title>
+    <link rel="stylesheet" th:href="@{/css/mypage-edit.css}">
+</head>
+
+<body>
+<div th:fragment="content">
+    <div class="address-form-container no-card">
+        <h2>정보 관리</h2>
+
+        <div class="error-box" th:if="${error}" th:text="${error}"></div>
+        <div class="grade-info-box">
+            <div class="grade-text">
+                회원님의 현재 등급은 <strong th:text="${gradeName}">BASIC</strong> 입니다.
+            </div>
+            <button type="button" class="btn-grade-guide" onclick="openGradeModal()">등급안내</button>
+        </div>
+
+        <form method="post" onsubmit="return validateForm()" th:action="@{/users/me/edit}"
+              th:object="${userUpdateRequest}">
+
+            <div class="form-field">
+                <label for="name">이름</label>
+                <input id="name" required th:field="*{name}" type="text">
+            </div>
+
+            <div class="form-field">
+                <label for="nickname">닉네임</label>
+                <input id="nickname" required th:field="*{nickname}" type="text">
+            </div>
+
+            <div class="form-field">
+                <label for="email">이메일</label>
+                <div class="input-group">
+                    <input class="flex-1" id="email" oninput="checkEmailChanged()" required th:field="*{email}"
+                           type="email">
+                    <button class="btn-verify" disabled id="btnSendCode" onclick="sendVerification()" type="button">
+                        인증번호 전송
+                    </button>
+                </div>
+
+                <div class="mt-2 verification-area" id="verificationArea">
+                    <div class="input-group">
+                        <input class="flex-1 verify-input" id="verifyCode" placeholder="인증번호 6자리" type="text">
+                        <button class="btn-verify" onclick="confirmVerification()" type="button">확인</button>
+                    </div>
+                    <small class="mt-2 verify-message" id="verifyMessage"></small>
+                </div>
+
+                <input id="originalEmail" th:value="*{email}" type="hidden">
+            </div>
+
+            <div class="form-field">
+                <label for="phone">휴대폰 번호</label>
+                <input id="phone" placeholder="01000000000" required th:field="*{phone}" type="text">
+            </div>
+
+            <div class="form-actions">
+                <a class="btn-cancel" href="/users/me">취소</a>
+                <button class="submit-btn" type="submit">수정 저장</button>
+            </div>
+
+        </form>
+    </div>
+    <div id="gradeModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>회원 등급 안내</h3>
+                <button class="close-btn" onclick="closeGradeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div th:if="${#lists.isEmpty(allGrades)}">
+                    <p class="grade-empty-message">등급 정책 정보를 불러올 수 없습니다.</p>
+                </div>
+                <div th:unless="${#lists.isEmpty(allGrades)}">
+                    <div class="grade-list-item" th:each="grade : ${allGrades}">
+                        <span class="grade-badge"
+                              th:classappend="|bg-${grade.gradeName}|"
+                              th:text="${grade.gradeName}">BASIC</span>
+
+                        <div class="grade-desc">
+                            <div>포인트 적립률: <strong
+                                    th:text="${#numbers.formatInteger(grade.pointAddRate * 100, 0, 'COMMA')} + '%'">1%</strong>
+                            </div>
+                            <div class="grade-subtext">
+                                (최근 3개월 순수 주문 <span th:text="${#numbers.formatInteger(grade.pointCutline, 0, 'COMMA')}">0</span>원
+                                이상)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grade-hint-box">
+                    💡 등급은 매 분기(1, 4, 7, 10월) 1일에 최근 3개월 실적을 기준으로 반영됩니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // [4. 모달 제어 스크립트]
+        function openGradeModal() {
+            document.getElementById('gradeModal').style.display = 'flex';
+        }
+
+        function closeGradeModal() {
+            document.getElementById('gradeModal').style.display = 'none';
+        }
+
+        // 모달 배경 클릭 시 닫기
+        window.addEventListener('click', function (event) {
+            const modal = document.getElementById('gradeModal');
+            if (event.target === modal) {
+                closeGradeModal();
+            }
+        });
+        const originalEmail = document.getElementById('originalEmail').value;
+        let isEmailVerified = true;
+
+        // 1. 이메일 변경 감지
+        function checkEmailChanged() {
+            const currentEmail = document.getElementById('email').value;
+            const btnSendCode = document.getElementById('btnSendCode');
+            const verificationArea = document.getElementById('verificationArea');
+            const verifyMessage = document.getElementById('verifyMessage');
+
+            if (currentEmail !== originalEmail) {
+                // 변경됨 -> 인증 필요
+                btnSendCode.disabled = false;
+                isEmailVerified = false;
+                verifyMessage.textContent = '';
+            } else {
+                // 원상복구 -> 인증 불필요
+                btnSendCode.disabled = true;
+                verificationArea.style.display = 'none';
+                isEmailVerified = true;
+            }
+        }
+
+        // 2. 인증번호 발송 요청 (함수명: sendVerification)
+        function sendVerification() {
+            const email = document.getElementById('email').value;
+
+            if (!email || !email.includes('@')) {
+                alert('올바른 이메일 형식을 입력해주세요.');
+                return;
+            }
+
+            const btn = document.getElementById('btnSendCode');
+            btn.innerText = "전송중...";
+            btn.disabled = true;
+
+            fetch('/email/send', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'email=' + encodeURIComponent(email)
+            })
+                .then(function (response) {
+                    if (response.ok) {
+                        alert('인증번호가 발송되었습니다.');
+                        document.getElementById('verificationArea').style.display = 'block';
+                        btn.innerText = "재전송";
+                        document.getElementById('verifyCode').value = '';
+                        document.getElementById('verifyCode').focus();
+                        btn.disabled = false; // 성공 시 버튼 활성화
+                    } else {
+                        return response.text().then(function (text) {
+                            throw new Error(text);
+                        });
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Error:', error);
+                    alert("발송 실패: " + error.message);
+
+                    // 에러 나도 버튼은 다시 눌러볼 수 있게 복구
+                    btn.disabled = false;
+                    btn.innerText = "인증번호 전송";
+                });
+        }
+
+        // 3. 인증번호 확인 요청 (함수명: confirmVerification)
+        function confirmVerification() {
+            const email = document.getElementById('email').value;
+            const code = document.getElementById('verifyCode').value;
+            const msgElem = document.getElementById('verifyMessage');
+
+            if (!code) {
+                alert('인증번호를 입력해주세요.');
+                return;
+            }
+
+            fetch('/email/verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'email=' + encodeURIComponent(email) + '&code=' + encodeURIComponent(code)
+            })
+                .then(function (response) {
+                    if (response.ok) {
+                        msgElem.textContent = '인증이 완료되었습니다.';
+                        msgElem.className = 'text-success';
+                        isEmailVerified = true;
+
+                        document.getElementById('btnSendCode').disabled = true;
+                        document.getElementById('email').readOnly = true;
+                    } else {
+                        throw new Error('인증번호가 일치하지 않습니다.');
+                    }
+                })
+                .catch(function (error) {
+                    msgElem.textContent = error.message;
+                    msgElem.className = 'text-danger';
+                    isEmailVerified = false;
+                });
+        }
+
+        // 4. 폼 전송 검증
+        function validateForm() {
+            const currentEmail = document.getElementById('email').value;
+
+            if (currentEmail !== originalEmail && !isEmailVerified) {
+                alert('변경된 이메일에 대한 인증이 필요합니다.');
+                return false;
+            }
+            return true;
+        }
+    </script>
+
+</div>
+</body>
+</html>

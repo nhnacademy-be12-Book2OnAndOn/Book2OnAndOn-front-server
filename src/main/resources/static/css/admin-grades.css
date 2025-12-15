@@ -1,0 +1,29 @@
+.grade-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background-color: #6c757d;
+}
+
+.grade-BASIC { background-color: #6c757d; }
+.grade-ROYAL { background-color: #17a2b8; }
+.grade-GOLD { background-color: #ffc107; color: #333; }
+.grade-PLATINUM { background-color: #6f42c1; }
+.grade-DIAMOND { background-color: #0dcaf0; color: #000; }
+.grade-VIP { background-color: #dc3545; }
+
+.grade-alert {
+    background: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.text-green { color: #2d5016; }
+.mt-20 { margin-top: 20px; }
+.helper-note { font-size: 0.8rem; color: #888; margin-top: 4px; }
+.modal-title-grade { margin-top: 0; margin-bottom: 1rem; color: #2d5016; }
+.muted-note { font-size: 0.9rem; }

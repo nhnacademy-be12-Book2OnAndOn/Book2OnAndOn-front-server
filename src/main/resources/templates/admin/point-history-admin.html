@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>포인트 관리 - Book2OnAndOn</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/pointHistoryAdmin.css}">
+</head>
+<body>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('points')}"></th:block>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <p class="eyebrow">포인트 센터</p>
+                <h2>사용자 포인트 관리</h2>
+            </div>
+        </div>
+
+        <div class="admin-toolbar">
+            <label for="userIdInput">사용자 ID</label>
+            <form class="search-form" onsubmit="searchUser(event)" style="display:flex; gap:10px; width:100%;">
+                <input
+                        class="form-control"
+                        id="userIdInput"
+                        min="1"
+                        placeholder="사용자 ID를 입력하세요"
+                        required
+                        style="max-width: 240px;" type="number">
+                <button class="btn-primary" type="submit">조회</button>
+            </form>
+        </div>
+
+        <div id="pointInfoSection" style="display: none;">
+            <div class="admin-detail-card">
+                <div class="point-info">
+                    <div>
+                        <div class="point-label">사용자 ID: <strong id="currentUserId"></strong></div>
+                        <div class="point-label">현재 보유 포인트</div>
+                    </div>
+                    <div class="point-value" id="currentPoint">0 P</div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="openAdjustModal('EARN')">포인트 지급</button>
+                    <button class="btn btn-danger" onclick="openAdjustModal('USE')">포인트 차감</button>
+                    <button class="btn btn-secondary" onclick="expirePoints()">만료 포인트 처리</button>
+                </div>
+            </div>
+
+            <div class="table-card history-table">
+                <table class="admin-table">
+                    <thead>
+                    <tr>
+                        <th>일시</th>
+                        <th>구분</th>
+                        <th>포인트</th>
+                        <th>잔액</th>
+                        <th>설명</th>
+                        <th>만료일</th>
+                    </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                    <tr>
+                        <td class="empty-state" colspan="6">
+                            <div class="empty-state-icon">📋</div>
+                            <div>포인트 이력이 없습니다</div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination" style="margin-top: 16px;"></div>
+        </div>
+    </main>
+</div>
+
+<!-- 포인트 조정 모달 -->
+<div class="modal-overlay" id="adjustModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title" id="adjustModalTitle">포인트 지급/차감</h3>
+            <button class="close-btn" onclick="closeAdjustModal()">&times;</button>
+        </div>
+        <form id="adjustForm" onsubmit="submitAdjust(event)">
+            <div class="form-group">
+                <label class="form-label">조정 유형</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input id="typeEarn" name="adjustType" required type="radio" value="EARN">
+                        <label for="typeEarn">지급 (적립)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input id="typeUse" name="adjustType" type="radio" value="USE">
+                        <label for="typeUse">차감 (사용)</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">포인트</label>
+                <input class="form-input" id="adjustPoint" min="1" required step="1" type="number">
+                <div class="form-help">조정할 포인트를 입력하세요</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">사유</label>
+                <input class="form-input" id="adjustReason" maxlength="100" required type="text">
+                <div class="form-help">포인트 조정 사유를 입력하세요</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeAdjustModal()" type="button">취소</button>
+                <button class="btn btn-primary" type="submit">확인</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script src="/js/pointHistoryAdmin.js"></script>
+</body>
+</html>

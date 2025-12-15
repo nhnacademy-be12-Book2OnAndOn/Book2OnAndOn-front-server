@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>작성한 리뷰 목록 </title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/mypage.css}">
+</head>
+<body>
+
+<main>
+    <div class="dashboard-wrapper">
+
+        <!-- ===== 사이드바 ===== -->
+        <aside class="dashboard-sidebar">
+            <h3>마이페이지</h3>
+
+            <ul class="dashboard-menu">
+                <li><a th:href="@{/users/me}">대시보드</a></li>
+                <li><a class="active" th:href="@{/users/me/reviews}">내 리뷰</a></li>
+                <li><a th:href="@{/users/me/likes}">내 좋아요</a></li>
+                <li><a th:href="@{/orders/me}">주문 내역</a></li>
+                <li><a th:href="@{/coupons/me}">쿠폰함</a></li>
+                <li><a th:href="@{/users/me/addresses}">내 주소 관리</a></li>
+                <li><a th:href="@{/users/me/edit}">내 정보 수정</a></li>
+                <li><a class="logout-link" th:href="@{/logout}">로그아웃</a></li>
+            </ul>
+        </aside>
+
+        <!-- ===== 메인 리뷰 목록 ===== -->
+        <section class="dashboard-main">
+
+            <h2>내 리뷰 목록</h2>
+
+            <div th:if="${#lists.isEmpty(reviews)}">
+                <p class="empty-text">작성한 리뷰가 없습니다.</p>
+            </div>
+
+            <div class="dashboard-card review-item" th:each="review : ${reviews}">
+                <h3 th:text="${review.bookTitle}"></h3>
+                <p th:text="${review.content}"></p>
+                <span class="review-rating" th:text="'★ ' + ${review.rating}"></span>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination">
+                <button th:if="${!page.first}"
+                        th:onclick="'location.href=\'/users/me/reviews?page=' + ${page.number - 1} + '\''">
+                    이전
+                </button>
+
+                <button class="active" th:text="${page.number + 1}"></button>
+
+                <button th:if="${!page.last}"
+                        th:onclick="'location.href=\'/users/me/reviews?page=' + ${page.number + 1} + '\''">
+                    다음
+                </button>
+            </div>
+
+        </section>
+
+    </div>
+</main>
+
+</body>
+</html>
