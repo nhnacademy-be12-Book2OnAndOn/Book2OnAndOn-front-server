@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 //마이페이지 (accessToken 접근 테스트용 임시)
@@ -409,7 +410,9 @@ public class MyPageViewController {
     //주소 추가 페이지
     @GetMapping("/addresses/new")
     public String createAddressForm(Model model) {
-        model.addAttribute("addressForm", new UserAddressCreateRequest());
+        if (!model.containsAttribute("addressForm")) {
+            model.addAttribute("addressForm", new UserAddressCreateRequest());
+        }
         model.addAttribute("isUpdate", false);
         return "user/mypage/address-form";
     }
@@ -418,13 +421,41 @@ public class MyPageViewController {
     //배송지 저장
     @PostMapping("/addresses")
     public String createAddress(HttpServletRequest request,
-                                @ModelAttribute UserAddressCreateRequest address) {
+                                @ModelAttribute UserAddressCreateRequest address,
+                                RedirectAttributes redirectAttributes) {
+
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
         try {
             userClient.createAddress(token, address);
             return "redirect:/users/me/addresses";
+
+        } catch (FeignException e) {
+            log.error("주소 생성 API 호출 에러", e);
+
+            String errorMessage = "주소 등록에 실패했습니다.";
+            try {
+                String responseBody = e.contentUTF8();
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> errorMap = objectMapper.readValue(responseBody, Map.class);
+
+                if (errorMap != null && errorMap.containsKey("message")) {
+                    errorMessage = (String) errorMap.get("message");
+                }
+            } catch (Exception parsingEx) {
+                log.error("에러 메시지 파싱 실패", parsingEx);
+            }
+
+            redirectAttributes.addFlashAttribute("error", errorMessage);
+
+            redirectAttributes.addFlashAttribute("addressForm", address);
+
+            return "redirect:/users/me/addresses/new";
+
         } catch (Exception e) {
-            return "redirect:/users/me/addresses/new?error";
+            log.error("주소 생성 중 시스템 오류", e);
+            redirectAttributes.addFlashAttribute("error", "시스템 오류가 발생했습니다.");
+            return "redirect:/users/me/addresses/new";
         }
     }
 
