@@ -114,7 +114,7 @@
                 </div>
             </div>
             <div th:if="${newBooks != null and !newBooks.isEmpty()}"
-                 th:replace="~{fragments/dashboard :: sliderSection('newSlider', newBooks, 'NEW')}"></div>
+                 th:replace="~{fragments/dashboard :: sliderSection('newSlider', ${newBooks.content}, 'NEW')}"></div>
             <div class="book-grid" th:unless="${newBooks != null and !newBooks.isEmpty()}">
                 <div class="book-card placeholder">
                     <div class="book-details">
@@ -190,9 +190,11 @@
                     <h2>인기 도서</h2>
                 </div>
             </div>
-            <div th:if="${likeBest != null and !likeBest.isEmpty()}"
-                 th:replace="~{fragments/dashboard :: sliderSection('popularSlider', likeBest, 'POPULAR')}"></div>
-            <div class="book-grid" th:unless="${likeBest != null and !likeBest.isEmpty()}">
+
+            <div th:if="${!likeBest.isEmpty()}"
+                 th:replace="~{fragments/dashboard :: sliderSection('popularSlider', ${likeBest.content}, 'POPULAR')}"></div>
+
+            <div class="book-grid" th:unless="${!likeBest.isEmpty()}">
                 <div class="book-card placeholder">
                     <div class="book-details">
                         <p class="book-title">집계 중입니다</p>

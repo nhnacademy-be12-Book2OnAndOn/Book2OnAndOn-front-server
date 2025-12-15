@@ -38,34 +38,21 @@ public class BookViewController {
     @GetMapping("/")
     public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
         commonData(model);
-        Page<BookDto> response = null;
-        try {
-            response = bookClient.getNewArrivals(null, 0, 12);
-        } catch (Exception e) {
-            log.error("신간 도서 조회 실패", e);
-        }
+        Page<BookDto> newBooks = bookClient.getNewArrivals(null, page, 0);
         List<BookDto> bestsellerDaily = Collections.emptyList();
         List<BookDto> bestsellerWeek = Collections.emptyList();
-        Page<BookDto> likeBest = null;
+        Page<BookDto> likeBest = Page.empty();
         try {
-            likeBest = CompletableFuture
-                    .supplyAsync(() -> bookClient.getPopularBooks(page, 20))
-                    .get(2, TimeUnit.SECONDS);
-        } catch (TimeoutException te) {
-            log.error("인기 도서 조회 타임아웃", te);
+            likeBest = bookClient.getPopularBooks(page,0);
+            log.info("인기도서 갯수: {}", likeBest.getSize());
         } catch (Exception e) {
             log.error("인기 도서 조회 실패", e);
         }
 
-        List<BookDto> newBooks = response != null && response.getContent() != null
-                ? cleanBookList(response.getContent())
-                : Collections.emptyList();
-
         model.addAttribute("newBooks", newBooks);
-        model.addAttribute("newBooksPage", response);
         model.addAttribute("bestDaily", cleanBookList(bestsellerDaily));
         model.addAttribute("bestWeek", cleanBookList(bestsellerWeek));
-        model.addAttribute("likeBest", likeBest != null && likeBest.getContent() != null ? cleanBookList(likeBest.getContent()) : Collections.emptyList());
+        model.addAttribute("likeBest", likeBest != null ? likeBest : Page.empty());
         return "dashboard";
     }
 
