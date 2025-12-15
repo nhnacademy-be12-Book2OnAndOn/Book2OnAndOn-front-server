@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>도서 등록 | 관리자</title>
+    <title>도서 수정 | 관리자</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
     <link rel="stylesheet" th:href="@{/css/admin-books-form.css}">
@@ -23,22 +23,25 @@
             <div class="admin-header">
                 <div>
                     <div class="eyebrow">BOOKS</div>
-                    <h2>도서 등록</h2>
+                    <h2>도서 수정</h2>
+                    <p class="muted" th:text="'ID: ' + ${book != null ? book.id : ''}"></p>
                 </div>
                 <div aria-label="도서 관리 빠른 이동" class="chip-tabs">
                     <a class="chip-tab" href="#" onclick="history.back(); return false;">← 이전 페이지</a>
                     <a class="chip-tab" th:href="@{/admin/books}">도서 관리 목록</a>
+                    <a class="chip-tab" th:href="@{/admin/books/create}">+ 도서 등록</a>
                 </div>
             </div>
 
-            <form class="admin-detail-card" enctype="multipart/form-data" id="bookCreateForm" method="post"
-                  th:action="@{/admin/books/create}">
+            <form class="admin-detail-card" enctype="multipart/form-data" id="bookEditForm" method="post"
+                  th:action="@{/admin/books/{id}(id=${book.id})}">
+                <input type="hidden" name="_method" value="put">
 
                 <div class="admin-toolbar toolbar-space">
-                    <span class="muted">필수 항목을 모두 입력 후 등록해주세요.</span>
+                    <span class="muted">필수 항목을 모두 입력 후 저장해주세요.</span>
                     <div class="spacer"></div>
                     <button class="btn-ghost" onclick="history.back()" type="button">취소</button>
-                    <button class="btn-primary" type="submit">도서 등록</button>
+                    <button class="btn-primary" type="submit">저장</button>
                 </div>
 
                 <section class="form-section">
@@ -48,29 +51,26 @@
                             <label for="isbn">ISBN *</label>
                             <div class="flex-gap-8">
                                 <input class="form-control" id="isbn" name="isbn" placeholder="ISBN을 입력하세요" required
-                                       type="text">
+                                       th:value="${book?.isbn}" type="text" readonly>
                                 <button type="button" class="btn-primary nowrap" id="btnSearchIsbn">검색 & 자동입력</button>
                             </div>
-
-                            <div class="field-note">숫자/하이픈 포함 형식 허용</div>
-                            <div class="field-note">숫자만 입력 후 검색 버튼을 누르면 정보를 자동으로 불러옵니다.</div>
-
+                            <div class="field-note">ISBN은 수정할 수 없습니다. 검색 버튼으로 기존 ISBN 정보를 다시 불러올 수 있습니다.</div>
                         </div>
                         <div class="form-field">
                             <label for="title">도서명 *</label>
                             <input class="form-control" id="title" name="title" placeholder="도서 제목" required
-                                   type="text">
+                                   th:value="${book?.title}" type="text">
                         </div>
                         <div class="form-field">
                             <label for="volume">권 정보</label>
                             <input class="form-control" id="volume" name="volume" placeholder="시리즈/권 제목 (선택)"
-                                   type="text">
+                                   th:value="${book?.volume}" type="text">
                         </div>
                         <div class="form-field">
                             <label for="contributorName">저자/기여자</label>
                             <input class="form-control" id="contributorName" name="contributorName"
                                    placeholder="저자, 역자 등"
-                                   type="text">
+                                   th:value="${book?.contributorName}" type="text">
                         </div>
                     </div>
                 </section>
@@ -81,22 +81,25 @@
                         <div class="form-field">
                             <label for="publisherName">출판사 *</label>
                             <input class="form-control" id="publisherName" name="publisherName" placeholder="출판사명"
-                                   required type="text">
+                                   required
+                                   th:value="${book?.publishers != null && !#lists.isEmpty(book.publishers) ? book.publishers[0].name : ''}"
+                                   type="text">
                         </div>
                         <div class="form-field">
                             <label for="publishDate">출판일 *</label>
-                            <input class="form-control" id="publishDate" name="publishDate" required type="date">
+                            <input class="form-control" id="publishDate" name="publishDate" required th:value="${book?.publishDate}"
+                                   type="date">
                         </div>
                         <div class="form-field">
                             <label for="priceStandard">정가 (원) *</label>
                             <input class="form-control" id="priceStandard" min="0" name="priceStandard"
                                    placeholder="예: 15000"
-                                   required step="100" type="number">
+                                   required step="100" th:value="${book?.priceStandard}" type="number">
                         </div>
                         <div class="form-field">
                             <label for="priceSales">판매가 (원) *</label>
                             <input class="form-control" id="priceSales" min="0" name="priceSales" placeholder="예: 13500"
-                                   required step="100" type="number">
+                                   required step="100" th:value="${book?.priceSales}" type="number">
                         </div>
                     </div>
                 </section>
@@ -107,13 +110,13 @@
                         <div class="form-field compact-field">
                             <label for="stockCount">재고 수량 *</label>
                             <input class="form-control" id="stockCount" min="0" name="stockCount" placeholder="예: 100"
-                                   required type="number">
+                                   required th:value="${book?.stockCount}" type="number">
                         </div>
                         <div class="form-field compact-field">
                             <label for="statusSelect">판매 상태 *</label>
                             <select class="form-control" id="statusSelect" name="status" required>
                                 <option th:each="status : ${statuses}"
-                                        th:selected="${status.name() == 'ON_SALE'}"
+                                        th:selected="${book != null && book.status != null ? book.status.name() == status.name() : status.name() == 'ON_SALE'}"
                                         th:text="${status}"
                                         th:value="${status}">ON_SALE
                                 </option>
@@ -123,7 +126,7 @@
                             <label for="isWrapped">선물 포장</label>
                             <div class="pill-option wrap-option">
                                 <input name="isWrapped" type="hidden" value="false">
-                                <input id="isWrapped" name="isWrapped" type="checkbox" value="true">
+                                <input id="isWrapped" name="isWrapped" th:checked="${book?.isWrapped}" type="checkbox" value="true">
                                 <span class="muted">선택 시 포장 가능 상품으로 표시됩니다.</span>
                             </div>
                         </div>
@@ -149,7 +152,7 @@
                                     <option value="">세분류 선택</option>
                                 </select>
                             </div>
-                            <input id="categorySelected" name="categoryId" required type="hidden">
+                            <input id="categorySelected" name="categoryId" required th:value="${selectedCategoryId}" type="hidden">
                             <div class="field-note">대분류→중분류→소분류→세분류 순으로 선택 후 가장 하위 선택이 제출됩니다.</div>
                         </div>
                         <div class="form-field">
@@ -171,13 +174,13 @@
                         <div class="form-field">
                             <label for="chapter">목차</label>
                             <textarea class="form-control" id="chapter" name="chapter" placeholder="목차를 라인 단위로 작성해주세요."
-                                      rows="4"></textarea>
+                                      rows="4" th:text="${book?.chapter}"></textarea>
                         </div>
                         <div class="form-field">
                             <label for="descriptionHtml">상세 설명</label>
                             <div class="editor-box" id="descriptionEditor"></div>
                             <textarea class="hidden-field" id="descriptionHtml" name="descriptionHtml"
-                                      th:text="${descriptionHtml} ?: ''"></textarea>
+                                      th:text="${book?.descriptionHtml}"></textarea>
                         </div>
                     </div>
                 </section>
@@ -190,6 +193,7 @@
                             <label for="googleImageUrl">이미지 URL (검색 결과 / 직접 입력)</label>
                             <div class="flex-gap-8">
                                 <input class="form-control flex-1" id="googleImageUrl" name="imageUrl"
+                                       th:value="${(book != null && book.images != null && !#lists.isEmpty(book.images)) ? book.images[0].url : ''}"
                                        type="text" placeholder="http://...">
 
                                 <button type="button" class="btn-ghost"
@@ -209,20 +213,20 @@
                             </label>
 
                             <div class="chip-tabs" id="preview"></div>
+                            <p class="field-note">선택한 이미지가 기존 이미지에 추가 업로드됩니다. (필요 시 기존 이미지는 별도 삭제 처리)</p>
                         </div>
                     </div>
                 </section>
 
-                <div class="modal-actions">
+                <div class="modal-actions mt-5">
                     <button class="btn-ghost" onclick="history.back()" type="button">취소</button>
-                    <button class="btn-primary" type="submit">도서 등록</button>
+                    <button class="btn-primary" type="submit">저장</button>
                 </div>
             </form>
         </section>
     </div>
 </main>
 
-<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 <script src="https://uicdn.toast.com/editor/latest/i18n/ko-kr.min.js"></script>
 
@@ -231,10 +235,18 @@
     let bookDescriptionEditor;
 
     document.addEventListener('DOMContentLoaded', function() {
-        // [1] Toast UI Editor 초기화
+        const form = document.getElementById('bookEditForm');
         const editorEl = document.getElementById('descriptionEditor');
         const hiddenField = document.getElementById('descriptionHtml');
+        const initialTags = /*[[${tagString}]]*/ '';
+        const categoriesRaw = /*[[${categories}]]*/ [];
+        const preselectedId = /*[[${selectedCategoryId}]]*/ null;
+        const existingImages = /*[[${(book != null && book.images != null) ? book.images : null}]]*/ [];
+        const deleteImageIds = new Set();
+        const googleImageInput = document.getElementById('googleImageUrl');
+        const initialImageUrl = googleImageInput?.value || '';
 
+        // [1] Toast UI Editor 초기화
         if (editorEl && window.toastui) {
             const Editor = toastui.Editor;
             bookDescriptionEditor = new Editor({
@@ -252,6 +264,10 @@
                     ['quote', 'codeblock']
                 ]
             });
+        } else if (hiddenField) {
+            // 에디터 로드 실패 시 textarea로 노출
+            hiddenField.style.display = 'block';
+            hiddenField.style.minHeight = '300px';
         }
 
         // [2] 태그 기능
@@ -259,7 +275,6 @@
             const tagInput = document.querySelector('[data-tag-input]');
             const tagAddBtn = document.querySelector('[data-tag-add]');
             const tagList = document.querySelector('[data-tag-list]');
-            const form = document.getElementById('bookCreateForm');
             const tags = new Set();
 
             function renderTags() {
@@ -290,6 +305,14 @@
                 renderTags();
             }
 
+            if (initialTags) {
+                initialTags.split(',')
+                    .map(v => v.trim())
+                    .filter(Boolean)
+                    .forEach(v => tags.add(v));
+                renderTags();
+            }
+
             tagAddBtn?.addEventListener('click', addTag);
             tagInput?.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -309,9 +332,31 @@
                     hidden.setAttribute('data-tag-hidden', 'true');
                     form.appendChild(hidden);
                 });
+                // controller에서 tags 파라미터를 기대하는 경우를 대비해 문자열도 넣어준다.
+                const tagStringField = document.createElement('input');
+                tagStringField.type = 'hidden';
+                tagStringField.name = 'tags';
+                tagStringField.value = Array.from(tags).join(', ');
+                tagStringField.setAttribute('data-tag-hidden', 'true');
+                form.appendChild(tagStringField);
+
                 // 에디터 내용 동기화
                 if(bookDescriptionEditor) {
                     hiddenField.value = bookDescriptionEditor.getHTML();
+                }
+
+                // 삭제할 이미지 ID 전달
+                deleteImageIds.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'deleteImageIds';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+
+                // 이미지 URL이 변경되지 않았다면 전송 생략하여 기존 이미지 유지
+                if (googleImageInput && googleImageInput.value === initialImageUrl) {
+                    googleImageInput.removeAttribute('name');
                 }
             });
 
@@ -328,6 +373,44 @@
                 }
                 if (preview) preview.style.display = 'none';
             });
+
+            // 기존 이미지/URL 프리뷰 표시
+            const existingUrl = googleImageInput?.value;
+            if (preview && (existingImages?.length || existingUrl)) {
+                preview.style.display = 'flex';
+                preview.innerHTML = '';
+                const list = existingImages && Array.isArray(existingImages) ? existingImages : [];
+                [...list, existingUrl ? {url: existingUrl} : null]
+                    .filter(Boolean)
+                    .forEach((img, idx) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'chip-tab active preview-chip';
+                        const label = document.createElement('span');
+                        label.className = 'preview-chip-label';
+                        label.textContent = idx === 0 ? '기존 이미지:' : '추가 이미지/URL:';
+
+                        const imageEl = document.createElement('img');
+                        imageEl.src = img.url;
+                        imageEl.alt = '기존 이미지';
+
+                        wrapper.appendChild(label);
+                        wrapper.appendChild(imageEl);
+
+                        // 기본(첫) 이미지는 삭제 버튼을 붙이지 않고, 추가 이미지만 삭제 가능
+                        if (img.id && idx > 0) {
+                            const delBtn = document.createElement('button');
+                            delBtn.type = 'button';
+                            delBtn.className = 'delete-image-btn';
+                            delBtn.textContent = '삭제';
+                            delBtn.onclick = () => {
+                                deleteImageIds.add(img.id);
+                                wrapper.remove();
+                            };
+                            wrapper.appendChild(delBtn);
+                        }
+                        preview.appendChild(wrapper);
+                    });
+            }
         })();
 
         // [3] 카테고리 계층 드롭다운
@@ -349,8 +432,7 @@
                 return [];
             }
 
-            const categories = normalizeCategories(/*[[${categories}]]*/ []);
-            const form = document.getElementById('bookCreateForm');
+            const categories = normalizeCategories(categoriesRaw);
             const level1 = document.getElementById('categoryLevel1');
             const level2 = document.getElementById('categoryLevel2');
             const level3 = document.getElementById('categoryLevel3');
@@ -381,6 +463,16 @@
 
             function findById(list, id) {
                 return list.find(c => String(c.id) === String(id));
+            }
+
+            function findPath(list, targetId, path = []) {
+                for (const node of list) {
+                    const next = [...path, node];
+                    if (String(node.id) === String(targetId)) return next;
+                    const childPath = findPath(node.children || [], targetId, next);
+                    if (childPath) return childPath;
+                }
+                return null;
             }
 
             function updateHidden() {
@@ -416,6 +508,27 @@
 
             // 초기 로드
             fillOptions(level1, categories, '대분류 선택');
+
+            if (preselectedId) {
+                const path = findPath(categories, preselectedId);
+                if (path) {
+                    if (path[0]) {
+                        level1.value = path[0].id;
+                        fillOptions(level2, path[0].children || [], '중분류 선택');
+                    }
+                    if (path[1]) {
+                        level2.value = path[1].id;
+                        fillOptions(level3, path[1].children || [], '소분류 선택');
+                    }
+                    if (path[2]) {
+                        level3.value = path[2].id;
+                        fillOptions(level4, path[2].children || [], '세분류 선택');
+                    }
+                    if (path[3]) {
+                        level4.value = path[3].id;
+                    }
+                }
+            }
             updateHidden();
             form?.addEventListener('submit', (e) => {
                 updateHidden();
@@ -426,25 +539,24 @@
             });
         })();
 
-        // ISBN 검색 및 자동 입력
+        // [4] ISBN 검색 및 자동 입력 (기존 ISBN 기준 재조회)
         (function() {
             const searchBtn = document.getElementById('btnSearchIsbn');
             const loadingOverlay = document.getElementById('loading');
 
             if (searchBtn) {
                 searchBtn.addEventListener('click', function() {
-                    const isbnInput = document.getElementById('isbn').value.trim();
+                    const isbnInputEl = document.getElementById('isbn');
+                    const isbnInput = (isbnInputEl?.value || '').trim();
 
                     if (!isbnInput) {
-                        alert("ISBN을 입력해주세요.");
+                        alert("ISBN이 비어 있습니다.");
                         return;
                     }
 
                     // 로딩 표시
                     loadingOverlay.style.display = 'flex';
-                    console.log("ISBN 검색 시작: " + isbnInput);
 
-                    // 프론트 컨트롤러 경로로 수정
                     fetch(`/admin/books/search?isbn=${encodeURIComponent(isbnInput)}`, {
                         method: 'GET',
                         headers: {
@@ -458,8 +570,6 @@
                             return response.json();
                         })
                         .then(data => {
-                            console.log("데이터 수신:", data);
-
                             // 필드 매핑 헬퍼 함수
                             const setValue = (id, val) => {
                                 const el = document.getElementById(id);
@@ -501,9 +611,11 @@
             `;
                                 }
                             } else {
-                                // 이미지가 없을 때 메시지 표시
-                                document.getElementById('googleImageUrl').value = '';
-                                document.getElementById('googleImageUrl').placeholder = '검색된 이미지가 없습니다. 직접 입력하거나 파일을 업로드하세요.';
+                                const imageInput = document.getElementById('googleImageUrl');
+                                if (imageInput) {
+                                    imageInput.value = '';
+                                    imageInput.placeholder = '검색된 이미지가 없습니다. 직접 입력하거나 파일을 업로드하세요.';
+                                }
                             }
 
                             // 상세 설명 (Toast UI Editor)
@@ -511,17 +623,15 @@
                                 bookDescriptionEditor.setHTML(data.descriptionHtml);
                             } else if (data.descriptionHtml) {
                                 // 에디터 로드 실패 시 fallback
-                                const hiddenField = document.getElementById('descriptionHtml');
                                 if (hiddenField) {
                                     hiddenField.value = data.descriptionHtml;
                                 }
                             }
-
-                            alert("도서 정보를 불러왔습니다. 필요한 정보를 확인/수정 후 등록해주세요.");
+                            alert("도서 정보를 불러왔습니다. 필요한 정보를 확인/수정 후 저장해주세요.");
                         })
                         .catch(error => {
                             console.error('ISBN 검색 오류:', error);
-                            alert("검색 실패: " + error.message + "\n\nISBN을 확인하거나 수동으로 입력해주세요.");
+                            alert("검색 실패: " + error.message + "\\n\\nISBN을 확인하거나 수동으로 입력해주세요.");
                         })
                         .finally(() => {
                             // 로딩 숨김

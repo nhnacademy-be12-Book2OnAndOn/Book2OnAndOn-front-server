@@ -6,38 +6,11 @@
       )}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <!--    <title>마이페이지 대시보드</title>-->
+    <link rel="stylesheet" th:href="@{/css/mypage-dashboard.css}">
 </head>
 
 <body>
 <div th:fragment="content">
-    <style>
-        .badge {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            color: white; /* 기본 글자색 흰색 */
-            font-weight: bold;
-        }
-
-        /* 등급별 배경색 (작성해주신 코드) */
-        .bg-BASIC {
-            background-color: #6c757d;
-        }
-
-        .bg-ROYAL {
-            background-color: #17a2b8;
-        }
-
-        .bg-GOLD {
-            background-color: #ffc107;
-            color: #333 !important; /* 골드는 글씨가 어두워야 잘 보임 */
-        }
-
-        .bg-PLATINUM {
-            background-color: #6f42c1;
-        }
-    </style>
     <div class="dashboard-header">
         <h2>대시보드</h2>
         <p class="muted">내 활동을 한 눈에 확인하세요.</p>
@@ -55,7 +28,7 @@
             <!--            <p class="subtext" th:text="${user.email}">email@example.com</p>-->
             <p class="subtext address-line"
                th:text="${defaultAddress != null ? defaultAddress : '기본 주소를 등록해 주세요.'}">주소 정보</p>
-            <div style="margin-top: auto; padding-top: 10px;">
+            <div class="badge-row">
                 <span class="badge"
                       th:text="${user.gradeName} + ' 등급'"
                       th:classappend="|bg-${user.gradeName}|">

@@ -6,115 +6,7 @@
 
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
-
-    <style>
-        /* 상세 페이지 전용 추가 스타일 */
-        .detail-card {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2c3e50;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            margin-top: 30px;
-        }
-
-        .section-title:first-child {
-            margin-top: 0;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2열 배치 */
-            gap: 20px;
-        }
-
-        .info-item {
-            margin-bottom: 15px;
-        }
-
-        .info-label {
-            display: block;
-            font-size: 0.9rem;
-            color: #888;
-            margin-bottom: 5px;
-        }
-
-        .info-value {
-            font-size: 1.1rem;
-            color: #333;
-            font-weight: 500;
-        }
-
-        /* 수정 폼 스타일 */
-        .edit-form-container {
-            background-color: #f8f9fa;
-            padding: 25px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: white;
-        }
-
-        .btn-danger {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-
-        .btn-secondary {
-            background-color: #95a5a6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .btn-secondary:hover {
-            background-color: #7f8c8d;
-        }
-
-        .action-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/admin-user-detail.css}">
 </head>
 <body>
 <th:block
@@ -129,8 +21,7 @@
                 <h2>회원 상세 정보</h2>
             </div>
 
-            <div style="background: #ffebee; color: #c62828; padding: 10px; border-radius: 4px; margin-bottom: 20px;"
-                 th:if="${param.error}">
+            <div class="alert-error" th:if="${param.error}">
                 ❌ 처리 중 오류가 발생했습니다.
             </div>
 
@@ -163,7 +54,7 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">현재 포인트</span>
-                        <span class="info-value" style="color: #2d5016; font-weight: bold;"
+                        <span class="info-value info-value-strong"
                               th:text="${#numbers.formatInteger(user.point, 0, 'COMMA')} + ' P'">5,000 P</span>
                     </div>
                 </div>
@@ -225,7 +116,7 @@
 
                             <button class="btn-danger" onclick="forceDelete()" type="button">강제 탈퇴</button>
 
-                            <button class="btn-primary" style="width: auto;" type="submit">변경사항 저장</button>
+                            <button class="btn-primary w-auto" type="submit">변경사항 저장</button>
                         </div>
                     </form>
                 </div>

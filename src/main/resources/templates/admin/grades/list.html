@@ -5,43 +5,7 @@
     <title>관리자 - 회원 등급 관리</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
-    <style>
-        .grade-badge {
-            padding: 4px 8px;
-            border-radius: 6px;
-            color: white;
-            font-weight: 700;
-            font-size: 0.85rem;
-            background-color: #6c757d;
-        }
-
-        .grade-BASIC {
-            background-color: #6c757d;
-        }
-
-        .grade-ROYAL {
-            background-color: #17a2b8;
-        }
-
-        .grade-GOLD {
-            background-color: #ffc107;
-            color: #333;
-        }
-
-        .grade-PLATINUM {
-            background-color: #6f42c1;
-        }
-
-        /* 새로 추가될 등급용 스타일 (미리 정의) */
-        .grade-DIAMOND {
-            background-color: #0dcaf0;
-            color: #000;
-        }
-
-        .grade-VIP {
-            background-color: #dc3545;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/admin-grades.css}">
 </head>
 <body>
 
@@ -61,7 +25,7 @@
         </div>
 
         <div th:if="${param.error}"
-             style="background:#ffebee; color:#c62828; padding:10px; margin-bottom:10px; border-radius:4px;">
+             class="grade-alert">
             ❌ 이미 존재하는 등급이거나 잘못된 요청입니다.
         </div>
 
@@ -84,7 +48,7 @@
                               th:text="${grade.gradeName}">BASIC</span>
                     </td>
                     <td>
-                        <strong style="color: #2d5016;"
+                        <strong class="text-green"
                                 th:text="${grade.pointAddRate != null ? #numbers.formatPercent(grade.pointAddRate, 1, 1) : '0%'}"></strong>
                     </td>
                     <td th:text="${#numbers.formatInteger(grade.pointCutline, 0, 'COMMA')} + '원'"></td>
@@ -99,8 +63,8 @@
             </table>
         </div>
 
-        <div class="admin-toolbar" style="margin-top: 20px;">
-            <p class="muted" style="font-size: 0.9rem;">
+        <div class="admin-toolbar mt-20">
+            <p class="muted muted-note">
                 ℹ️ <strong>기준 금액</strong>: 최근 3개월간의 순수 주문 금액(배송비/포장비 제외) 합계입니다.<br>
                 ℹ️ 등급 산정은 매 분기(1, 4, 7, 10월) 1일 새벽에 자동으로 수행됩니다.<br>
                 ⚠️ <strong>주의:</strong> 새로운 등급을 추가하려면 먼저 개발팀을 통해 <strong>서버 코드(Enum)에 등급명이 반영</strong>되어야 합니다.<br>
@@ -112,14 +76,14 @@
 
 <div id="gradeModal" class="modal-overlay">
     <div class="modal-card">
-        <h3 id="modalTitle" style="margin-top: 0; margin-bottom: 1rem; color: #2d5016;">등급 설정</h3>
+        <h3 id="modalTitle" class="modal-title-grade">등급 설정</h3>
 
         <form id="gradeForm" method="post">
             <div class="form-field">
                 <label for="gradeName">등급명</label>
                 <input type="text" id="gradeName" name="gradeName" class="form-control" placeholder="예: DIAMOND"
                        required>
-                <p class="helper-text" id="nameHelper" style="font-size:0.8rem; color:#888; margin-top:4px;">
+                <p class="helper-text helper-note" id="nameHelper">
                     * 개발팀으로부터 먼저 <strong>등급명을 제공받은 후</strong> 입력해주세요.
                 </p>
             </div>
