@@ -7,11 +7,7 @@ import com.nhnacademy.book2onandonfrontservice.client.DeliveryPolicyClient;
 import com.nhnacademy.book2onandonfrontservice.client.PointAdminClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatusUpdateRequest;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryCompany;
@@ -34,20 +30,17 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Controller
@@ -57,10 +50,12 @@ public class AdminViewController {
 
     private final UserClient userClient;
     private final CouponClient couponClient;
+    private final BookClient bookClient;
     private final UserGradeClient userGradeClient;
     private final DeliveryClient deliveryClient;
     private final DeliveryPolicyClient deliveryPolicyClient;
     private final PointAdminClient pointAdminClient;
+
 
     //관리자 대시보드
     @GetMapping
@@ -78,6 +73,21 @@ public class AdminViewController {
             log.error("대시보드 회원 수 조회 실패", e);
             model.addAttribute("totalUserCount", 0);
         }
+
+        try {
+            BookSearchCondition emptyCondition = new BookSearchCondition();
+            Page<?> bookPage = bookClient.searchBooks(emptyCondition, PageRequest.of(0, 1));
+            model.addAttribute("bookCount", bookPage != null ? bookPage.getTotalElements() : 0);
+        } catch (Exception e) {
+            log.error("대시보드 도서 수 조회 실패", e);
+            model.addAttribute("bookCount", 0);
+        }
+
+        // 기본 지표 값 초기화 (추후 API 연동 시 교체)
+        model.addAttribute("todayOrderCount", 0);
+        model.addAttribute("newReviewCount", 0);
+        model.addAttribute("totalSalesAmount", 0);
+        model.addAttribute("totalOrderCount", 0);
         return "admin/index";
     }
 
@@ -179,7 +189,6 @@ public class AdminViewController {
 
         return "redirect:/admin/coupons";
     }
-
 
 
     ///  -------------------------- Grades Admin --------------------------------------

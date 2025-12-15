@@ -16,7 +16,7 @@
     <main class="admin-content">
         <div class="admin-header">
             <h2>👥 회원 관리</h2>
-            <span style="color: #666;">총 <span th:text="${page.totalElements}">0</span>명</span>
+            <span style="color: #666;">총 <span th:text="${page != null ? page.totalElements : 0}">0</span>명</span>
         </div>
 
         <div style="color: green; margin-bottom: 15px; background: #e8f5e9; padding: 10px; border-radius: 4px;"
@@ -28,6 +28,7 @@
             ❌ 오류가 발생했습니다.
         </div>
 
+        <div th:if="${page != null}">
         <table class="admin-table">
             <thead>
             <tr>
@@ -91,8 +92,11 @@
             </tr>
             </tbody>
         </table>
+        </div>
 
-        <div class="pagination" th:if="${page.totalPages > 0}">
+        <div class="muted" th:if="${page == null}" style="padding: 1rem 0;">회원 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>
+
+        <div class="pagination" th:if="${page != null and page.totalPages > 0}">
             <a class="page-link"
                th:if="${!page.first}"
                th:href="@{/admin/users(page=${page.number - 1})}">&lt;</a>

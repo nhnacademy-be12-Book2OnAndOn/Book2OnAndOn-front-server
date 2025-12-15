@@ -102,7 +102,7 @@
                         </select>
                     </div>
                     <div class="form-field">
-                        <label for="couponDiscountValue">할인값 (원/%)</label>
+                        <label for="couponDiscountValue">할인값 <span id="discountUnitLabel">(원)</span></label>
                         <input class="form-control" id="couponDiscountValue" required th:field="*{couponDiscountValue}" type="number">
                     </div>
                 </div>
@@ -410,7 +410,41 @@
         const searchModal = document.getElementById('bookSearchModal');
         if(searchModal) searchModal.addEventListener('click', (e) => { if (e.target === searchModal) closeBookSearchModal(); });
 
-        // 3. 유효기간/제거버튼 등 (기존 동일)
+        // 할인 방식에 따른 최대 할인/단위 처리
+        const discountTypeSelect = document.getElementById('couponPolicyDiscountType');
+        const maxPriceInput = document.getElementById('maxPrice');
+        const maxPriceFlag = document.getElementById('removeMaxPriceFlag');
+        const discountUnitLabel = document.getElementById('discountUnitLabel');
+        const discountValueInput = document.getElementById('couponDiscountValue');
+
+        function syncDiscountControls() {
+            const isPercent = discountTypeSelect && discountTypeSelect.value === 'PERCENT';
+            if (discountUnitLabel) discountUnitLabel.textContent = isPercent ? '(%)' : '(원)';
+
+            if (maxPriceInput && maxPriceFlag) {
+                if (isPercent) {
+                    maxPriceInput.disabled = false;
+                    maxPriceInput.style.backgroundColor = '';
+                    maxPriceFlag.value = 'false';
+                } else {
+                    maxPriceInput.value = '';
+                    maxPriceInput.disabled = true;
+                    maxPriceInput.style.backgroundColor = '#e9ecef';
+                    maxPriceFlag.value = 'true';
+                }
+            }
+
+            if (discountValueInput) {
+                discountValueInput.placeholder = isPercent ? '예: 10 (퍼센트)' : '예: 5000 (원)';
+            }
+        }
+
+        if (discountTypeSelect) {
+            discountTypeSelect.addEventListener('change', syncDiscountControls);
+            syncDiscountControls();
+        }
+
+        // 3. 유효기간/제거버튼 등 (기존 동일, 상호 배타)
         const syncDuration = () => {
             const dInput = document.getElementById('durationDays');
             const sInput = document.getElementById('fixedStartDate');
@@ -421,11 +455,25 @@
             const hasD = dInput.value && !dInput.disabled;
             const hasF = (sInput.value || eInput.value) && !sInput.disabled;
 
-            if(hasD) { sInput.disabled = true; eInput.disabled = true; sInput.value=''; eInput.value=''; fFlag.value='true'; }
-            else if(dFlag.value !== 'true') { sInput.disabled = false; eInput.disabled = false; }
+            if(hasD) {
+                sInput.disabled = true; eInput.disabled = true;
+                sInput.value=''; eInput.value='';
+                fFlag.value='true';
+                sInput.style.backgroundColor = '#e9ecef';
+                eInput.style.backgroundColor = '#e9ecef';
+            } else if(dFlag.value !== 'true') {
+                sInput.disabled = false; eInput.disabled = false;
+                sInput.style.backgroundColor = ''; eInput.style.backgroundColor = '';
+            }
 
-            if(hasF) { dInput.disabled = true; dInput.value=''; dFlag.value='true'; }
-            else if(fFlag.value !== 'true') { dInput.disabled = false; }
+            if(hasF) {
+                dInput.disabled = true; dInput.value='';
+                dFlag.value='true';
+                dInput.style.backgroundColor = '#e9ecef';
+            } else if(fFlag.value !== 'true') {
+                dInput.disabled = false;
+                dInput.style.backgroundColor = '';
+            }
         };
 
         ['durationDays', 'fixedStartDate', 'fixedEndDate'].forEach(id => {
@@ -450,6 +498,22 @@
                     const box = document.getElementById('selectedBooksBox');
                     if(box) box.innerHTML = '';
                 }
+
+                // 유효기간 상호 활성화 처리
+                if (flagId === 'removeDurationDaysFlag') {
+                    const sInput = document.getElementById('fixedStartDate');
+                    const eInput = document.getElementById('fixedEndDate');
+                    const fFlag = document.getElementById('removeFixedDateFlag');
+                    if (fFlag) fFlag.value = 'false';
+                    [sInput, eInput].forEach(el => { if (el) { el.disabled = false; el.style.backgroundColor = ''; } });
+                }
+                if (flagId === 'removeFixedDateFlag') {
+                    const dInput = document.getElementById('durationDays');
+                    const dFlag = document.getElementById('removeDurationDaysFlag');
+                    if (dFlag) dFlag.value = 'false';
+                    if (dInput) { dInput.disabled = false; dInput.style.backgroundColor = ''; }
+                }
+
                 syncDuration();
             });
         });

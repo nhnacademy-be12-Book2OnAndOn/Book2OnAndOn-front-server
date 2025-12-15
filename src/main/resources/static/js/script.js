@@ -50,6 +50,10 @@ function toggleSubcategory(row) {
     }
 }
 
+// 전역에서 접근 가능하도록 window에 바인딩 (다른 템플릿에서도 안전하게 호출)
+window.toggleSidebar = window.toggleSidebar || toggleSidebar;
+window.toggleSubcategory = window.toggleSubcategory || toggleSubcategory;
+
 // 3. 이벤트 리스너 연결 (DOM 로드 후 실행)
 document.addEventListener('DOMContentLoaded', () => {
     // 햄버거 버튼 & 닫기 버튼 연결
