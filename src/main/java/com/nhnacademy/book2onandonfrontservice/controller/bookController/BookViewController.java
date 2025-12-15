@@ -1,5 +1,6 @@
 package com.nhnacademy.book2onandonfrontservice.controller.bookController;
 
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -64,17 +65,10 @@ public class BookViewController {
         if (bookDetail != null) {
             model.addAttribute("bookDetail", bookDetail);
         }
-        //TODO: 북 상세조회 페이지 만들기
         return "books/book-detail";
     }
 
-
-    // 공통 데이터 (카테고리, 태그 등) 로딩 헬퍼 메서드
-    private void commonData(Model model) {
-        model.addAttribute("categories", bookClient.getCategories());
-//        model.addAttribute("popularTags", bookClient.getPopularTags());
-    }
-
+    /// 도서 검색
     @GetMapping("/books/search")
     public String searchBooks(@ModelAttribute BookSearchCondition condition,
                               @PageableDefault(size = 20) Pageable pageable,
@@ -90,15 +84,18 @@ public class BookViewController {
         model.addAttribute("page", result);
         model.addAttribute("condition", condition);
 
-        /**
-         * <form action="/books/search" method="get" class="search-form">
-         *     <input type="text" name="keyword" placeholder="책 제목, 저자, ISBN 검색..." required>
-         *
-         *     <button type="submit">검색</button>
-         * </form>
-         */
-        //TODO: 밍서가 작성하시오.
         return "books/search-result";
+    }
+
+    /// 카테고리별 조회
+    @GetMapping("/books/categories/{categoryId}")
+    public String getBooksByCategoryId(@PathVariable Long categoryId, Model model){
+        Page<BookDto> booksByCategory = bookClient.getBooksByCategories(categoryId);
+        CategoryDto category = bookClient.getCategoryInfo(categoryId);
+        model.addAttribute("books", booksByCategory);
+        model.addAttribute("currentCategoryId", categoryId);
+        model.addAttribute("categoryName", category.getName());
+        return "books/booksByCategory";
     }
 
     private List<BookDto> cleanBookList(List<?> books) {
@@ -144,6 +141,13 @@ public class BookViewController {
         }
         return null;
     }
+
+    // 공통 데이터 (카테고리, 태그 등) 로딩 헬퍼 메서드
+    private void commonData(Model model) {
+        model.addAttribute("categories", bookClient.getCategories());
+//        model.addAttribute("popularTags", bookClient.getPopularTags());
+    }
+
 
     private Long toLong(Object v) {
         if (v == null) return null;

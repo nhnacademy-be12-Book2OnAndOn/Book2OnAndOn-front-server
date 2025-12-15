@@ -9,7 +9,7 @@
              th:data-has-children="${cat.children != null and !#lists.isEmpty(cat.children)}"
              th:data-depth="${depth}">
 
-            <a th:href="@{/books(categoryId=${cat.id})}"
+            <a th:href="@{/books/categories/{id}(id=${cat.id})}"
                onclick="event.stopPropagation()"
                th:text="${cat.name}">카테고리명</a>
 
