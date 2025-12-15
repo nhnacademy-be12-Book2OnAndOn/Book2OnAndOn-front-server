@@ -5,7 +5,7 @@
     <li class="category-item" th:classappend="' depth-' + ${depth}">
 
         <div class="category-row"
-             onclick="toggleSubcategory(this)"
+             onclick="window.toggleSubcategory ? toggleSubcategory(this) : null"
              th:data-has-children="${cat.children != null and !#lists.isEmpty(cat.children)}"
              th:data-depth="${depth}">
 
@@ -28,4 +28,34 @@
         </ul>
     </li>
 </th:block>
+<script>
+    // 안전장치: 전역 함수가 없을 때도 하위 카테고리 토글 가능하도록 정의
+    if (!window.toggleSubcategory) {
+        window.toggleSubcategory = function (row) {
+            if (!row || row.dataset.hasChildren !== 'true') return;
+            const item = row.closest('.category-item');
+            if (!item) return;
+            item.classList.toggle('open');
+            const list = item.querySelector(':scope > .subcategory-list');
+            if (!list) return;
+            if (item.classList.contains('open')) {
+                list.style.display = 'block';
+                list.style.maxHeight = list.scrollHeight + 'px';
+                const onEnd = (event) => {
+                    if (event.target !== list) return;
+                    if (item.classList.contains('open')) {
+                        list.style.maxHeight = 'none';
+                    }
+                    list.removeEventListener('transitionend', onEnd);
+                };
+                list.addEventListener('transitionend', onEnd);
+            } else {
+                list.style.maxHeight = list.scrollHeight + 'px';
+                requestAnimationFrame(() => {
+                    list.style.maxHeight = '0';
+                });
+            }
+        };
+    }
+</script>
 </html>

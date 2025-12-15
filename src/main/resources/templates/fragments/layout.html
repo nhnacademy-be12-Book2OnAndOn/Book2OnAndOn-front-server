@@ -2,7 +2,7 @@
           xmlns:th="http://www.thymeleaf.org">
     <header class="main-header">
         <div class="header-bar container">
-            <button aria-label="카테고리 열기" class="hamburger" type="button">
+            <button aria-label="카테고리 열기" class="hamburger" onclick="toggleSidebar()" type="button">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -25,16 +25,19 @@
                         </svg>
                     </button>
 
-                    <input type="text"
+                    <input autocomplete="off"
                            class="input"
                            inputmode="search"
                            name="keyword"
-                           autocomplete="off"
                            placeholder="책 제목, 저자, ISBN 검색..."
+                           required
                            th:value="${condition?.keyword}"
-                           required>
+                           type="text">
 
                     <button aria-label="검색어 삭제" class="btn-clear" type="button" onclick="this.previousElementSibling.value = ''; this.previousElementSibling.focus();"></button>
+                    <button aria-label="검색어 삭제" class="btn-clear"
+                            onclick="document.querySelector('.global-search .input').value = ''"
+                            type="button"></button>
                 </div>
             </form>
 
@@ -88,14 +91,64 @@
     </header>
 
     <th:block th:replace="~{fragments/layout :: categorySidebar(${categories})}"></th:block>
+    <script>
+        window.toggleSidebar = window.toggleSidebar || function () {
+            const sidebar = document.getElementById('categorySidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (!sidebar || !overlay) return;
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        };
+
+        // 하위 카테고리 토글이 다른 페이지에서도 동작하도록 글로벌로 보강
+        window.toggleSubcategory = window.toggleSubcategory || function (row) {
+            if (!row || row.dataset.hasChildren !== 'true') return;
+            const item = row.closest('.category-item');
+            if (!item) return;
+
+            item.classList.toggle('open');
+            const list = item.querySelector(':scope > .subcategory-list');
+            if (!list) return;
+
+            if (item.classList.contains('open')) {
+                list.style.display = 'block';
+                list.style.maxHeight = list.scrollHeight + 'px';
+                const onEnd = (event) => {
+                    if (event.target !== list) return;
+                    if (item.classList.contains('open')) {
+                        list.style.maxHeight = 'none';
+                    }
+                    list.removeEventListener('transitionend', onEnd);
+                };
+                list.addEventListener('transitionend', onEnd);
+            } else {
+                list.style.maxHeight = list.scrollHeight + 'px';
+                requestAnimationFrame(() => {
+                    list.style.maxHeight = '0';
+                });
+            }
+        };
+
+        // 페이지 어디서든 햄버거/닫기/오버레이 클릭을 처리하도록 위임
+        if (!window.__sidebarDelegated) {
+            window.__sidebarDelegated = true;
+            document.addEventListener('click', function (e) {
+                const toggleBtn = e.target.closest('.hamburger, .close-sidebar, #sidebarOverlay');
+                if (!toggleBtn) return;
+                if (typeof window.toggleSidebar === 'function') {
+                    window.toggleSidebar();
+                }
+            });
+        }
+    </script>
 </th:block>
 
 <th:block th:fragment="categorySidebar(categories)" xmlns:th="http://www.thymeleaf.org">
-    <div class="overlay" id="sidebarOverlay"></div>
+    <div class="overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <aside class="category-sidebar" id="categorySidebar">
         <div class="sidebar-header">
             <h3>카테고리</h3>
-            <button class="close-sidebar" type="button">×</button>
+            <button class="close-sidebar" onclick="toggleSidebar()" type="button">×</button>
         </div>
         <ul class="category-list">
             <th:block th:each="category : ${categories}">

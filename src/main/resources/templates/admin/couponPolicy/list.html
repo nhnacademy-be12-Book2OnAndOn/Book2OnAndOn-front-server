@@ -97,8 +97,14 @@
                             📅 발급 후 <b th:text="${policy.durationDays}">30</b>일간
                         </div>
                         <div th:if="${policy.durationDays == null}">
-                            📅 <span th:text="${policy.fixedStartDate}"></span> ~
-                            <span th:text="${policy.fixedEndDate}"></span>
+                            📅
+                            <span th:if="${policy.fixedStartDate != null}"
+                                  th:text="${#temporals.format(policy.fixedStartDate, 'yyyy-MM-dd')}">시작일</span>
+                            <span th:if="${policy.fixedStartDate == null}">미설정</span>
+                            ~
+                            <span th:if="${policy.fixedEndDate != null}"
+                                  th:text="${#temporals.format(policy.fixedEndDate, 'yyyy-MM-dd')}">종료일</span>
+                            <span th:if="${policy.fixedEndDate == null}">미설정</span>
                         </div>
                         <div class="muted" style="margin-top: 4px;">
                             <span th:text="${#numbers.formatInteger(policy.minPrice, 0, 'COMMA')}">10,000</span>원 이상 구매
@@ -114,7 +120,7 @@
                     </td>
 
                     <td class="table-actions">
-                        <a class="btn-ghost-link dense"
+                        <a class="btn-ghost-link dense quantity-btn"
                            th:href="@{/admin/policies/update/{id}(id=${policy.couponPolicyId})}">수정</a>
 
                         <form method="post" th:action="@{/admin/policies/delete/{id}(id=${policy.couponPolicyId})}">
