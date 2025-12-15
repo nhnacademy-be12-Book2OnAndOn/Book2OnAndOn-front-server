@@ -35,9 +35,17 @@ import org.springframework.web.multipart.MultipartFile;
 @FeignClient(name = "gateway-service", contextId = "bookClient", url = "${gateway.base-url}", configuration = FeignMultipartConfig.class)
 public interface BookClient {
 
-    /// 카테고리 목록 가져오기
+    /// 카테고리 전체 목록 가져오기 (카테고리 이름들만)
     @GetMapping("/api/books/categories")
     List<CategoryDto> getCategories();
+
+    /// 카테고리별 도서 목록
+    @GetMapping("/api/books/categories/{categoryId}")
+    Page<BookDto> getBooksByCategories(@PathVariable Long categoryId);
+
+    /// 카테고리 이름 반환
+    @GetMapping("/api/books/categories/{categoryId}/info")
+    CategoryDto getCategoryInfo (@PathVariable("categoryId") Long categoryId);
 
     /// 신간도서목록
     @GetMapping("/api/books/new-arrivals")
@@ -81,6 +89,10 @@ public interface BookClient {
     /// 도서 삭제
     @DeleteMapping("/api/books/{bookId}")
     void deleteBook(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId);
+
+    /// 전체 도서 개수
+    @GetMapping("/api/books/count")
+    Long countAllBook(@RequestHeader("Authorization") String accessToken);
 
     /// 도서 상태 변경
     @PatchMapping("/api/books/{bookId}/status")

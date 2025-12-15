@@ -75,9 +75,8 @@ public class AdminViewController {
         }
 
         try {
-            BookSearchCondition emptyCondition = new BookSearchCondition();
-            Page<?> bookPage = bookClient.searchBooks(emptyCondition, PageRequest.of(0, 1));
-            model.addAttribute("bookCount", bookPage != null ? bookPage.getTotalElements() : 0);
+            Long count = bookClient.countAllBook(token);
+            model.addAttribute("bookCount", count);
         } catch (Exception e) {
             log.error("대시보드 도서 수 조회 실패", e);
             model.addAttribute("bookCount", 0);

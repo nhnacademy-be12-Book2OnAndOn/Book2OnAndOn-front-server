@@ -156,6 +156,7 @@ public class BookAdminController {
         return "redirect:/admin/books";
     }
 
+
     /// 도서 상태변경
     @PatchMapping("/books/{bookId}/status")
     public String updateStatus(HttpServletRequest req, @PathVariable Long bookId,
