@@ -9,7 +9,7 @@
 <body>
 <th:block th:replace="~{fragments/layout :: commonHeader(${user ?: session.user}, ${cartCount}, null, null, false)}"></th:block>
 
-<main>
+<main th:with="currentUser=${user ?: session.user}">
     <section class="hero">
         <div class="container hero-inner">
             <div class="hero-text">
@@ -126,15 +126,69 @@
         </div>
     </section>
 
-    <section class="membership-cta">
-        <div class="container cta-inner">
-            <div>
-                <p class="cta-eyebrow">회원 전용 혜택</p>
-                <h3>지금 가입하고 첫 구매 시 15% 할인을 받아보세요</h3>
+    <th:block th:if="${currentUser == null}">
+        <section class="membership-cta">
+            <div class="container cta-inner">
+                <div>
+                    <p class="cta-eyebrow">회원 전용 혜택</p>
+                    <h3>지금 가입하고 첫 구매 시 15% 할인을 받아보세요</h3>
+                </div>
+                <button class="btn primary" onclick="location.href='/signup'" type="button">회원가입하기</button>
             </div>
-            <button class="btn primary" onclick="location.href='/signup'" type="button">회원가입하기</button>
-        </div>
-    </section>
+        </section>
+    </th:block>
+
+    <th:block th:if="${currentUser != null}">
+        <section class="member-promo">
+            <div class="container member-promo-inner">
+                <div class="promo-copy">
+                    <p class="cta-eyebrow">오늘의 추천</p>
+                    <h3 th:text="${promotion?.title} ?: '새로운 책을 만나보세요'">새로운 책을 만나보세요</h3>
+                    <p class="muted" th:text="${promotion?.subtitle} ?: '지금 가장 인기 있는 도서를 추천합니다.'">지금 가장 인기 있는 도서를 추천합니다.</p>
+                    <div class="price-row" th:if="${promotion != null}">
+                        <span class="sale-price"
+                              th:text="${promotion.salePrice} != null ? '₩' + ${#numbers.formatInteger(promotion.salePrice, 0, 'COMMA')} : ''">₩19,800</span>
+                        <span class="original" th:if="${promotion.originalPrice != null}"
+                              th:text="'₩' + ${#numbers.formatInteger(promotion.originalPrice, 0, 'COMMA')}">₩22,000</span>
+                        <span class="discount" th:if="${promotion.discountRate != null}"
+                              th:text="${promotion.discountRate} + '% 할인'">10% 할인</span>
+                    </div>
+                    <div class="promo-actions" th:if="${promotion != null}">
+                        <button class="btn primary" type="button" onclick="goToPromoBook()">자세히 보기</button>
+                        <button class="btn secondary" th:onclick="'addToCart(' + ${promotion.id} + ')'">장바구니</button>
+                    </div>
+                </div>
+                <div class="promo-visual">
+                    <div class="promo-image" role="button" onclick="goToPromoBook()">
+                        <img alt="프로모션 도서" th:if="${promotion?.imageUrl != null}" th:src="${promotion.imageUrl}">
+                        <img alt="기본 도서 이미지"
+                             src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=760&q=80"
+                             th:if="${promotion?.imageUrl == null}">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            const promoData = {
+                id: /*[[${promotion != null ? promotion.id : 'null'}]]*/ null,
+                title: /*[[${promotion != null ? '\'' + promotion.title + '\'' : 'null'}]]*/ null
+            };
+
+            function goToPromoBook() {
+                if (promoData.id !== null) {
+                    window.location.href = `/books/${promoData.id}`;
+                    return;
+                }
+                if (promoData.title) {
+                    window.location.href = `/books/search?keyword=${encodeURIComponent(promoData.title)}`;
+                    return;
+                }
+                window.location.href = '/books';
+            }
+            /*]]>*/
+        </script>
+    </th:block>
 
     <section class="book-collection" id="section-bestseller-week">
         <div class="container">

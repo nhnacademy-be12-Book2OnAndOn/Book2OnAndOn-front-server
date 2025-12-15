@@ -487,6 +487,25 @@ img {
     padding: 0.65rem 1rem;
 }
 
+.admin-actions {
+    margin-top: 10px;
+}
+
+.admin-actions .btn.admin-edit {
+    background: var(--green-700);
+    color: var(--white);
+    border: 1px solid var(--green-700);
+    padding: 0.65rem 1.2rem;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(45, 95, 63, 0.18);
+}
+
+.admin-actions .btn.admin-edit:hover {
+    background: var(--green-600);
+    border-color: var(--green-600);
+}
+
 .tag-cloud {
     display: flex;
     gap: 0.5rem;
@@ -905,6 +924,54 @@ img {
     color: #3c4b41;
 }
 
+.member-promo {
+    padding: 3.5rem 0;
+    background: linear-gradient(135deg, #f4f7f2 0%, #e8f0eb 60%, #f4f7f2 100%);
+}
+
+.member-promo-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    align-items: center;
+    gap: 2rem;
+}
+
+.promo-copy h3 {
+    font-size: 2rem;
+    margin: 0.25rem 0 0.5rem;
+    color: var(--green-800);
+}
+
+.promo-copy .muted {
+    color: var(--gray-700);
+}
+
+.promo-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
+.promo-image {
+    background: #fff;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    padding: 0.75rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    cursor: pointer;
+}
+
+.promo-image img {
+    width: 100%;
+    height: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
 /* ===== Footer ===== */
 .site-footer {
     background: var(--green-700);
@@ -1309,6 +1376,7 @@ img {
     display: flex;
     margin-bottom: 0.5rem;
     font-size: 0.95rem;
+    gap: 10px;
 }
 
 .meta-info-box .row:last-child {
@@ -1318,6 +1386,12 @@ img {
 .meta-info-box .th {
     width: 80px;
     color: var(--gray-500);
+    flex-shrink: 0;
+}
+
+.meta-info-box .td {
+    color: var(--gray-900);
+    flex: 1;
 }
 
 .tags-area {
@@ -1342,6 +1416,64 @@ img {
     border-radius: var(--radius-md);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.coupon-download {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 1rem;
+    width: 100%;
+    background: #f6f8f5;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+
+.coupon-download .muted {
+    margin: 2px 0 0 0;
+    white-space: nowrap;
+}
+
+.coupon-download .btn {
+    flex: none;
+    padding: 0.65rem 1.2rem;
+    background: var(--green-700);
+    color: var(--white);
+    border: none;
+    min-width: 140px;
+    max-width: 200px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+}
+
+.coupon-download .btn:hover {
+    background: var(--green-600);
+}
+
+.coupon-download .label {
+    font-weight: 700;
+    margin: 0;
+    color: var(--green-700);
+}
+
+.coupon-download .coupon-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.purchase-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
 }
 
 .quantity-control {
@@ -1375,9 +1507,9 @@ img {
 }
 
 .total-price-preview {
-    margin-top: 1rem;
-    text-align: right;
+    margin-left: auto;
     font-size: 1.1rem;
+    color: var(--gray-700);
 }
 
 .total-price-preview strong {

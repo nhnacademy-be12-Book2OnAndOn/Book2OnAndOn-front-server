@@ -9,7 +9,7 @@
 <body>
 <th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
-<main class="book-detail-page">
+<main class="book-detail-page" th:with="currentUser=${user} ?: ${session.user}">
     <div class="container" th:object="${bookDetail}">
 
         <section class="product-wrapper">
@@ -63,6 +63,10 @@
                         <span class="score" th:text="${bookDetail.rating}">4.8</span>
                         <span class="count" th:text="'(' + ${bookDetail.reviewCount} + '개의 리뷰)'">(120개의 리뷰)</span>
                     </div>
+                    <div class="admin-actions"
+                         th:if="${currentUser != null and #strings.contains(currentUser.role, 'ADMIN')}">
+                        <a class="btn admin-edit" th:href="@{/admin/books/{id}/edit(id=${bookDetail.id})}">도서 수정</a>
+                    </div>
                 </div>
 
                 <hr class="soft-divider">
@@ -83,10 +87,6 @@
 
                 <div class="meta-info-box">
                     <div class="row">
-                        <span class="th">ISBN</span>
-                        <span class="td" th:text="${bookDetail.isbn}">97911000000</span>
-                    </div>
-                    <div class="row">
                         <span class="th">배송비</span>
                         <span class="td">3,000원 (3만원 이상 무료)</span>
                     </div>
@@ -101,13 +101,22 @@
                 </div>
 
                 <div class="purchase-actions">
-                    <div class="quantity-control">
-                        <button type="button" onclick="adjustQuantity(-1)">-</button>
-                        <input type="text" id="quantity" value="1" readonly>
-                        <button type="button" onclick="adjustQuantity(1)">+</button>
+                    <div class="coupon-download">
+                        <div class="coupon-text">
+                            <p class="label">쿠폰</p>
+                            <p class="muted">적용 가능한 쿠폰을 받아보세요.</p>
+                        </div>
+                        <button class="btn ghost" id="couponDownloadBtn" type="button" onclick="downloadCoupon()">쿠폰 다운로드</button>
                     </div>
-                    <div class="total-price-preview">
-                        총 상품금액 <strong id="totalPrice" th:text="${#numbers.formatInteger(bookDetail.priceSales, 0, 'COMMA')}">19,800</strong>원
+                    <div class="purchase-row">
+                        <div class="quantity-control">
+                            <button type="button" onclick="adjustQuantity(-1)">-</button>
+                            <input type="text" id="quantity" value="1" readonly>
+                            <button type="button" onclick="adjustQuantity(1)">+</button>
+                        </div>
+                        <div class="total-price-preview">
+                            총 상품금액 <strong id="totalPrice" th:text="${#numbers.formatInteger(bookDetail.priceSales, 0, 'COMMA')}">19,800</strong>원
+                        </div>
                     </div>
                 </div>
 
@@ -126,9 +135,36 @@
 
         <section class="detail-content-wrapper">
             <div class="tab-nav">
-                <a href="#intro" class="tab-item active">책 소개</a>
+                <a href="#info" class="tab-item active">도서 정보</a>
+                <a href="#intro" class="tab-item">책 소개</a>
                 <a href="#toc" class="tab-item" th:if="${bookDetail.chapter != null}">목차</a>
                 <a href="#reviews" class="tab-item">리뷰 (<span th:text="${bookDetail.reviewCount}">0</span>)</a>
+            </div>
+
+            <div id="info" class="content-block">
+                <h3>도서 정보</h3>
+                <div class="meta-info-box">
+                    <div class="row">
+                        <span class="th">ISBN</span>
+                        <span class="td" th:text="${bookDetail.isbn}">97911000000</span>
+                    </div>
+                    <div class="row">
+                        <span class="th">발행일</span>
+                        <span class="td" th:text="${#temporals.format(bookDetail.publishDate, 'yyyy년 MM월 dd일')}">2024년 01월 01일</span>
+                    </div>
+                    <div class="row" th:if="${bookDetail.publishers != null and !bookDetail.publishers.isEmpty()}">
+                        <span class="th">출판사</span>
+                        <span class="td" th:text="${#strings.listJoin(bookDetail.publishers.![name], ', ')}">출판사명</span>
+                    </div>
+                    <div class="row" th:if="${bookDetail.categories != null and !bookDetail.categories.isEmpty()}">
+                        <span class="th">분류</span>
+                        <span class="td" th:text="${#strings.listJoin(bookDetail.categories.![name], ' > ')}">카테고리 경로</span>
+                    </div>
+                    <div class="row" th:if="${bookDetail.stockCount != null}">
+                        <span class="th">재고</span>
+                        <span class="td" th:text="${bookDetail.stockCount > 0 ? bookDetail.stockCount + '권' : '품절'}">재고 정보</span>
+                    </div>
+                </div>
             </div>
 
             <div id="intro" class="content-block">
@@ -174,6 +210,8 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     const unitPrice = [[${bookDetail.priceSales}]];
+    const bookId = [[${bookDetail.id}]];
+    const categoryIds = /*[[${bookDetail.categories != null} ? ${bookDetail.categories.![id]} : '[]' ]]*/ [];
 
     function changeMainImage(src) {
         document.getElementById('mainImg').src = src;
@@ -193,6 +231,52 @@
     function updateTotalPrice(qty) {
         const total = unitPrice * qty;
         document.getElementById('totalPrice').innerText = total.toLocaleString();
+    }
+
+    async function downloadCoupon() {
+        const btn = document.getElementById('couponDownloadBtn');
+        if (btn) btn.disabled = true;
+        try {
+            const params = new URLSearchParams();
+            params.append('bookId', bookId);
+            if (Array.isArray(categoryIds)) {
+                categoryIds.forEach(id => params.append('categoryIds', id));
+            }
+            const res = await fetch(`/api/coupons/appliable?${params.toString()}`);
+            if (res.status === 401) {
+                if (confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+                    location.href = '/login';
+                }
+                return;
+            }
+            if (!res.ok) {
+                throw new Error('조회 실패');
+            }
+            const coupon = await res.json();
+            if (!coupon || !coupon.couponId) {
+                alert('적용 가능한 쿠폰이 없습니다.');
+                return;
+            }
+            const issueRes = await fetch(`/api/coupons/${coupon.couponId}/issue`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            if (issueRes.status === 401) {
+                if (confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+                    location.href = '/login';
+                }
+                return;
+            }
+            if (!issueRes.ok) {
+                throw new Error('발급 실패');
+            }
+            alert('쿠폰이 발급되었습니다. 쿠폰함에서 확인하세요.');
+        } catch (e) {
+            console.error(e);
+            alert('쿠폰을 발급할 수 없습니다. 잠시 후 다시 시도해주세요.');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
     }
 
     // 기존 장바구니/좋아요 함수는 layout 스크립트 재사용 또는 여기에 포함

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>도서 관리 | 관리자</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+<div class="admin-container">
+    <th:block th:replace="~{fragments/admin :: adminSidebar('books')}"></th:block>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <div>
+                <div class="eyebrow">BOOKS</div>
+                <h2>도서 관리</h2>
+                <p class="muted">도서 등록/검색 및 수정</p>
+            </div>
+            <div class="chip-tabs">
+                <a class="chip-tab" th:href="@{/admin/books/create}">+ 도서 등록</a>
+            </div>
+        </div>
+
+        <form class="admin-toolbar" method="get" th:action="@{/admin/books}" id="bookSearchForm">
+            <div class="form-field" style="flex: 1;">
+                <label for="keyword">검색어</label>
+                <input class="form-control" id="keyword" name="keyword" placeholder="제목, 저자, ISBN 등" th:value="${condition.keyword}">
+            </div>
+            <input type="hidden" name="page" value="0">
+            <input type="hidden" name="size" value="20">
+            <div style="align-self: flex-end; display: flex; gap: 8px;">
+                <button class="btn-ghost" type="button" onclick="location.href='/admin/books'">초기화</button>
+                <button class="btn-primary" type="submit">검색</button>
+            </div>
+        </form>
+
+        <section class="admin-detail-card" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th style="width: 8%">ID</th>
+                    <th>제목</th>
+                    <th style="width: 20%">저자</th>
+                    <th style="width: 15%">판매가</th>
+                    <th style="width: 10%">좋아요</th>
+                </tr>
+                </thead>
+                <tbody id="bookTableBody">
+                <tr th:if="${books == null || books.isEmpty()}">
+                    <td class="muted" colspan="5" style="text-align: center;">검색 결과가 없습니다.</td>
+                </tr>
+                <tr th:each="book : ${books}"
+                    th:onclick="|location.href='@{/admin/books/{id}/edit(id=${book.id})}'|"
+                    style="cursor: pointer;">
+                    <td th:text="${book.id}">1</td>
+                    <td>
+                        <div class="table-title" th:text="${book.title}">도서 제목</div>
+                        <div class="muted" th:text="${book.tagNames != null ? #strings.listJoin(book.tagNames, ', ') : ''}"></div>
+                    </td>
+                    <td th:text="${book.contributorNames != null && !book.contributorNames.isEmpty()} ? ${book.contributorNames[0]} : '미입력'">저자</td>
+                    <td th:text="${book.priceSales != null} ? ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} + '원' : '-'">0원</td>
+                    <td th:text="${book.likeCount} ?: 0">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <div class="pagination" id="bookPagination" th:if="${page != null and page.totalPages > 1}">
+            <a class="page-link" th:classappend="${page.number == 0} ? ' disabled'" th:href="@{/admin/books(page=${page.number - 1}, keyword=${condition.keyword})}">이전</a>
+            <span class="page-info"><span th:text="${page.number + 1}"></span> / <span th:text="${page.totalPages}"></span></span>
+            <a class="page-link" th:classappend="${page.number + 1 >= page.totalPages} ? ' disabled'" th:href="@{/admin/books(page=${page.number + 1}, keyword=${condition.keyword})}">다음</a>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script th:inline="javascript">
+/*<![CDATA[*/
+    const tableBody = document.getElementById('bookTableBody');
+    const pagination = document.getElementById('bookPagination');
+    const form = document.getElementById('bookSearchForm');
+    const pageInput = form?.querySelector('input[name=page]');
+    const sizeInput = form?.querySelector('input[name=size]');
+
+    function showLoading() {
+        tableBody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;">검색 중...</td></tr>';
+    }
+
+    function renderTable(content) {
+        if (!content || content.length === 0) {
+            tableBody.innerHTML = '<tr><td class="muted" colspan="5" style="text-align: center;">검색 결과가 없습니다.</td></tr>';
+            return;
+        }
+        const rows = content.map(b => {
+            const tags = Array.isArray(b.tagNames) ? b.tagNames.join(', ') : '';
+            const author = Array.isArray(b.contributorNames) && b.contributorNames.length > 0 ? b.contributorNames[0] : '미입력';
+            const price = b.priceSales != null ? new Intl.NumberFormat('ko-KR').format(b.priceSales) + '원' : '-';
+            const like = b.likeCount != null ? b.likeCount : 0;
+            return `<tr onclick="location.href='/admin/books/${b.id}/edit'" style="cursor:pointer;">
+                        <td>${b.id ?? ''}</td>
+                        <td><div class="table-title">${b.title ?? ''}</div><div class="muted">${tags}</div></td>
+                        <td>${author}</td>
+                        <td>${price}</td>
+                        <td>${like}</td>
+                    </tr>`;
+        }).join('');
+        tableBody.innerHTML = rows;
+    }
+
+    function renderPagination(page) {
+        if (!pagination) return;
+        if (!page || page.totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+        const current = page.number;
+        const prevDisabled = current === 0 ? 'disabled' : '';
+        const nextDisabled = current + 1 >= page.totalPages ? 'disabled' : '';
+        pagination.innerHTML = `
+            <a class="page-link ${prevDisabled}" data-page="${current - 1}">이전</a>
+            <span class="page-info">${current + 1} / ${page.totalPages}</span>
+            <a class="page-link ${nextDisabled}" data-page="${current + 1}">다음</a>
+        `;
+        pagination.querySelectorAll('a').forEach(a => {
+            if (a.classList.contains('disabled')) return;
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetPage = Number(a.getAttribute('data-page'));
+                loadPage(targetPage);
+            });
+        });
+    }
+
+    async function loadPage(pageNum = 0) {
+        showLoading();
+        const nextPage = Math.max(0, Number(pageNum) || 0);
+        if (pageInput) pageInput.value = nextPage;
+        const formData = new FormData(form);
+        formData.set('page', nextPage);
+        if (sizeInput && sizeInput.value) {
+            formData.set('size', sizeInput.value);
+        }
+        const query = new URLSearchParams(formData).toString();
+        try {
+            const res = await fetch(`/admin/books/search/elastic?${query}`);
+            if (!res.ok) {
+                throw new Error(`검색 실패 (status: ${res.status})`);
+            }
+            const data = await res.json();
+            renderTable(data.content);
+            renderPagination(data);
+        } catch (e) {
+            console.error(e);
+            form.submit(); // 문제 발생 시 기본 제출로 폴백
+        }
+    }
+
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            loadPage(0);
+        });
+    }
+/*]]>*/
+</script>
+</body>
+</html>

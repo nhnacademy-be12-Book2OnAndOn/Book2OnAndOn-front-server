@@ -1335,6 +1335,27 @@ body {
     border-color: #2d5f3f;
 }
 
+.page-link.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    border-color: #d5ddd6;
+    background: #f1f4f2;
+    color: #7c8a80;
+}
+
+.page-info {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    color: #234132;
+    font-weight: 700;
+    background: #f7faf8;
+    border: 1px dashed #d5ddd6;
+    border-radius: 10px;
+    min-width: 90px;
+}
+
 /* =====================================
    admin/police/form 카테고리
 ===================================== */

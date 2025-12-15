@@ -15,23 +15,32 @@ import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
 @Slf4j
 public class BookViewController {
+
+    private static final int DASHBOARD_SECTION_SIZE = 20;
 
     private final BookClient bookClient;
 
@@ -44,7 +53,7 @@ public class BookViewController {
         List<BookDto> bestsellerWeek = Collections.emptyList();
         Page<BookDto> likeBest = Page.empty();
         try {
-            likeBest = bookClient.getPopularBooks(page,0);
+            likeBest = bookClient.getPopularBooks(page, 0);
             log.info("인기도서 갯수: {}", likeBest.getSize());
         } catch (Exception e) {
             log.error("인기 도서 조회 실패", e);
@@ -96,6 +105,91 @@ public class BookViewController {
         model.addAttribute("currentCategoryId", categoryId);
         model.addAttribute("categoryName", category.getName());
         return "books/booksByCategory";
+    private Page<BookDto> fetchNewArrivals() {
+        try {
+            return bookClient.getNewArrivals(null, 0, DASHBOARD_SECTION_SIZE);
+        } catch (Exception e) {
+            log.error("신간 도서 조회 실패", e);
+            return Page.empty();
+        }
+    }
+
+    private List<BookDto> fetchPopular(int page) {
+        try {
+            Page<BookDto> pageResult = bookClient.getPopularBooks(page, DASHBOARD_SECTION_SIZE);
+            return pageResult != null && pageResult.getContent() != null
+                    ? cleanBookList(pageResult.getContent())
+                    : Collections.emptyList();
+        } catch (Exception e) {
+            log.error("인기 도서 조회 실패", e);
+            return Collections.emptyList();
+        }
+    }
+
+    private List<BookDto> fetchBestsellers(String period) {
+        try {
+            return cleanBookList(bookClient.getBestsellers(period));
+        } catch (Exception e) {
+            log.error("{} 베스트셀러 조회 실패", period, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private List<BookDto> selectBooks(List<BookDto> books, boolean randomize) {
+        if (books == null || books.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<BookDto> working = new ArrayList<>(books);
+        if (randomize) {
+            Collections.shuffle(working);
+        }
+        int toIndex = Math.min(DASHBOARD_SECTION_SIZE, working.size());
+        return new ArrayList<>(working.subList(0, toIndex));
+    }
+
+    private boolean haveSameIds(List<BookDto>... lists) {
+        Set<Long> base = null;
+        for (List<BookDto> list : lists) {
+            Set<Long> ids = extractIds(list);
+            if (ids.isEmpty()) {
+                return false;
+            }
+            if (base == null) {
+                base = ids;
+            } else if (!base.equals(ids)) {
+                return false;
+            }
+        }
+        return base != null;
+    }
+
+    private Set<Long> extractIds(List<BookDto> books) {
+        if (books == null) {
+            return Collections.emptySet();
+        }
+        return books.stream()
+                .map(BookDto::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    private List<BookDto> mergeLists(List<BookDto>... lists) {
+        List<BookDto> merged = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        for (List<BookDto> list : lists) {
+            if (list == null) {
+                continue;
+            }
+            for (BookDto book : list) {
+                if (book == null || book.getId() == null) {
+                    continue;
+                }
+                if (seen.add(book.getId())) {
+                    merged.add(book);
+                }
+            }
+        }
+        return merged;
     }
 
     private List<BookDto> cleanBookList(List<?> books) {
@@ -114,7 +208,9 @@ public class BookViewController {
         }
         if (obj instanceof Map<?, ?> map) {
             Object id = map.get("id");
-            if (id == null) return null;
+            if (id == null) {
+                return null;
+            }
             BookDto dto = new BookDto();
             dto.setId(toLong(id));
             dto.setTitle(toStr(map.get("title")));
@@ -150,7 +246,9 @@ public class BookViewController {
 
 
     private Long toLong(Object v) {
-        if (v == null) return null;
+        if (v == null) {
+            return null;
+        }
         try {
             return Long.parseLong(String.valueOf(v));
         } catch (NumberFormatException e) {
@@ -159,7 +257,9 @@ public class BookViewController {
     }
 
     private Double toDouble(Object v) {
-        if (v == null) return null;
+        if (v == null) {
+            return null;
+        }
         try {
             return Double.parseDouble(String.valueOf(v));
         } catch (NumberFormatException e) {

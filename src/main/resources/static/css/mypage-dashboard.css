@@ -1,0 +1,14 @@
+.badge {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #fff;
+    font-weight: bold;
+}
+
+.bg-BASIC { background-color: #6c757d; }
+.bg-ROYAL { background-color: #17a2b8; }
+.bg-GOLD { background-color: #ffc107; color: #333 !important; }
+.bg-PLATINUM { background-color: #6f42c1; }
+
+.badge-row { margin-top: auto; padding-top: 10px; }
