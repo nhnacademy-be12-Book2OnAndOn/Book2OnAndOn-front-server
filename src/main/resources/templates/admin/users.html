@@ -35,6 +35,7 @@
                 <th class="table-col-name">아이디</th>
                 <th class="table-col-name">이름</th>
                 <th class="table-col-email">이메일</th>
+                <th>가입 경로</th>
                 <th>등급</th>
                 <th>상태</th>
                 <th>권한</th>
@@ -55,6 +56,13 @@
 
                 <td class="table-col-name user-text" th:text="${user.name}">홍길동</td>
                 <td class="table-col-email text-break user-text" th:text="${user.email}">email@test.com</td>
+
+                <td>
+                    <span class="badge"
+                          style="background-color: #f0f0f0; color: #333; border: 1px solid #ccc;"
+                          th:text="${user.provider}">LOCAL</span>
+                </td>
+
                 <td><span class="badge" th:text="${user.gradeName}">BASIC</span></td>
                 <td>
                     <span class="badge"
@@ -65,13 +73,20 @@
                 <td th:text="${user.role}">USER</td>
                 <td class="table-actions">
                     <button class="btn-ghost-link dense"
+                            th:if="${user.role != 'SUPER_ADMIN'}"
                             th:attr="onclick=|openEditModal('${user.userId}', '${user.role}', '${user.gradeName}', '${user.status}')|">
                         수정
                     </button>
                     <button class="btn-danger dense"
+                            th:if="${user.role != 'SUPER_ADMIN'}"
                             th:attr="onclick=|deleteUser('${user.userId}')|">
                         강퇴
                     </button>
+                    <span th:if="${user.role == 'SUPER_ADMIN'}"
+                          class="badge"
+                          style="background-color: #e0e0e0; color: #888; font-size: 0.85rem; padding: 6px 10px;">
+                            관리 불가
+                    </span>
                 </td>
             </tr>
             </tbody>
@@ -142,6 +157,7 @@
 </div>
 
 <script>
+    // ... 기존 스크립트 생략 (변경 없음) ...
     // 긴 텍스트만 축소 적용
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.user-text').forEach(el => {

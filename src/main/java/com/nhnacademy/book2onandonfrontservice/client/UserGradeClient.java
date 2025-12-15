@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(name = "gateway-service", contextId = "userGradeClient", url = "${gateway.base-url}")
 public interface UserGradeClient {
     // 전체 등급 조회
-    @GetMapping("/api/admin/grades")
+    @GetMapping("/api/grades")
     List<UserGradeDto> getAllGrades();
 
     // 등급 생성
