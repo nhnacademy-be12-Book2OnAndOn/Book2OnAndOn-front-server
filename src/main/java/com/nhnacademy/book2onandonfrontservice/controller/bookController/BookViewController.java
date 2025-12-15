@@ -1,20 +1,10 @@
 package com.nhnacademy.book2onandonfrontservice.controller.bookController;
 
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -98,13 +88,15 @@ public class BookViewController {
 
     /// 카테고리별 조회
     @GetMapping("/books/categories/{categoryId}")
-    public String getBooksByCategoryId(@PathVariable Long categoryId, Model model){
+    public String getBooksByCategoryId(@PathVariable Long categoryId, Model model) {
         Page<BookDto> booksByCategory = bookClient.getBooksByCategories(categoryId);
         CategoryDto category = bookClient.getCategoryInfo(categoryId);
         model.addAttribute("books", booksByCategory);
         model.addAttribute("currentCategoryId", categoryId);
         model.addAttribute("categoryName", category.getName());
         return "books/booksByCategory";
+    }
+
     private Page<BookDto> fetchNewArrivals() {
         try {
             return bookClient.getNewArrivals(null, 0, DASHBOARD_SECTION_SIZE);
