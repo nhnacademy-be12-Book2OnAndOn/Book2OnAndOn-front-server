@@ -17,7 +17,6 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +44,7 @@ public interface BookClient {
 
     /// 카테고리 이름 반환
     @GetMapping("/api/books/categories/{categoryId}/info")
-    CategoryDto getCategoryInfo (@PathVariable("categoryId") Long categoryId);
+    CategoryDto getCategoryInfo(@PathVariable("categoryId") Long categoryId);
 
     /// 신간도서목록
     @GetMapping("/api/books/new-arrivals")
@@ -80,7 +79,8 @@ public interface BookClient {
 
     /// 도서 썸네일 지정 컨트롤러
     @PutMapping("/api/admin/books/{bookId}/images/{imageId}/thumbnail")
-    void updateThumbnail(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId, @PathVariable Long imageId);
+    void updateThumbnail(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId,
+                         @PathVariable Long imageId);
 
     /// 도서 상세 정보
     @GetMapping("/api/books/{bookId}")
@@ -101,7 +101,9 @@ public interface BookClient {
 
     /// 도서 최근 본 상품 조회
     @GetMapping("/api/books/recent-views")
-    List<BookDto> getRecentViews();
+    List<BookDto> getRecentViews(
+            @RequestHeader(value = "Authorization", required = false) String accessToken,
+            @RequestHeader(value = "X-Guest-Id", required = false) String guestId);
 
     /// 최근 본 상품 로그인시 병합
     @GetMapping("/api/books/recent-views/merge")
@@ -111,19 +113,16 @@ public interface BookClient {
     /// 좋아요 토글 요청
     @PostMapping("/api/books/{bookId}/likes")
     BookLikeToggleResponse toggleLike(@RequestHeader("Authorization") String accessToken,
-                                      @RequestHeader("X-USERID") Long userId,
+                                      @RequestHeader("X-User-Id") Long userId,
                                       @PathVariable("bookId") Long bookId);
 
-    /// --------------- elastic search -----------------
-    /// 북 검색엔진
+    /// --------------- elastic search ----------------- 북 검색엔진
     @PostMapping("/api/books/search")
     Page<BookDto> searchBooks(@SpringQueryMap BookSearchCondition condition,//필드들을 뜯어서 검색조건으로 만듦 즉, 쿼리 파라미터로 만들수 있음
                               @SpringQueryMap Pageable pageable);
 
 
-
-    /// ----------------- Review -------------------
-    /// 리뷰생성
+    /// ----------------- Review ------------------- 리뷰생성
     @PostMapping(value = "/api/books/{bookId}/reivews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     Long createReview(@RequestHeader("Authorization") String accessToken,
                       @PathVariable("bookId") Long bookId,
@@ -137,14 +136,12 @@ public interface BookClient {
                       @RequestPart(value = "request") @Valid ReviewUpdateRequest request,
                       @RequestPart(value = "images", required = false) List<MultipartFile> newImages);
 
-    /// --------------할인율 변경 및 가격 상태조회---------------
-    /// 할인율 변경 요청 (비동기 실행됨)
+    /// --------------할인율 변경 및 가격 상태조회--------------- 할인율 변경 요청 (비동기 실행됨)
     @PostMapping("/api/admin/price/discount")
     String updateDiscountRate(@RequestHeader("Authorization") String accessToken, @RequestParam("rate") int rate);
 
     /**
-     * 가격 상태조회
-     * 현재 상시 할인율이 변경되고 있는지 db가 전부 리프레쉬 됐는지 확인하는 버튼? 아님 알림 창
+     * 가격 상태조회 현재 상시 할인율이 변경되고 있는지 db가 전부 리프레쉬 됐는지 확인하는 버튼? 아님 알림 창
      */
     @GetMapping("/api/admin/price/status")
     String getUpdateStatus(@RequestHeader("Authorization") String accessToken);

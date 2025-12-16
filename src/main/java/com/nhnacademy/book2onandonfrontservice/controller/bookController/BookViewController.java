@@ -5,6 +5,8 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -102,9 +104,18 @@ public class BookViewController {
     /// 최근 본 도서 (플로팅 패널)
     @GetMapping("/api/books/recent-views")
     @ResponseBody
-    public ResponseEntity<List<BookDto>> getRecentViews() {
+    public ResponseEntity<List<BookDto>> getRecentViews(HttpServletRequest request) {
         try {
-            List<BookDto> views = bookClient.getRecentViews();
+            String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+            String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
+
+            mergeRecentViews(accessToken, guestId);
+
+            if ((accessToken == null || accessToken.isBlank()) && guestId == null) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+
+            List<BookDto> views = bookClient.getRecentViews(toBearer(accessToken), guestId);
             return ResponseEntity.ok(views != null ? views : Collections.emptyList());
         } catch (Exception e) {
             log.error("최근 본 도서 조회 실패", e);
@@ -276,5 +287,23 @@ public class BookViewController {
 
     private String toStr(Object v) {
         return v == null ? null : String.valueOf(v);
+    }
+
+    private void mergeRecentViews(String accessToken, String guestId) {
+        if (guestId == null || accessToken == null || accessToken.isBlank()) {
+            return;
+        }
+        try {
+            bookClient.mergeRecentViews(toBearer(accessToken), guestId);
+        } catch (Exception e) {
+            log.warn("최근 본 도서 병합 실패", e);
+        }
+    }
+
+    private String toBearer(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return null;
+        }
+        return accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
     }
 }
