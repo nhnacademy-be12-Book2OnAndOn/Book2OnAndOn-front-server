@@ -196,6 +196,8 @@ public class MyPageViewController {
             case USE -> "포인트 사용";
             case REFUND -> "포인트 반환";
             case EXPIRE -> "포인트 만료";
+            case FAILED -> "결제 실패";
+            case WITHDRAW -> "회원 탈퇴";
             case ADMIN_ADJUST -> "관리자 조정";
         };
     }
@@ -210,13 +212,6 @@ public class MyPageViewController {
             case EXPIRED -> "만료됨";
         };
     }
-
-    private record RecentCouponView(String name, String status, String expireDate, String detail) {
-    }
-
-    private record RecentPointView(String reason, String date, String amount, String balance) {
-    }
-
 
     //내 리뷰 목록
     @GetMapping("/reviews")
@@ -417,7 +412,6 @@ public class MyPageViewController {
         return "user/mypage/address-form";
     }
 
-
     //배송지 저장
     @PostMapping("/addresses")
     public String createAddress(HttpServletRequest request,
@@ -489,7 +483,6 @@ public class MyPageViewController {
         }
     }
 
-
     //주소 수정
     @PostMapping("/addresses/{id}/update")
     public String updateAddress(HttpServletRequest request,
@@ -559,5 +552,11 @@ public class MyPageViewController {
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
+    }
+
+    private record RecentCouponView(String name, String status, String expireDate, String detail) {
+    }
+
+    private record RecentPointView(String reason, String date, String amount, String balance) {
     }
 }
