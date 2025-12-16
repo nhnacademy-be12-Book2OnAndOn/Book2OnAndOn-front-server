@@ -112,6 +112,14 @@
                 <input class="form-input" id="adjustReason" maxlength="100" required type="text">
                 <div class="form-help">포인트 조정 사유를 입력하세요</div>
             </div>
+            <div class="form-group" id="useTypeGroup" style="display:none;">
+                <label class="form-label">차감 유형</label>
+                <select class="form-input" id="useType">
+                    <option value="USE">사용 차감</option>
+                    <option value="CANCEL">취소/환불 차감</option>
+                </select>
+                <div class="form-help">차감 유형을 선택하세요</div>
+            </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeAdjustModal()" type="button">취소</button>
                 <button class="btn btn-primary" type="submit">확인</button>

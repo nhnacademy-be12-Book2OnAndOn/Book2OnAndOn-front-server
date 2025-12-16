@@ -97,11 +97,12 @@ public class AuthViewController {
 
             // 최근 본 상품 병합 (비회원 -> 회원)
             try {
-                String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
+                String guestId = resolveGuestId(request);
                 String bearerToken = "Bearer " + token.getAccessToken();
 
                 if (guestId != null) {
                     bookClient.mergeRecentViews(bearerToken, guestId);
+                    clearGuestIdCookie(response, secureRequest);
                 }
             } catch (Exception e) {
                 log.warn("로그인 후 최근 본 상품 병합 실패", e);
@@ -317,6 +318,27 @@ public class AuthViewController {
         response.addCookie(cookie);
     }
 
+    private String resolveGuestId(HttpServletRequest request) {
+        String gid = CookieUtils.getCookieValue(request, "GUEST_ID");
+        if (gid == null) {
+            gid = CookieUtils.getCookieValue(request, "guestId"); // 하위 호환
+        }
+        return gid;
+    }
+
+    private void clearGuestIdCookie(HttpServletResponse response, boolean secure) {
+        deleteCookieWithSecure(response, "GUEST_ID", secure);
+        deleteCookieWithSecure(response, "guestId", secure);
+    }
+
+    private void deleteCookieWithSecure(HttpServletResponse response, String name, boolean secure) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        cookie.setSecure(secure);
+        response.addCookie(cookie);
+    }
+
     //아이디 찾기 페이지
     @GetMapping("/find-id")
     public String findIdForm() {
@@ -395,11 +417,12 @@ public class AuthViewController {
 
             // 최근 본 상품 병합
             try {
-                String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
+                String guestId = resolveGuestId(request);
                 String bearerToken = "Bearer " + token.getAccessToken();
 
                 if (guestId != null) {
                     bookClient.mergeRecentViews(bearerToken, guestId);
+                    clearGuestIdCookie(response, secureRequest);
                 }
             } catch (Exception e) {
                 log.warn("PAYCO 로그인 후 데이터 병합 실패", e);

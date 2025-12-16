@@ -1,6 +1,5 @@
 package com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory;
 
-import com.nhnacademy.book2onandonfrontservice.dto.pointDto.PointReviewType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,10 +18,6 @@ public class EarnReviewPointRequestDto {
     @NotNull
     private Long reviewId;
 
-    @NotNull
-    private Long orderItemId;
-
-    @NotNull
-    private PointReviewType reviewType;
+    private boolean hasImage; // T: review_photo, F: review_text
 
 }
