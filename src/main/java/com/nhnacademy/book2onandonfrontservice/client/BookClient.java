@@ -106,7 +106,7 @@ public interface BookClient {
             @RequestHeader(value = "X-Guest-Id", required = false) String guestId);
 
     /// 최근 본 상품 로그인시 병합
-    @GetMapping("/api/books/recent-views/merge")
+    @PostMapping("/api/books/recent-views/merge")
     void mergeRecentViews(@RequestHeader("Authorization") String accessToken,
                           @RequestHeader("X-Guest-Id") String guestId);
 
