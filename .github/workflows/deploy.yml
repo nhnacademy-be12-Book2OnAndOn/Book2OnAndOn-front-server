@@ -84,17 +84,3 @@ jobs:
             curl -X PUT "$EUREKA_URL/apps/$SERVICE_NAME/$INSTANCE_ID_2/status?value=UP" || true
 
             docker image prune -f
-
-
-
-
-
-            INSTANCE_ID_2="$SERVICE_NAME:$CONTAINER_2"
-            curl -X PUT "$EUREKA_URL/apps/$SERVICE_NAME/$INSTANCE_ID_2/status?value=OUT_OF_SERVICE" || true
-            sleep 35
-            
-            docker compose up -d $CONTAINER_2
-            sleep 40
-            curl -X PUT "$EUREKA_URL/apps/$SERVICE_NAME/$INSTANCE_ID_2/status?value=UP" || true
-
-            docker image prune -f
