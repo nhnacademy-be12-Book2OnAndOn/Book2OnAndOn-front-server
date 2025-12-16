@@ -71,7 +71,7 @@ public class CouponPolicyViewController {
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
 
-        return "/admin/couponPolicy/list";
+        return "admin/couponPolicy/list";
     }
 
     // --- 2. 정책 등록 폼 ---
@@ -84,7 +84,7 @@ public class CouponPolicyViewController {
         model.addAttribute("categoryList", categories);
 
         model.addAttribute("pageTitle", "쿠폰 정책 등록");
-        return "/admin/couponPolicy/form";
+        return "admin/couponPolicy/form";
     }
 
     // --- 3. 정책 등록 처리 ---
@@ -162,7 +162,7 @@ public class CouponPolicyViewController {
         model.addAttribute("categoryNameMap", categoryNameMap); // HTML에서 이름 표시용
         model.addAttribute("pageTitle", "쿠폰 정책 수정");
 
-        return "/admin/couponPolicy/form";
+        return "admin/couponPolicy/form";
     }
 
     // 정책 수정 처리
@@ -208,7 +208,7 @@ public class CouponPolicyViewController {
         model.addAttribute("categoryNameMap", categoryNameMap); // [NEW]
         model.addAttribute("pageTitle", "쿠폰 정책 상세 조회");
 
-        return "/admin/couponPolicy/detail";
+        return "admin/couponPolicy/detail";
     }
 
     @PostMapping("/delete/{id}")
