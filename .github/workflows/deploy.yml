@@ -35,7 +35,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
-          tags: onyune/front-server:v1  # docker-compose.yml에 적은 태그와 똑같이!
+          tags: ghcr.io/nhnacademy-be12-book2onandon/front-server:v1  # docker-compose.yml에 적은 태그와 똑같이!
 
       # 학교 서버에 접속해서 도커 컨테이너 재실행
       - name: Deploy to School Server via SSH
