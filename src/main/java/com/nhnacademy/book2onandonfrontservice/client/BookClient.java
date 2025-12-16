@@ -91,7 +91,7 @@ public interface BookClient {
     void deleteBook(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId);
 
     /// 전체 도서 개수
-    @GetMapping("/api/admin/books/count")
+    @GetMapping("/api/admin/books/total-count")
     Long countAllBook(@RequestHeader("Authorization") String accessToken);
 
     /// 도서 상태 변경
