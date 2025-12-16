@@ -69,11 +69,12 @@ public class AuthViewController {
                         Model model) {
         try {
             TokenResponseDto token = userClient.login(loginRequest);
+            boolean secureRequest = isSecureRequest(request);
 
             // 쿠키 설정 (Access Token)
             Cookie accessCookie = new Cookie("accessToken", token.getAccessToken());
             accessCookie.setHttpOnly(true);
-            accessCookie.setSecure(true);
+            accessCookie.setSecure(secureRequest);
             accessCookie.setPath("/");
             if (loginRequest.isRememberMe()) {
                 accessCookie.setMaxAge(1800); // 30분
@@ -85,7 +86,7 @@ public class AuthViewController {
             // 쿠키 설정 (Refresh Token)
             Cookie refreshCookie = new Cookie("refreshToken", token.getRefreshToken());
             refreshCookie.setHttpOnly(true);
-            refreshCookie.setSecure(true);
+            refreshCookie.setSecure(secureRequest);
             refreshCookie.setPath("/");
             if (loginRequest.isRememberMe()) {
                 refreshCookie.setMaxAge(604800); // 7일
@@ -303,6 +304,11 @@ public class AuthViewController {
         return "redirect:/login?logout";
     }
 
+    private boolean isSecureRequest(HttpServletRequest request) {
+        String proto = request.getHeader("X-Forwarded-Proto");
+        return request.isSecure() || "https".equalsIgnoreCase(proto);
+    }
+
     // 쿠키 삭제 헬퍼 메서드
     private void deleteCookie(HttpServletResponse response, String name) {
         Cookie cookie = new Cookie(name, null);
@@ -363,7 +369,6 @@ public class AuthViewController {
 
 
     // PAYCO Callback 처리
-    // PAYCO Callback 처리
     @GetMapping("/login/oauth2/code/payco")
     public String paycoCallback(@RequestParam String code,
                                 HttpServletRequest request,
@@ -371,18 +376,19 @@ public class AuthViewController {
         try {
             // PAYCO 로그인 요청
             TokenResponseDto token = userClient.loginWithPayco(new PaycoLoginRequest(code));
+            boolean secureRequest = isSecureRequest(request);
 
             // 쿠키 설정
             Cookie accessCookie = new Cookie("accessToken", token.getAccessToken());
             accessCookie.setHttpOnly(true);
-            accessCookie.setSecure(true);
+            accessCookie.setSecure(secureRequest);
             accessCookie.setPath("/");
             accessCookie.setMaxAge(1800);
             response.addCookie(accessCookie);
 
             Cookie refreshCookie = new Cookie("refreshToken", token.getRefreshToken());
             refreshCookie.setHttpOnly(true);
-            refreshCookie.setSecure(true);
+            refreshCookie.setSecure(secureRequest);
             refreshCookie.setPath("/");
             refreshCookie.setMaxAge(604800);
             response.addCookie(refreshCookie);

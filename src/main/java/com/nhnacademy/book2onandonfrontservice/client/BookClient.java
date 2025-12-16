@@ -111,13 +111,14 @@ public interface BookClient {
     /// 좋아요 토글 요청
     @PostMapping("/api/books/{bookId}/likes")
     BookLikeToggleResponse toggleLike(@RequestHeader("Authorization") String accessToken,
+                                      @RequestHeader("X-USERID") Long userId,
                                       @PathVariable("bookId") Long bookId);
 
     /// --------------- elastic search -----------------
     /// 북 검색엔진
     @PostMapping("/api/books/search")
     Page<BookDto> searchBooks(@SpringQueryMap BookSearchCondition condition,//필드들을 뜯어서 검색조건으로 만듦 즉, 쿼리 파라미터로 만들수 있음
-                              @PageableDefault Pageable pageable);
+                              @SpringQueryMap Pageable pageable);
 
 
 

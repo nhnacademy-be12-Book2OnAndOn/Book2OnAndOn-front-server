@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>아이디 찾기 결과</title>
@@ -16,11 +16,11 @@
 
         <div class="alert alert-success">
             <p>회원님의 아이디는 다음과 같습니다.</p>
-            <h2 th:text="${userLoginId}" style="margin-top: 10px; color: #2d5016;"></h2>
+            <h2 style="margin-top: 10px; color: #205433;" th:text="${userLoginId}"></h2>
         </div>
 
         <div class="auth-footer">
-            <a th:href="@{/login}" class="btn-primary" style="text-decoration: none;">로그인하기</a>
+            <a class="btn-primary" style="text-decoration: none;" th:href="@{/login}">로그인하기</a>
         </div>
 
     </div>

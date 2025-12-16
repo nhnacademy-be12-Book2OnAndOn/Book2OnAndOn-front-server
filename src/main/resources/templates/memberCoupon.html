@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html th:replace="~{layout/mypage-layout :: layout(~{::title}, 'coupons', ~{::section})}"
+<html th:replace="~{layout/mypage-layout :: layout(~{::title}, 'coupons', ~{::section}, ~{::extraHead})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>내 쿠폰함</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/memberCoupon.css}">
+    </th:block>
 </head>
 <body>
 
 <section class="coupon-container">
-    <link rel="stylesheet" th:href="@{/css/memberCoupon.css}">
-
     <div class="page-header">
         <div class="page-title">쿠폰함</div>
         <p class="muted">사용 가능한 쿠폰 및 사용한 쿠폰들을 확인하세요.</p>

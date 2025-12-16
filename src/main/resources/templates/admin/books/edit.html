@@ -374,42 +374,50 @@
                 if (preview) preview.style.display = 'none';
             });
 
-            // 기존 이미지/URL 프리뷰 표시
+            // 기존 이미지/URL 프리뷰 표시 (중복 URL 제거 + 삭제 버튼 공통 적용)
             const existingUrl = googleImageInput?.value;
             if (preview && (existingImages?.length || existingUrl)) {
                 preview.style.display = 'flex';
                 preview.innerHTML = '';
                 const list = existingImages && Array.isArray(existingImages) ? existingImages : [];
-                [...list, existingUrl ? {url: existingUrl} : null]
-                    .filter(Boolean)
-                    .forEach((img, idx) => {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'chip-tab active preview-chip';
-                        const label = document.createElement('span');
-                        label.className = 'preview-chip-label';
-                        label.textContent = idx === 0 ? '기존 이미지:' : '추가 이미지/URL:';
+                const merged = [...list, existingUrl ? {url: existingUrl, isUrlOnly: true} : null].filter(Boolean);
+                const seen = new Set();
 
-                        const imageEl = document.createElement('img');
-                        imageEl.src = img.url;
-                        imageEl.alt = '기존 이미지';
+                merged.forEach((img, idx) => {
+                    if (!img.url || seen.has(img.url)) return;
+                    seen.add(img.url);
 
-                        wrapper.appendChild(label);
-                        wrapper.appendChild(imageEl);
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'chip-tab active preview-chip';
 
-                        // 기본(첫) 이미지는 삭제 버튼을 붙이지 않고, 추가 이미지만 삭제 가능
-                        if (img.id && idx > 0) {
-                            const delBtn = document.createElement('button');
-                            delBtn.type = 'button';
-                            delBtn.className = 'delete-image-btn';
-                            delBtn.textContent = '삭제';
-                            delBtn.onclick = () => {
-                                deleteImageIds.add(img.id);
-                                wrapper.remove();
-                            };
-                            wrapper.appendChild(delBtn);
+                    const label = document.createElement('span');
+                    label.className = 'preview-chip-label';
+                    label.textContent = img.isUrlOnly ? '입력된 이미지 URL' : (idx === 0 ? '기존 이미지' : '추가 이미지');
+
+                    const imageEl = document.createElement('img');
+                    imageEl.src = img.url;
+                    imageEl.alt = '이미지 미리보기';
+
+                    const delBtn = document.createElement('button');
+                    delBtn.type = 'button';
+                    delBtn.className = 'delete-image-btn';
+                    delBtn.textContent = '×';
+                    delBtn.title = '미리보기에서 제거';
+                    delBtn.onclick = () => {
+                        if (img.id) {
+                            deleteImageIds.add(img.id);
                         }
-                        preview.appendChild(wrapper);
-                    });
+                        if (img.isUrlOnly && googleImageInput) {
+                            googleImageInput.value = '';
+                        }
+                        wrapper.remove();
+                    };
+
+                    wrapper.appendChild(label);
+                    wrapper.appendChild(imageEl);
+                    wrapper.appendChild(delBtn);
+                    preview.appendChild(wrapper);
+                });
             }
         })();
 

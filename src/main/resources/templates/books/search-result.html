@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<th:block th:replace="~{fragments/layout :: commonHeader(${currentUser}, ${cartCount}, null, null, false)}"></th:block>
+<th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
 <main class="book-section">
 
@@ -67,17 +67,21 @@
         </div>
     </div>
 
-    <div th:if="${!books.isEmpty()}" class="pagination">
-        <a th:if="${page.hasPrevious()}" th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number - 1})}">&lt;</a>
+    <div th:if="${!books.isEmpty()}"
+         th:with="totalPagesCalc=${(page.totalElements + page.size - 1) / page.size}"
+         class="pagination">
+        <a th:if="${page.number > 0}"
+           th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number - 1})}">&lt;</a>
 
-        <th:block th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+        <th:block th:each="i : ${#numbers.sequence(0, totalPagesCalc - 1)}">
             <a th:if="${i >= page.number - 2 and i <= page.number + 2}"
                th:classappend="${i == page.number} ? 'active'"
                th:text="${i + 1}"
                th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${i})}">1</a>
         </th:block>
 
-        <a th:if="${page.hasNext()}" th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number + 1})}">&gt;</a>
+        <a th:if="${page.number + 1 < totalPagesCalc}"
+           th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number + 1})}">&gt;</a>
     </div>
 
 </main>

@@ -102,18 +102,18 @@
 
         <div class="pagination" th:if="${totalPage > 0}">
             <a class="page-link"
-               th:href="@{/admin/coupons(page=${currentPage - 1}, size=${param.size != null ? param.size : 5}, status=${searchStatus})}"
+               th:href="@{/admin/coupons(page=${currentPage - 1}, size=${param.size != null ? param.size : 10}, status=${searchStatus})}"
                th:if="${currentPage > 0}">&lt;</a>
 
             <th:block th:each="i : ${#numbers.sequence(0, totalPage - 1)}">
                 <a class="page-link"
                    th:classappend="${i == currentPage} ? 'active'"
-                   th:href="@{/admin/coupons(page=${i}, size=${param.size != null ? param.size : 5}, status=${searchStatus})}"
+                   th:href="@{/admin/coupons(page=${i}, size=${param.size != null ? param.size : 10}, status=${searchStatus})}"
                    th:text="${i + 1}">1</a>
             </th:block>
 
             <a class="page-link"
-               th:href="@{/admin/coupons(page=${currentPage + 1}, size=${param.size != null ? param.size : 5}, status=${searchStatus})}"
+               th:href="@{/admin/coupons(page=${currentPage + 1}, size=${param.size != null ? param.size : 10}, status=${searchStatus})}"
                th:if="${currentPage < totalPage - 1}">&gt;</a>
         </div>
     </main>
