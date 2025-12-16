@@ -17,7 +17,8 @@
 
             <form class="global-search" method="get" th:action="@{/books/search}">
                 <div class="group">
-                    <button type="submit" aria-label="검색" style="background:none; border:none; padding:0; display:flex; align-items:center; cursor:pointer;">
+                    <button type="submit" aria-label="검색"
+                            style="background:none; border:none; padding:0; display:flex; align-items:center; cursor:pointer;">
                         <svg aria-hidden="true" class="icon" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
                             <g>
                                 <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
@@ -34,7 +35,8 @@
                            th:value="${condition?.keyword}"
                            type="text">
 
-                    <button aria-label="검색어 삭제" class="btn-clear" type="button" onclick="this.previousElementSibling.value = ''; this.previousElementSibling.focus();"></button>
+                    <button aria-label="검색어 삭제" class="btn-clear" type="button"
+                            onclick="this.previousElementSibling.value = ''; this.previousElementSibling.focus();"></button>
                     <button aria-label="검색어 삭제" class="btn-clear"
                             onclick="document.querySelector('.global-search .input').value = ''"
                             type="button"></button>
@@ -92,6 +94,13 @@
 
     <th:block th:replace="~{fragments/layout :: categorySidebar(${categories})}"></th:block>
     <script>
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
         window.toggleSidebar = window.toggleSidebar || function () {
             const sidebar = document.getElementById('categorySidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -144,10 +153,18 @@
         // 전역 좋아요 토글 (어디서든 재사용)
         window.toggleLike = window.toggleLike || async function (btn, bookId) {
             if (!bookId) return;
+
+            const token = getCookie('accessToken');
+
+            const authHeader = token ? (token.startsWith('Bearer') ? token : 'Bearer ' + token) : '';
+
             try {
                 const res = await fetch(`/front/books/${bookId}/likes`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': authHeader
+                    },
                     credentials: 'include'
                 });
                 if (res.status === 401) {
@@ -237,14 +254,14 @@
     </div>
     <script th:src="@{/js/script.js}"></script>
     <script>
-        (function() {
+        (function () {
             const floating = document.getElementById('recentFloating');
             const listEl = document.getElementById('recentList');
             const toggleBtn = floating?.querySelector('.recent-toggle');
             const bodyEl = floating?.querySelector('.recent-body');
             let suppressToggleOnce = false;
 
-            window.toggleRecentFloating = function() {
+            window.toggleRecentFloating = function () {
                 if (suppressToggleOnce) {
                     suppressToggleOnce = false;
                     return;
@@ -321,7 +338,7 @@
             (function enableDrag() {
                 if (!floating || !toggleBtn) return;
                 const STORAGE_KEY = 'recentFloatingPos';
-                let drag = { active: false, offsetX: 0, offsetY: 0, moved: false, startX: 0, startY: 0 };
+                let drag = {active: false, offsetX: 0, offsetY: 0, moved: false, startX: 0, startY: 0};
 
                 function applySavedPos() {
                     try {
@@ -384,7 +401,7 @@
                     }
                     try {
                         const rect = floating.getBoundingClientRect();
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify({ left: rect.left, top: rect.top }));
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify({left: rect.left, top: rect.top}));
                     } catch (e) {
                         // ignore
                     }
