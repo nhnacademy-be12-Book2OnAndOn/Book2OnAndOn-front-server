@@ -342,26 +342,35 @@ public class AdminViewController {
 
     @GetMapping("/points")
     public String listUserPointHistory(@CookieValue(value = "accessToken", required = false) String accessToken,
-                                       @RequestParam Long userId,
+                                       @RequestParam(required = false) Long userId,
                                        @RequestParam(defaultValue = "0") int page,
                                        @RequestParam(defaultValue = "10") int size,
                                        Model model) {
         if (accessToken == null) {
             return "redirect:/login";
         }
-        page = Math.max(0, page);
-        size = size <= 0 ? 10 : size;
-        Page<PointHistoryResponseDto> historyPage = pointAdminClient.getUserPointHistory("Bearer " + accessToken,
-                userId, page, size);
-        CurrentPointResponseDto currentPoint = pointAdminClient.getUserCurrentPoint("Bearer " + accessToken, userId);
+        if (userId != null) {
+            page = Math.max(0, page);
+            size = size <= 0 ? 10 : size;
+            try {
+                Page<PointHistoryResponseDto> historyPage = pointAdminClient.getUserPointHistory("Bearer " + accessToken,
+                        userId, page, size);
+                CurrentPointResponseDto currentPoint = pointAdminClient.getUserCurrentPoint("Bearer " + accessToken, userId);
 
-        model.addAttribute("userId", userId);
-        model.addAttribute("currentPoint", currentPoint);
-        model.addAttribute("histories", historyPage.getContent());
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", historyPage.getTotalPages());
-
-        return "/user/mypage/point-history-admin";
+                model.addAttribute("currentPoint", currentPoint);
+                model.addAttribute("histories", historyPage.getContent());
+                model.addAttribute("currentPage", page);
+                model.addAttribute("totalPages", historyPage.getTotalPages());
+            } catch (Exception e) {
+                log.warn("포인트 이력 조회 실패 userId={}", userId, e);
+                model.addAttribute("errorMessage", "포인트 정보를 불러오지 못했습니다.");
+                model.addAttribute("histories", List.of());
+                model.addAttribute("currentPage", 0);
+                model.addAttribute("totalPages", 0);
+            }
+            model.addAttribute("userId", userId);
+        }
+        return "admin/point-history-admin";
     }
 
     @PostMapping("/points/adjust")
@@ -373,8 +382,12 @@ public class AdminViewController {
             return "redirect:/login";
         }
 
-        pointAdminClient.adjustPointByAdmin("Bearer " + accessToken, requestDto);
-
-        return "redirect:/admin/points?userId=" + requestDto.getUserId();
+        try {
+            pointAdminClient.adjustPointByAdmin("Bearer " + accessToken, requestDto);
+            return "redirect:/admin/points?userId=" + requestDto.getUserId();
+        } catch (Exception e) {
+            log.warn("포인트 조정 실패 userId={}", requestDto.getUserId(), e);
+            return "redirect:/admin/points?userId=" + requestDto.getUserId() + "&error=adjust_failed";
+        }
     }
 }

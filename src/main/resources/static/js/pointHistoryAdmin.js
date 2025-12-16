@@ -1,4 +1,4 @@
-const API_BASE = '/admin/points';
+const API_BASE = '/admin/api/points';
 const USE_DUMMY = false;
 
 let currentUserId = null;
@@ -83,8 +83,18 @@ async function loadCurrentPoint() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/current?userId=${currentUserId}`);
-        if (!response.ok) throw new Error('포인트 조회 실패');
+        const response = await fetch(`${API_BASE}/current?userId=${currentUserId}`, {
+            credentials: 'include'
+        });
+        if (response.status === 401) {
+            alert('로그인이 필요합니다.');
+            location.href = '/login';
+            return;
+        }
+        if (!response.ok) {
+            const msg = await safeText(response);
+            throw new Error(`포인트 조회 실패 (${response.status}) ${msg}`);
+        }
 
         const data = await response.json();
         document.getElementById('currentUserId').textContent = currentUserId;
@@ -104,8 +114,18 @@ async function loadHistory(page) {
     }
 
     try {
-        const response = await fetch(`${API_BASE}?userId=${currentUserId}&page=${page}&size=10`);
-        if (!response.ok) throw new Error('이력 조회 실패');
+        const response = await fetch(`${API_BASE}?userId=${currentUserId}&page=${page}&size=10`, {
+            credentials: 'include'
+        });
+        if (response.status === 401) {
+            alert('로그인이 필요합니다.');
+            location.href = '/login';
+            return;
+        }
+        if (!response.ok) {
+            const msg = await safeText(response);
+            throw new Error(`이력 조회 실패 (${response.status}) ${msg}`);
+        }
 
         const data = await response.json();
         renderHistory(data.content);
@@ -128,22 +148,31 @@ function renderHistory(history) {
                             <div>포인트 이력이 없습니다</div>
                         </td>
                     </tr>
-                `;
+            `;
         return;
     }
 
-    tbody.innerHTML = history.map(item => `
+    tbody.innerHTML = history.map(item => {
+        const delta = typeof item.pointHistoryChange === 'number' ? item.pointHistoryChange : 0;
+        const balance = typeof item.totalPoints === 'number' ? item.totalPoints : 0;
+        const changeType = delta >= 0 ? 'EARN' : 'USE';
+        const changeDate = item.pointCreatedDate || '';
+        const description = item.pointReason || '';
+        const expiry = item.pointExpiredDate || '-';
+
+        return `
                 <tr>
-                    <td>${item.changeDate}</td>
-                    <td>${item.changeType === 'EARN' ? '적립' : '사용'}</td>
-                    <td class="point-change ${item.changeType === 'EARN' ? 'point-plus' : 'point-minus'}">
-                        ${item.changeType === 'EARN' ? '+' : '-'}${item.changePoint.toLocaleString()} P
+                    <td>${changeDate}</td>
+                    <td>${changeType === 'EARN' ? '적립' : '사용'}</td>
+                    <td class="point-change ${changeType === 'EARN' ? 'point-plus' : 'point-minus'}">
+                        ${changeType === 'EARN' ? '+' : '-'}${Math.abs(delta).toLocaleString()} P
                     </td>
-                    <td><strong>${item.balancePoint.toLocaleString()} P</strong></td>
-                    <td>${item.changeDescription}</td>
-                    <td>${item.expiryDate || '-'}</td>
+                    <td><strong>${balance.toLocaleString()} P</strong></td>
+                    <td>${description}</td>
+                    <td>${expiry}</td>
                 </tr>
-            `).join('');
+            `;
+    }).join('');
 }
 
 // 페이지네이션 렌더링
@@ -186,6 +215,7 @@ function openAdjustModal(type) {
     document.getElementById(type === 'EARN' ? 'typeEarn' : 'typeUse').checked = true;
     document.getElementById('adjustPoint').value = '';
     document.getElementById('adjustReason').value = '';
+    document.getElementById('useTypeGroup').style.display = type === 'USE' ? 'block' : 'none';
 
     document.getElementById('adjustModal').classList.add('active');
 }
@@ -202,8 +232,14 @@ async function submitAdjust(event) {
     const type = document.querySelector('input[name="adjustType"]:checked').value;
     const point = parseInt(document.getElementById('adjustPoint').value);
     const reason = document.getElementById('adjustReason').value;
+    const useType = document.getElementById('useType')?.value || null;
 
-    if (point < 1) {
+    if (!currentUserId) {
+        alert('사용자 ID를 먼저 조회하세요.');
+        return;
+    }
+
+    if (!Number.isInteger(point) || point < 1) {
         alert('포인트는 1 이상이어야 합니다.');
         return;
     }
@@ -222,15 +258,25 @@ async function submitAdjust(event) {
             headers: {
                 'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({
                 userId: currentUserId,
                 changeType: type,
-                changePoint: point,
-                changeDescription: reason
+                amount: point,
+                memo: reason,
+                useType: type === 'USE' ? useType : null
             })
         });
 
-        if (!response.ok) throw new Error('포인트 조정 실패');
+        if (response.status === 401) {
+            alert('로그인이 필요합니다.');
+            location.href = '/login';
+            return;
+        }
+        if (!response.ok) {
+            const msg = await safeText(response);
+            throw new Error(`포인트 조정 실패 (${response.status}) ${msg}`);
+        }
 
         alert('포인트 조정이 완료되었습니다.');
         closeAdjustModal();
@@ -256,12 +302,21 @@ async function expirePoints() {
     try {
         const response = await fetch(`${API_BASE}/expire`, {
             method: 'POST',
-            headers: {
-                'X-USER-ID': currentUserId
-            }
+            credentials: 'include'
         });
-
-        if (!response.ok) throw new Error('만료 처리 실패');
+        if (response.status === 501) {
+            alert('만료 포인트 처리 API가 아직 준비되지 않았습니다.');
+            return;
+        }
+        if (response.status === 401) {
+            alert('로그인이 필요합니다.');
+            location.href = '/login';
+            return;
+        }
+        if (!response.ok) {
+            const msg = await safeText(response);
+            throw new Error(`만료 처리 실패 (${response.status}) ${msg}`);
+        }
 
         alert('만료 포인트 처리가 완료되었습니다.');
         loadCurrentPoint();
@@ -277,5 +332,13 @@ window.onclick = function (event) {
     const adjustModal = document.getElementById('adjustModal');
     if (event.target === adjustModal) {
         closeAdjustModal();
+    }
+}
+
+async function safeText(response) {
+    try {
+        return await response.text();
+    } catch (_) {
+        return '';
     }
 }

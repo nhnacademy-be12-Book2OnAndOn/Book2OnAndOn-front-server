@@ -12,6 +12,12 @@
 <th:block
         th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.__initialPolicies = /*[[${policies}]]*/ [];
+    /*]]>*/
+</script>
+
 <div class="admin-container">
     <th:block th:replace="~{fragments/admin :: adminSidebar('pointpolicies')}"></th:block>
 
@@ -93,14 +99,13 @@
         <div style="margin-bottom: 20px;">
             <p><strong id="activePolicyName"></strong> 정책의 상태를 변경하시겠습니까?</p>
         </div>
-        <div class="form-group">
-            <label class="form-label">
-                활성 상태
-                <label class="toggle-switch" style="margin-left: 10px;">
-                    <input id="activeToggle" type="checkbox">
-                    <span class="toggle-slider"></span>
-                </label>
+        <div class="form-group" style="display:flex; align-items:center; gap:12px;">
+            <label class="form-label" style="margin:0;">활성 상태</label>
+            <label class="toggle-pill">
+                <input id="activeToggle" type="checkbox" onchange="syncActiveLabel()">
+                <span class="toggle-switch"></span>
             </label>
+            <span id="activeStateLabel" class="muted" style="min-width:48px; text-align:left;">활성</span>
         </div>
         <div class="modal-actions">
             <button class="btn btn-secondary" onclick="closeActiveModal()" type="button">취소</button>

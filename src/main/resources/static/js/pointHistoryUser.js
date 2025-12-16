@@ -6,7 +6,7 @@ let currentFilter = 'ALL';
 let allHistory = [];
 let totalPages = 0;
 
-const initialHistory = window.initialPointHistory || null;
+const initialHistory = Array.isArray(window.initialPointHistory) ? window.initialPointHistory : [];
 const initialTotalPages = typeof window.initialTotalPages === 'number' ? window.initialTotalPages : 0;
 const initialCurrentPointValue = window.initialCurrentPointValue ?? null;
 const initialMonthlyEarned = window.initialMonthlyEarned ?? null;
@@ -181,7 +181,7 @@ async function loadCurrentPoint() {
 
 // 포인트 이력 조회
 async function loadHistory(page = 0) {
-    if (initialHistory && initialHistory.length > 0) {
+    if (Array.isArray(initialHistory) && initialHistory.length > 0) {
         allHistory = [...initialHistory];
         totalPages = initialTotalPages || 1;
         updateSummaryFromHistory(allHistory);
@@ -199,9 +199,13 @@ async function loadHistory(page = 0) {
     try {
         const response = await fetch(`${API_BASE}/history?page=${page}&size=10`, { credentials: 'include' });
 
-        if (!response.ok) throw new Error('이력 조회 실패');
+        if (!response.ok) {
+            const msg = await response.text().catch(() => '');
+            throw new Error(`이력 조회 실패 (${response.status}) ${msg}`);
+        }
 
         const data = await response.json();
+        console.debug('point history response', data);
         allHistory = data.content || [];
         totalPages = data.totalPages || 0;
         updateSummaryFromHistory(allHistory);
@@ -322,6 +326,11 @@ function formatDate(value) {
     // value가 LocalDateTime 문자열 형태라면 날짜만 잘라서 반환
     if (typeof value === 'string') {
         return value.substring(0, 10);
+    }
+    // 배열 형태 [yyyy,MM,dd,...] 로 오는 경우 처리
+    if (Array.isArray(value) && value.length >= 3) {
+        const [y, m, d] = value;
+        return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     }
     try {
         return new Date(value).toISOString().substring(0, 10);

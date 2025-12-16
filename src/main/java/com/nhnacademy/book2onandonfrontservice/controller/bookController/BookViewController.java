@@ -107,9 +107,9 @@ public class BookViewController {
     public ResponseEntity<List<BookDto>> getRecentViews(HttpServletRequest request) {
         try {
             String accessToken = CookieUtils.getCookieValue(request, "accessToken");
-            String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
+            String guestId = resolveGuestId(request);
 
-            mergeRecentViews(accessToken, guestId);
+            mergeRecentViews(request, accessToken, guestId);
 
             if ((accessToken == null || accessToken.isBlank()) && guestId == null) {
                 return ResponseEntity.ok(Collections.emptyList());
@@ -258,8 +258,13 @@ public class BookViewController {
 
     // 공통 데이터 (카테고리, 태그 등) 로딩 헬퍼 메서드
     private void commonData(Model model) {
-        model.addAttribute("categories", bookClient.getCategories());
-//        model.addAttribute("popularTags", bookClient.getPopularTags());
+        try {
+            model.addAttribute("categories", bookClient.getCategories());
+            // model.addAttribute("popularTags", bookClient.getPopularTags());
+        } catch (Exception e) {
+            log.warn("카테고리 조회 실패", e);
+            model.addAttribute("categories", Collections.emptyList());
+        }
     }
 
 
@@ -289,14 +294,27 @@ public class BookViewController {
         return v == null ? null : String.valueOf(v);
     }
 
-    private void mergeRecentViews(String accessToken, String guestId) {
+    private String resolveGuestId(HttpServletRequest request) {
+        String gid = CookieUtils.getCookieValue(request, "GUEST_ID");
+        if (gid == null) {
+            gid = CookieUtils.getCookieValue(request, "guestId"); // 하위 호환
+        }
+        return gid;
+    }
+
+    private void mergeRecentViews(HttpServletRequest request, String accessToken, String guestId) {
         if (guestId == null || accessToken == null || accessToken.isBlank()) {
+            return;
+        }
+        if (request.getSession().getAttribute("recentViewsMergeAttempted") != null) {
             return;
         }
         try {
             bookClient.mergeRecentViews(toBearer(accessToken), guestId);
         } catch (Exception e) {
             log.warn("최근 본 도서 병합 실패", e);
+        } finally {
+            request.getSession().setAttribute("recentViewsMergeAttempted", Boolean.TRUE);
         }
     }
 

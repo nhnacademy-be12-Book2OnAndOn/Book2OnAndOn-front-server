@@ -55,11 +55,14 @@ public class GlobalControllerAdvice {
             String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
             String accessToken = CookieUtils.getCookieValue(request, "accessToken");
 
-            if (accessToken != null && guestId != null) {
+            if (accessToken != null && guestId != null
+                    && request.getSession().getAttribute("recentViewsMergeAttempted") == null) {
                 try {
                     bookClient.mergeRecentViews(toBearer(accessToken), guestId);
                 } catch (Exception e) {
                     log.warn("최근 본 도서 병합 실패", e);
+                } finally {
+                    request.getSession().setAttribute("recentViewsMergeAttempted", Boolean.TRUE);
                 }
             }
 

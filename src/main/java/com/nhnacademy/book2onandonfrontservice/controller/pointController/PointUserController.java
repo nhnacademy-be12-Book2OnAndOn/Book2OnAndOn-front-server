@@ -8,6 +8,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHi
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointSummaryResponseDto;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -85,14 +86,14 @@ public class PointUserController {
 
     @GetMapping("/api/history")
     @ResponseBody
-    public ResponseEntity<Page<PointHistoryResponseDto>> getPointHistory(
+    public ResponseEntity<?> getPointHistory(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String type) {
 
         if (accessToken == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
 
         try {
@@ -105,7 +106,7 @@ public class PointUserController {
                             : pointUserClient.getMyPointHistory(bearer, page, size);
             return ResponseEntity.ok(historyPage);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("포인트 내역을 불러오지 못했습니다.");
         }
     }
 
@@ -132,5 +133,16 @@ public class PointUserController {
             String pointExpiredDate,
             Integer remainingPoint,
             String pointReason
-    ) { }
+    ) {
+    }
+
+    private Map<String, Object> toPagePayload(Page<PointHistoryResponseDto> page) {
+        Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("content", page.getContent());
+        payload.put("totalPages", page.getTotalPages());
+        payload.put("totalElements", page.getTotalElements());
+        payload.put("number", page.getNumber());
+        payload.put("size", page.getSize());
+        return payload;
+    }
 }
