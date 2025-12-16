@@ -6,6 +6,152 @@
     <title th:text="${bookDetail.title} + ' - Book2OnAndOn'">도서 상세 - Book2OnAndOn</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
+<style>
+    /* =========================================
+       1. 커스텀 모달 기본 스타일 (기존 유지 + 너비 수정)
+       ========================================= */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-content-custom {
+        background-color: #fff;
+        border-radius: 12px;
+        /* [중요] 모달 너비를 넓게 설정해야 쿠폰 카드가 예쁘게 나옵니다 */
+        width: 90%;
+        max-width: 600px;
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        overflow: hidden; /* 내부 스크롤 */
+    }
+
+    .modal-header-custom {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 20px;
+        border-bottom: 2px solid #2d5016; /* 포인트 컬러 */
+        background: #fff;
+    }
+    .modal-header-custom h3 { margin: 0; color: #2d5016; font-weight: bold; font-size: 1.25rem; }
+
+    .close-modal-btn {
+        background: none; border: none; font-size: 2rem; cursor: pointer; line-height: 0.5; color: #999;
+    }
+    .close-modal-btn:hover { color: #333; }
+
+    .modal-body-custom {
+        overflow-y: auto;
+        flex: 1;
+        padding: 20px;
+        background-color: #f8f9fa; /* 연한 회색 배경 */
+    }
+
+    .modal-footer-custom {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+        text-align: right;
+        background: #fff;
+    }
+
+    .coupon-list-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* 카드 상단: 할인율 + 정보 */
+    .card-upper {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    /* 왼쪽: 할인율 강조 영역 */
+    .discount-display {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 2px;
+        min-width: 90px;
+        padding-right: 20px;
+        border-right: 2px dashed #e6efe7;
+        color: #1f5a2f;
+    }
+
+    .discount-val { font-size: 2.2rem; font-weight: 900; line-height: 1; }
+    .discount-unit { font-size: 1.0rem; font-weight: 700; }
+
+    /* 오른쪽: 쿠폰 이름 및 조건 */
+    .coupon-info { flex: 1; }
+
+    .coupon-name {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #1f4a30;
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+
+    .coupon-condition { font-size: 0.85rem; color: #666; }
+
+    /* 카드 하단: 날짜 + 버튼 */
+    .card-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .date-info {
+        font-size: 0.85rem;
+        color: #2f4c36;
+        font-weight: 600;
+        background-color: #e8f5e9;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+
+    /* 다운로드 버튼 스타일 */
+    .btn-download {
+        background-color: white;
+        border: 1px solid #2d5016;
+        color: #2d5016;
+        padding: 6px 16px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-download:hover {
+        background-color: #2d5016;
+        color: white;
+    }
+
+    .btn-download:disabled {
+        background-color: #eee;
+        border-color: #ccc;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    /* 발급 완료 상태 */
+    .btn-download.completed {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+</style>
 <body>
 <th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
@@ -106,20 +252,25 @@
                             <p class="label">쿠폰</p>
                             <p class="muted">적용 가능한 쿠폰을 받아보세요.</p>
                         </div>
-                        <button class="btn ghost" id="couponDownloadBtn" type="button" onclick="downloadCoupon()">쿠폰 다운로드</button>
+
+                        <button class="btn ghost"
+                                type="button"
+                                onclick="openCouponModal()"> 쿠폰 다운로드 <i class="bi bi-chevron-right"></i>
+                        </button>
                     </div>
-                    <div class="purchase-row">
-                        <div class="quantity-control">
-                            <button type="button" onclick="adjustQuantity(-1)">-</button>
-                            <input type="text" id="quantity" value="1" readonly>
-                            <button type="button" onclick="adjustQuantity(1)">+</button>
-                        </div>
-                        <div class="total-price-preview">
-                            총 상품금액 <strong id="totalPrice" th:text="${#numbers.formatInteger(bookDetail.priceSales, 0, 'COMMA')}">19,800</strong>원
-                        </div>
-                    </div>
+
                 </div>
 
+                <div class="purchase-row">
+                    <div class="quantity-control">
+                        <button type="button" onclick="adjustQuantity(-1)">-</button>
+                        <input type="text" id="quantity" value="1" readonly>
+                        <button type="button" onclick="adjustQuantity(1)">+</button>
+                    </div>
+                    <div class="total-price-preview">
+                        총 상품금액 <strong id="totalPrice" th:text="${#numbers.formatInteger(bookDetail.priceSales, 0, 'COMMA')}">19,800</strong>원
+                    </div>
+                </div>
                 <div class="btn-group">
                     <button type="button" class="like-btn large"
                             th:classappend="${bookDetail.likedByCurrentUser} ? 'active' : ''"
@@ -130,8 +281,8 @@
                     <button type="button" class="btn ghost" th:onclick="'addToCart(' + ${bookDetail.id} + ')'">장바구니</button>
                     <button type="button" class="btn primary fill">바로구매</button>
                 </div>
-            </div>
-        </section>
+
+            </div> </section>
 
         <section class="detail-content-wrapper">
             <div class="tab-nav">
@@ -140,6 +291,13 @@
                 <a href="#toc" class="tab-item" th:if="${bookDetail.chapter != null}">목차</a>
                 <a href="#reviews" class="tab-item">리뷰 (<span th:text="${bookDetail.reviewCount}">0</span>)</a>
             </div>
+
+            <div id="recentMeta"
+                 th:data-id="${bookDetail.id}"
+                 th:data-title="${bookDetail.title}"
+                 th:data-author="${bookDetail.contributorName}"
+                 th:data-thumb="${(bookDetail.images != null and !bookDetail.images.isEmpty()) ? bookDetail.images[0].url : ''}"
+                 style="display:none;"></div>
 
             <div id="info" class="content-block">
                 <h3>도서 정보</h3>
@@ -206,12 +364,44 @@
 </main>
 
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
-
 <script th:inline="javascript">
     /*<![CDATA[*/
     const unitPrice = [[${bookDetail.priceSales}]];
     const bookId = [[${bookDetail.id}]];
-    const categoryIds = /*[[${bookDetail.categories != null} ? ${bookDetail.categories.![id]} : '[]' ]]*/ [];
+    const categoryIds = [[${bookDetail.categories != null ? bookDetail.categories.![id] : {}}]];
+
+    const recentMetaEl = document.getElementById('recentMeta');
+    const recentBook = (function () {
+        if (!recentMetaEl) return {};
+        const id = Number(recentMetaEl.dataset.id) || null;
+        const title = recentMetaEl.dataset.title || null;
+        const authorRaw = recentMetaEl.dataset.author || '';
+        const contributors = authorRaw
+            ? authorRaw.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+        const thumb = recentMetaEl.dataset.thumb || null;
+        return { id, title, contributorNames: contributors, thumbnail: thumb };
+    })();
+
+    function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    function setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${date.toUTCString()}`;
+    }
+
+    // 비로그인 시에도 guest id를 남겨두어 로그인 시 병합될 수 있게 함
+    (function ensureGuestId() {
+        const COOKIE_NAME = 'GUEST_ID';
+        if (!getCookie(COOKIE_NAME)) {
+            const gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+            setCookie(COOKIE_NAME, gid, 30);
+        }
+    })();
 
     function changeMainImage(src) {
         document.getElementById('mainImg').src = src;
@@ -233,54 +423,207 @@
         document.getElementById('totalPrice').innerText = total.toLocaleString();
     }
 
-    async function downloadCoupon() {
-        const btn = document.getElementById('couponDownloadBtn');
-        if (btn) btn.disabled = true;
+    function saveRecentLocal(book) {
+        if (!book || book.id == null) return;
+        try {
+            const raw = localStorage.getItem('recentBooks');
+            const list = raw ? JSON.parse(raw) : [];
+            const filtered = Array.isArray(list) ? list.filter(b => b && b.id !== book.id) : [];
+            filtered.unshift(book);
+            const sliced = filtered.slice(0, 10);
+            localStorage.setItem('recentBooks', JSON.stringify(sliced));
+        } catch (e) {
+            // ignore storage errors
+        }
+    }
+
+    saveRecentLocal(recentBook);
+    // 2. 모달 제어 함수
+    function openCouponModal() {
+        loadCoupons();
+        const modal = document.getElementById('couponModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeCouponModal() {
+        const modal = document.getElementById('couponModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('couponModal');
+        if(modal) {
+            modal.addEventListener('click', (e) => { if (e.target === modal) closeCouponModal(); });
+        }
+    });
+
+    // 3. API 호출 및 렌더링
+    async function loadCoupons() {
+        const loadingEl = document.getElementById('couponLoading');
+        const listContainer = document.getElementById('couponListContainer');
+        const emptyMsgEl = document.getElementById('couponEmptyMsg');
+
+        loadingEl.style.display = 'block';
+        listContainer.innerHTML = '';
+        emptyMsgEl.style.display = 'none';
+
         try {
             const params = new URLSearchParams();
             params.append('bookId', bookId);
             if (Array.isArray(categoryIds)) {
                 categoryIds.forEach(id => params.append('categoryIds', id));
             }
-            const res = await fetch(`/api/coupons/appliable?${params.toString()}`);
-            if (res.status === 401) {
-                if (confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
-                    location.href = '/login';
-                }
-                return;
+
+            const response = await fetch(`/api/coupons/appliable?${params.toString()}`);
+            if (!response.ok) throw new Error("쿠폰 조회 실패");
+
+            const coupons = await response.json();
+
+            if (!coupons || coupons.length === 0) {
+                emptyMsgEl.style.display = 'block';
+            } else {
+                coupons.forEach(coupon => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'coupon-card'; // 스타일 적용 핵심 클래스
+
+                    // 할인 값 포맷팅
+                    let displayVal = coupon.discountValue;
+                    let displayUnit = '';
+
+                    if (coupon.discountType === 'PERCENT' || coupon.discountType === 'RATE') {
+                        displayUnit = '%';
+                    } else {
+                        displayUnit = '원';
+                        displayVal = displayVal.toLocaleString();
+                    }
+
+                    // 조건 텍스트
+                    let conditionText = '조건 없음';
+                    if (coupon.minPrice && coupon.minPrice > 0) {
+                        conditionText = `${coupon.minPrice.toLocaleString()}원 이상 구매 시 사용 가능`;
+                    }
+
+                    // 기간 텍스트
+                    let dateText = '';
+                    if (coupon.endDate) {
+                        dateText = `~ ${coupon.endDate} 까지`;
+                    } else if (coupon.durationDays) {
+                        dateText = `발급 후 ${coupon.durationDays}일간 유효`;
+                    } else {
+                        dateText = '기간 제한 없음';
+                    }
+
+                    // [중요] HTML 구조를 CSS와 1:1로 매칭
+                    cardDiv.innerHTML = `
+                        <div class="card-upper">
+                            <div class="discount-display">
+                                <span class="discount-val">${displayVal}</span>
+                                <span class="discount-unit">${displayUnit}</span>
+                            </div>
+                            <div class="coupon-info">
+                                <div class="coupon-name">${coupon.couponName}</div>
+                                <div class="coupon-condition">${conditionText}</div>
+                            </div>
+                        </div>
+                        <div class="card-bottom">
+                            <span class="date-info">📅 ${dateText}</span>
+                            <button type="button" class="btn-download"
+                                    onclick="issueCoupon(${coupon.couponId}, this)">
+                                다운로드
+                            </button>
+                        </div>
+                    `;
+                    listContainer.appendChild(cardDiv);
+                });
             }
-            if (!res.ok) {
-                throw new Error('조회 실패');
-            }
-            const coupon = await res.json();
-            if (!coupon || !coupon.couponId) {
-                alert('적용 가능한 쿠폰이 없습니다.');
-                return;
-            }
-            const issueRes = await fetch(`/api/coupons/${coupon.couponId}/issue`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'}
-            });
-            if (issueRes.status === 401) {
-                if (confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
-                    location.href = '/login';
-                }
-                return;
-            }
-            if (!issueRes.ok) {
-                throw new Error('발급 실패');
-            }
-            alert('쿠폰이 발급되었습니다. 쿠폰함에서 확인하세요.');
-        } catch (e) {
-            console.error(e);
-            alert('쿠폰을 발급할 수 없습니다. 잠시 후 다시 시도해주세요.');
+        } catch (error) {
+            console.error(error);
+            listContainer.innerHTML = `<div class="text-danger text-center p-3">오류가 발생했습니다.<br>${error.message}</div>`;
         } finally {
-            if (btn) btn.disabled = false;
+            loadingEl.style.display = 'none';
         }
     }
 
-    // 기존 장바구니/좋아요 함수는 layout 스크립트 재사용 또는 여기에 포함
+    // 4. 쿠폰 발급 (로그인 리다이렉트 포함)
+    async function issueCoupon(couponId, btn) {
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = '처리중...';
+        }
+
+        try {
+            const response = await fetch(`/api/coupons/${couponId}/issue`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            // [핵심] 401 에러(비로그인) 시 로그인 페이지 이동
+            if (response.status === 401) {
+                if (confirm('로그인이 필요한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?')) {
+                    window.location.href = '/login';
+                } else {
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.innerText = '다운로드';
+                    }
+                }
+                return;
+            }
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || '발급 실패');
+            }
+
+            alert('쿠폰이 정상적으로 발급되었습니다.');
+
+            if (btn) {
+                btn.innerText = '발급 완료';
+                btn.classList.add('completed'); // 회색 스타일 적용
+            }
+
+        } catch (error) {
+            alert(error.message);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = '다운로드';
+            }
+        }
+    }
     /*]]>*/
 </script>
+<div id="couponModal" class="modal-overlay">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <h3>쿠폰 다운로드</h3>
+            <button type="button" class="close-modal-btn" onclick="closeCouponModal()">×</button>
+        </div>
+
+        <div class="modal-body-custom">
+            <div id="couponLoading" class="text-center py-5" style="display: none;">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="mt-2 text-muted">조회 중...</p>
+            </div>
+
+            <div id="couponListContainer" class="coupon-list-wrapper">
+            </div>
+
+            <div id="couponEmptyMsg" class="text-center py-5" style="display: none;">
+                <p style="font-size: 2rem;">📭</p>
+                <p>다운로드 가능한 쿠폰이 없습니다.</p>
+            </div>
+        </div>
+
+        <div class="modal-footer-custom">
+            <button type="button" class="btn btn-secondary" onclick="closeCouponModal()">닫기</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
