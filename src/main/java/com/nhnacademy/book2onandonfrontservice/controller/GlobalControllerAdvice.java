@@ -11,10 +11,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 // 뷰에 로그인 정보 전달
+@Slf4j
 @ControllerAdvice
 @RequiredArgsConstructor
 public class GlobalControllerAdvice {
@@ -50,14 +52,23 @@ public class GlobalControllerAdvice {
     @ModelAttribute("recentBooks")
     public List<BookDto> addRecentViews(HttpServletRequest request){
         try{
-            String guestId = CookieUtils.getCookieValue(request, "guestId");
+            String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
             String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+
+            if (accessToken != null && guestId != null) {
+                try {
+                    bookClient.mergeRecentViews(toBearer(accessToken), guestId);
+                } catch (Exception e) {
+                    log.warn("최근 본 도서 병합 실패", e);
+                }
+            }
 
             if(guestId == null && accessToken==null){
                 return Collections.emptyList();
             }
-            return bookClient.getRecentViews();
+            return bookClient.getRecentViews(toBearer(accessToken), guestId);
         }catch (Exception e){
+            log.warn("최근 본 도서 조회 실패", e);
             return Collections.emptyList();
         }
     }
@@ -68,4 +79,10 @@ public class GlobalControllerAdvice {
         return new BookSearchCondition();
     }
 
+    private String toBearer(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return null;
+        }
+        return accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+    }
 }

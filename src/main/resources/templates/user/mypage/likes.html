@@ -2,12 +2,14 @@
 <html lang="ko" th:replace="~{layout/mypage-layout :: layout(
         title = ~{::title},
         sidebarActive = 'likes',
-        content = ~{::content}
+        content = ~{::content},
+        extraHead = ~{::extraHead}
       )}"
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title>마이페이지 - 좋아요 도서</title>
+    <th:block th:fragment="extraHead"></th:block>
 </head>
 
 <body>

@@ -2,12 +2,15 @@
 <html lang="ko" th:replace="~{layout/mypage-layout :: layout(
         title = ~{::title},
         sidebarActive = 'edit',
-        content = ~{::content}
+        content = ~{::content},
+        extraHead = ~{::extraHead}
       )}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>내 정보 수정</title>
-    <link rel="stylesheet" th:href="@{/css/mypage-edit.css}">
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/mypage-edit.css}">
+    </th:block>
 </head>
 
 <body>
@@ -18,7 +21,10 @@
         <div class="error-box" th:if="${error}" th:text="${error}"></div>
         <div class="grade-info-box">
             <div class="grade-text">
-                회원님의 현재 등급은 <strong th:text="${gradeName}">BASIC</strong> 입니다.
+                회원님의 현재 등급은
+                <span class="badge grade-inline" th:classappend="|bg-${gradeName}|"
+                      th:text="${gradeName}">BASIC</span>
+                입니다.
             </div>
             <button type="button" class="btn-grade-guide" onclick="openGradeModal()">등급안내</button>
         </div>
@@ -69,11 +75,11 @@
 
         </form>
     </div>
-    <div id="gradeModal" class="modal-overlay">
-        <div class="modal-card">
+    <div id="gradeModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card grade-guide-card">
             <div class="modal-header">
                 <h3>회원 등급 안내</h3>
-                <button class="close-btn" onclick="closeGradeModal()">&times;</button>
+                <button class="close-btn" type="button" onclick="closeGradeModal()">×</button>
             </div>
             <div class="modal-body">
                 <div th:if="${#lists.isEmpty(allGrades)}">
@@ -81,17 +87,15 @@
                 </div>
                 <div th:unless="${#lists.isEmpty(allGrades)}">
                     <div class="grade-list-item" th:each="grade : ${allGrades}">
-                        <span class="grade-badge"
-                              th:classappend="|bg-${grade.gradeName}|"
+                        <span class="grade-badge" th:classappend="|bg-${grade.gradeName}|"
                               th:text="${grade.gradeName}">BASIC</span>
 
                         <div class="grade-desc">
-                            <div>포인트 적립률: <strong
-                                    th:text="${#numbers.formatInteger(grade.pointAddRate * 100, 0, 'COMMA')} + '%'">1%</strong>
+                            <div>포인트 적립률:
+                                <strong th:text="${#numbers.formatInteger(grade.pointAddRate * 100, 0, 'COMMA')} + '%'">1%</strong>
                             </div>
                             <div class="grade-subtext">
-                                (최근 3개월 순수 주문 <span th:text="${#numbers.formatInteger(grade.pointCutline, 0, 'COMMA')}">0</span>원
-                                이상)
+                                (최근 3개월 순수 주문 <span th:text="${#numbers.formatInteger(grade.pointCutline, 0, 'COMMA')}">0</span>원 이상)
                             </div>
                         </div>
                     </div>
@@ -104,19 +108,30 @@
     </div>
 
     <script>
-        // [4. 모달 제어 스크립트]
         function openGradeModal() {
-            document.getElementById('gradeModal').style.display = 'flex';
+            const modal = document.getElementById('gradeModal');
+            if (!modal) return;
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
         }
 
         function closeGradeModal() {
-            document.getElementById('gradeModal').style.display = 'none';
+            const modal = document.getElementById('gradeModal');
+            if (!modal) return;
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
         }
 
-        // 모달 배경 클릭 시 닫기
-        window.addEventListener('click', function (event) {
+        document.addEventListener('click', (event) => {
             const modal = document.getElementById('gradeModal');
+            if (!modal || !modal.classList.contains('show')) return;
             if (event.target === modal) {
+                closeGradeModal();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
                 closeGradeModal();
             }
         });

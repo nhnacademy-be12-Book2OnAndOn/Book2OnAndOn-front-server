@@ -155,24 +155,21 @@ function renderPagination(totalPages, totalElements) {
         return;
     }
 
-    let html = '';
-
-    // 이전 버튼
-    if (currentPage > 0) {
-        html += `<button class="page-btn" onclick="changePage(${currentPage - 1})">이전</button>`;
-    }
-
-    // 페이지 번호
-    for (let i = 0; i < totalPages; i++) {
-        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i + 1}</button>`;
-    }
-
-    // 다음 버튼
-    if (currentPage < totalPages - 1) {
-        html += `<button class="page-btn" onclick="changePage(${currentPage + 1})">다음</button>`;
-    }
-
-    pagination.innerHTML = html;
+    const prevDisabled = currentPage === 0 ? 'disabled' : '';
+    const nextDisabled = currentPage + 1 >= totalPages ? 'disabled' : '';
+    pagination.innerHTML = `
+        <a class="page-link ${prevDisabled}" data-page="${currentPage - 1}">이전</a>
+        <span class="page-info">${currentPage + 1} / ${totalPages}</span>
+        <a class="page-link ${nextDisabled}" data-page="${currentPage + 1}">다음</a>
+    `;
+    pagination.querySelectorAll('.page-link').forEach(link => {
+        if (link.classList.contains('disabled')) return;
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetPage = Number(link.getAttribute('data-page'));
+            changePage(targetPage);
+        });
+    });
 }
 
 // 페이지 변경
