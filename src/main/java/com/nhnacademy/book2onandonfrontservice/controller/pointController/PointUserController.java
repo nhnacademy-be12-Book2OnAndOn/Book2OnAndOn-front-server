@@ -27,12 +27,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class PointUserController {
 
     private final PointUserClient pointUserClient;
-    private final UserClient userClient;
 
     @GetMapping
     public String viewMyPointHistory(@CookieValue(value = "accessToken", required = false) String accessToken,
                                      @RequestParam(defaultValue = "0") int page,
                                      @RequestParam(defaultValue = "10") int size,
+                                     @RequestParam(required = false) String type,
                                      Model model) {
         if (accessToken == null) {
             return "redirect:/login";
@@ -41,7 +41,10 @@ public class PointUserController {
         size = size <= 0 ? 10 : size;
 
         String bearer = "Bearer " + accessToken;
-        Page<PointHistoryResponseDto> historyPage = pointUserClient.getMyPointHistory(bearer, page, size);
+        Page<PointHistoryResponseDto> historyPage =
+                (type != null && !type.isBlank())
+                        ? pointUserClient.getMyPointHistoryByType(bearer, type, page, size)
+                        : pointUserClient.getMyPointHistory(bearer, page, size);
         CurrentPointResponseDto currentPoint = pointUserClient.getMyCurrentPoint(bearer);
         PointSummaryResponseDto summary = pointUserClient.getPointSummary(bearer);
         ExpiringPointResponseDto expiring = pointUserClient.getExpiringPoints(bearer, 7);
@@ -52,6 +55,8 @@ public class PointUserController {
         model.addAttribute("totalPages", historyPage.getTotalPages());
         model.addAttribute("summary", summary); // 이번달 적립/사용
         model.addAttribute("expiring", expiring); // 소멸 예정
+        // 필터 상태 유지용
+        model.addAttribute("type", type);
 
         // int startPage = Math.max(0, page - 2);
         // int endPage = Math.min(historyPage.getTotalPages() - 1, page + 2);
@@ -83,7 +88,8 @@ public class PointUserController {
     public ResponseEntity<Page<PointHistoryResponseDto>> getPointHistory(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String type) {
 
         if (accessToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -92,8 +98,11 @@ public class PointUserController {
         try {
             page = Math.max(0, page);
             size = size <= 0 ? 10 : size;
+            String bearer = "Bearer " + accessToken;
             Page<PointHistoryResponseDto> historyPage =
-                    pointUserClient.getMyPointHistory("Bearer " + accessToken, page, size);
+                    (type != null && !type.isBlank())
+                            ? pointUserClient.getMyPointHistoryByType(bearer, type, page, size)
+                            : pointUserClient.getMyPointHistory(bearer, page, size);
             return ResponseEntity.ok(historyPage);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -123,6 +132,5 @@ public class PointUserController {
             String pointExpiredDate,
             Integer remainingPoint,
             String pointReason
-    ) {
-    }
+    ) { }
 }
