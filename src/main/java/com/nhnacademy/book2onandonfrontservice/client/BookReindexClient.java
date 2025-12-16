@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "gateway-service", contextId = "bookClient", url = "${gateway.base-url}", configuration = FeignMultipartConfig.class)
+@FeignClient(name = "gateway-service", contextId = "bookReindexClient", url = "${gateway.base-url}", configuration = FeignMultipartConfig.class)
 public interface BookReindexClient {
 
     /// 전체 재인덱싱
