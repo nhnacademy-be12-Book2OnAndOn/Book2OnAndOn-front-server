@@ -140,6 +140,34 @@
                 }
             });
         }
+
+        // 전역 좋아요 토글 (어디서든 재사용)
+        window.toggleLike = window.toggleLike || async function (btn, bookId) {
+            if (!bookId) return;
+            try {
+                const res = await fetch(`/front/books/${bookId}/likes`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include'
+                });
+                if (res.status === 401) {
+                    if (confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+                        location.href = '/login';
+                    }
+                    return;
+                }
+                if (!res.ok) throw new Error(await res.text());
+                const data = await res.json();
+                const countSpan = btn?.querySelector('.like-count');
+                if (btn) btn.classList.toggle('active', !!data.liked);
+                if (countSpan && typeof data.likeCount === 'number') {
+                    countSpan.textContent = data.likeCount;
+                }
+            } catch (e) {
+                alert('좋아요 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                console.error(e);
+            }
+        };
     </script>
 </th:block>
 
@@ -195,5 +223,186 @@
         </div>
         <p class="copyright">© 2025 Book2OnAndOn. All rights reserved. <br> 도서 DB 제공 : 알라딘 인터넷서점(www.aladin.co.kr)</p>
     </footer>
+    <div class="recent-floating" id="recentFloating" aria-label="최근 본 도서">
+        <button class="recent-toggle" type="button" onclick="toggleRecentFloating()">최근 본 도서</button>
+        <div class="recent-body">
+            <div class="recent-head">
+                <span>최근 본 도서</span>
+                <button class="close-btn" type="button" onclick="toggleRecentFloating()">×</button>
+            </div>
+            <div class="recent-list" id="recentList">
+                <p class="muted">불러오는 중...</p>
+            </div>
+        </div>
+    </div>
     <script th:src="@{/js/script.js}"></script>
+    <script>
+        (function() {
+            const floating = document.getElementById('recentFloating');
+            const listEl = document.getElementById('recentList');
+            const toggleBtn = floating?.querySelector('.recent-toggle');
+            const bodyEl = floating?.querySelector('.recent-body');
+            let suppressToggleOnce = false;
+
+            window.toggleRecentFloating = function() {
+                if (suppressToggleOnce) {
+                    suppressToggleOnce = false;
+                    return;
+                }
+                floating?.classList.toggle('open');
+                adjustDropdownDirection();
+            };
+
+            async function loadRecentViews() {
+                if (!listEl) return;
+                let remote = [];
+                try {
+                    const res = await fetch('/api/books/recent-views');
+                    if (res.ok) {
+                        remote = await res.json();
+                    }
+                } catch (e) {
+                    // ignore, fall back to local
+                }
+                const local = loadLocalRecent();
+                const merged = mergeRecent(remote, local);
+                renderRecent(merged);
+            }
+
+            function loadLocalRecent() {
+                try {
+                    const raw = localStorage.getItem('recentBooks');
+                    if (!raw) return [];
+                    const parsed = JSON.parse(raw);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function mergeRecent(remote, local) {
+                const combined = [];
+                const seen = new Set();
+                [...(remote || []), ...(local || [])].forEach(b => {
+                    if (!b || b.id == null) return;
+                    if (seen.has(b.id)) return;
+                    seen.add(b.id);
+                    combined.push(b);
+                });
+                return combined.slice(0, 6);
+            }
+
+            function renderRecent(items) {
+                if (!items || items.length === 0) {
+                    listEl.innerHTML = '<p class="muted">최근 본 도서가 없습니다.</p>';
+                    return;
+                }
+                listEl.innerHTML = items.map(book => {
+                    const thumb = book.thumbnail || '/images/no-image.png';
+                    const title = book.title || '제목 없음';
+                    const author = Array.isArray(book.contributorNames) && book.contributorNames.length
+                        ? book.contributorNames[0]
+                        : '';
+                    return `
+                        <a class="recent-item" href="/books/${book.id}">
+                            <img src="${thumb}" alt="${title}" onerror="this.src='/images/no-image.png'">
+                            <div class="recent-meta">
+                                <p class="title">${title}</p>
+                                <p class="author">${author}</p>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+            }
+
+            document.addEventListener('DOMContentLoaded', loadRecentViews);
+
+            // 드래그로 위치 이동
+            (function enableDrag() {
+                if (!floating || !toggleBtn) return;
+                const STORAGE_KEY = 'recentFloatingPos';
+                let drag = { active: false, offsetX: 0, offsetY: 0, moved: false, startX: 0, startY: 0 };
+
+                function applySavedPos() {
+                    try {
+                        const raw = localStorage.getItem(STORAGE_KEY);
+                        if (!raw) {
+                            setDefaultPos();
+                            return;
+                        }
+                        const pos = JSON.parse(raw);
+                        setPos(pos.left, pos.top);
+                    } catch (e) {
+                        setDefaultPos();
+                    }
+                }
+
+                function setDefaultPos() {
+                    const left = Math.max(16, window.innerWidth - 280);
+                    const top = Math.max(80, window.innerHeight - 260);
+                    setPos(left, top);
+                }
+
+                function setPos(left, top) {
+                    const maxLeft = Math.max(0, window.innerWidth - floating.offsetWidth - 10);
+                    const maxTop = Math.max(0, window.innerHeight - floating.offsetHeight - 10);
+                    const clampedLeft = Math.min(Math.max(10, left), maxLeft);
+                    const clampedTop = Math.min(Math.max(10, top), maxTop);
+                    floating.style.left = clampedLeft + 'px';
+                    floating.style.top = clampedTop + 'px';
+                    floating.style.right = 'auto';
+                    floating.style.bottom = 'auto';
+                    adjustDropdownDirection();
+                }
+
+                toggleBtn.addEventListener('mousedown', (e) => {
+                    drag.active = true;
+                    const rect = floating.getBoundingClientRect();
+                    drag.offsetX = e.clientX - rect.left;
+                    drag.offsetY = e.clientY - rect.top;
+                    drag.startX = e.clientX;
+                    drag.startY = e.clientY;
+                    drag.moved = false;
+                    document.body.style.userSelect = 'none';
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!drag.active) return;
+                    if (!drag.moved) {
+                        const dist = Math.abs(e.clientX - drag.startX) + Math.abs(e.clientY - drag.startY);
+                        if (dist > 4) drag.moved = true;
+                    }
+                    setPos(e.clientX - drag.offsetX, e.clientY - drag.offsetY);
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (!drag.active) return;
+                    drag.active = false;
+                    document.body.style.userSelect = '';
+                    if (drag.moved) {
+                        suppressToggleOnce = true; // 드래그 후 클릭 토글 방지
+                    }
+                    try {
+                        const rect = floating.getBoundingClientRect();
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify({ left: rect.left, top: rect.top }));
+                    } catch (e) {
+                        // ignore
+                    }
+                });
+
+                window.addEventListener('resize', () => {
+                    applySavedPos();
+                    adjustDropdownDirection();
+                });
+                applySavedPos();
+            })();
+
+            function adjustDropdownDirection() {
+                if (!floating || !bodyEl || !floating.classList.contains('open')) return;
+                const rect = bodyEl.getBoundingClientRect();
+                const overflow = rect.bottom > window.innerHeight - 8;
+                floating.classList.toggle('drop-up', overflow);
+            }
+        })();
+    </script>
 </th:block>

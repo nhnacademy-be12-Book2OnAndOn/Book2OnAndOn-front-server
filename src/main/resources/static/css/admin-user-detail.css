@@ -7,6 +7,7 @@
     max-width: 900px;
     margin: 0 auto;
 }
+
 .section-title {
     font-size: 1.2rem;
     font-weight: bold;
@@ -16,12 +17,38 @@
     margin-bottom: 20px;
     margin-top: 30px;
 }
-.section-title:first-child { margin-top: 0; }
-.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-.info-item { margin-bottom: 15px; }
-.info-label { display: block; font-size: 0.9rem; color: #888; margin-bottom: 5px; }
-.info-value { font-size: 1.1rem; color: #333; font-weight: 500; }
-.info-value-strong { color: #2d5016; font-weight: bold; }
+
+.section-title:first-child {
+    margin-top: 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.info-item {
+    margin-bottom: 15px;
+}
+
+.info-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.info-value-strong {
+    color: #205433;
+    font-weight: bold;
+}
 
 /* 수정 폼 */
 .edit-form-container {
@@ -30,7 +57,13 @@
     border-radius: 8px;
     border: 1px solid #eee;
 }
-.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
 .form-group select {
     width: 100%;
     padding: 10px;
@@ -38,6 +71,7 @@
     border-radius: 4px;
     background-color: #fff;
 }
+
 .btn-danger {
     background-color: #e74c3c;
     color: #fff;
@@ -47,7 +81,11 @@
     cursor: pointer;
     transition: background 0.2s;
 }
-.btn-danger:hover { background-color: #c0392b; }
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
 .btn-secondary {
     background-color: #95a5a6;
     color: #fff;
@@ -58,7 +96,11 @@
     display: inline-block;
     text-align: center;
 }
-.btn-secondary:hover { background-color: #7f8c8d; }
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
 .action-buttons {
     display: flex;
     justify-content: flex-end;
@@ -67,6 +109,7 @@
     border-top: 1px solid #eee;
     padding-top: 20px;
 }
+
 .alert-error {
     background: #ffebee;
     color: #c62828;
@@ -74,4 +117,7 @@
     border-radius: 4px;
     margin-bottom: 20px;
 }
-.w-auto { width: auto; }
+
+.w-auto {
+    width: auto;
+}

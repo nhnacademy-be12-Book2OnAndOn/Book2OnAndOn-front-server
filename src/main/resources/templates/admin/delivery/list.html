@@ -86,18 +86,18 @@
 
             <div class="pagination" th:if="${totalPages > 0}">
                 <a class="page-link"
-                   th:href="@{/admin/deliveries(page=${currentPage - 1}, status=${searchStatus})}"
+                   th:href="@{/admin/deliveries(page=${currentPage - 1}, status=${searchStatus}, size=10)}"
                    th:if="${currentPage > 0}">&lt;</a>
 
                 <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
                     <a class="page-link"
                        th:classappend="${i == currentPage} ? 'active'"
-                       th:href="@{/admin/deliveries(page=${i}, status=${searchStatus})}"
+                       th:href="@{/admin/deliveries(page=${i}, status=${searchStatus}, size=10)}"
                        th:text="${i + 1}">1</a>
                 </th:block>
 
                 <a class="page-link"
-                   th:href="@{/admin/deliveries(page=${currentPage + 1}, status=${searchStatus})}"
+                   th:href="@{/admin/deliveries(page=${currentPage + 1}, status=${searchStatus}, size=10)}"
                    th:if="${currentPage < totalPages - 1}">&gt;</a>
             </div>
         </section>

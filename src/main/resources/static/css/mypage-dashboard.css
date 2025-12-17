@@ -4,11 +4,20 @@
     font-size: 0.8rem;
     color: #fff;
     font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .bg-BASIC { background-color: #6c757d; }
+.bg-SILVER { background-color: #adb5bd; }
 .bg-ROYAL { background-color: #17a2b8; }
 .bg-GOLD { background-color: #ffc107; color: #333 !important; }
 .bg-PLATINUM { background-color: #6f42c1; }
+.bg-DIAMOND { background-color: #2d6cdf; }
+.badge.bg-BASIC, .badge.bg-SILVER, .badge.bg-ROYAL, .badge.bg-GOLD, .badge.bg-PLATINUM, .badge.bg-DIAMOND {
+    color: inherit;
+}
+.badge.bg-GOLD { color: #333 !important; }
 
 .badge-row { margin-top: auto; padding-top: 10px; }

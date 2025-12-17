@@ -911,9 +911,9 @@
 }
 
 .btn-edit {
-    border: 1px solid #2d5016;
+    border: 1px solid #205433;
     background: white;
-    color: #2d5016;
+    color: #205433;
     border-radius: 12px;
     padding: 3px 16px;
     cursor: pointer;
@@ -1061,7 +1061,7 @@
 }
 
 .address-form-container h2 {
-    color: #2d5016;
+    color: #205433;
     margin-bottom: 1.5rem;
 }
 
@@ -1136,7 +1136,7 @@
 }
 
 .default-toggle:hover {
-    border-color: #2d5016;
+    border-color: #205433;
     background: #f3f7f3;
     box-shadow: 0 6px 14px rgba(47, 98, 66, 0.08);
 }
@@ -1144,7 +1144,7 @@
 .default-toggle input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    accent-color: #2d5016;
+    accent-color: #205433;
     cursor: pointer;
     border-radius: 6px;
     transform: translateY(0.18rem);
@@ -1242,4 +1242,55 @@
 .btn-postcode:active {
     transform: translateY(0);
     box-shadow: 0 6px 14px rgba(45, 80, 22, 0.2);
+}
+
+/* 공통 등급 뱃지 색상 (페이지별 CSS 누락 시 대비) */
+.grade-inline {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.grade-badge {
+    min-width: 80px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-align: center;
+    color: #fff;
+}
+
+.badge.bg-BASIC, .grade-badge.bg-BASIC, .grade-inline.bg-BASIC {
+    background-color: #6c757d !important;
+    color: #fff !important;
+}
+
+.badge.bg-SILVER, .grade-badge.bg-SILVER, .grade-inline.bg-SILVER {
+    background-color: #adb5bd !important;
+    color: #fff !important;
+}
+
+.badge.bg-ROYAL, .grade-badge.bg-ROYAL, .grade-inline.bg-ROYAL {
+    background-color: #17a2b8 !important;
+    color: #fff !important;
+}
+
+.badge.bg-GOLD, .grade-badge.bg-GOLD, .grade-inline.bg-GOLD {
+    background-color: #ffc107 !important;
+    color: #333 !important;
+}
+
+.badge.bg-PLATINUM, .grade-badge.bg-PLATINUM, .grade-inline.bg-PLATINUM {
+    background-color: #6f42c1 !important;
+    color: #fff !important;
+}
+
+.badge.bg-DIAMOND, .grade-badge.bg-DIAMOND, .grade-inline.bg-DIAMOND {
+    background-color: #2d6cdf !important;
+    color: #fff !important;
 }

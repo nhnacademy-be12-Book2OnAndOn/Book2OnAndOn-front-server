@@ -70,7 +70,7 @@ public class BookAdminController {
     /// 도서 목록 & 검색
     @GetMapping("/books")
     public String listBooks(@ModelAttribute BookSearchCondition condition,
-                            @PageableDefault(size = 20) Pageable pageable,
+                            @PageableDefault(size = 10) Pageable pageable,
                             Model model) {
         Page<BookDto> result = Page.empty(pageable);
         try {

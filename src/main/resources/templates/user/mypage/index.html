@@ -2,11 +2,15 @@
 <html lang="ko" th:replace="~{layout/mypage-layout :: layout(
         title = ~{::title},
         sidebarActive = 'dashboard',
-        content = ~{::content}
+        content = ~{::content},
+        extraHead = ~{::extraHead}
       )}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <link rel="stylesheet" th:href="@{/css/mypage-dashboard.css}">
+    <title>마이페이지 - 대시보드</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/mypage-dashboard.css}">
+    </th:block>
 </head>
 
 <body>

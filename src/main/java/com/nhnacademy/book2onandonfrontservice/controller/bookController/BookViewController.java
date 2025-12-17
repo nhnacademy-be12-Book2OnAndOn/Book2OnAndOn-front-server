@@ -5,6 +5,8 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -18,12 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequiredArgsConstructor
@@ -70,7 +74,7 @@ public class BookViewController {
     /// 도서 검색
     @GetMapping("/books/search")
     public String searchBooks(@ModelAttribute BookSearchCondition condition,
-                              @PageableDefault(size = 20) Pageable pageable,
+                              @PageableDefault(size = 12) Pageable pageable,
                               Model model) {
         Page<BookDto> result = Page.empty(pageable);
         try {
@@ -95,6 +99,28 @@ public class BookViewController {
         model.addAttribute("currentCategoryId", categoryId);
         model.addAttribute("categoryName", category.getName());
         return "books/booksByCategory";
+    }
+
+    /// 최근 본 도서 (플로팅 패널)
+    @GetMapping("/api/books/recent-views")
+    @ResponseBody
+    public ResponseEntity<List<BookDto>> getRecentViews(HttpServletRequest request) {
+        try {
+            String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+            String guestId = resolveGuestId(request);
+
+            mergeRecentViews(request, accessToken, guestId);
+
+            if ((accessToken == null || accessToken.isBlank()) && guestId == null) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+
+            List<BookDto> views = bookClient.getRecentViews(toBearer(accessToken), guestId);
+            return ResponseEntity.ok(views != null ? views : Collections.emptyList());
+        } catch (Exception e) {
+            log.error("최근 본 도서 조회 실패", e);
+            return ResponseEntity.ok(Collections.emptyList());
+        }
     }
 
     private Page<BookDto> fetchNewArrivals() {
@@ -232,8 +258,13 @@ public class BookViewController {
 
     // 공통 데이터 (카테고리, 태그 등) 로딩 헬퍼 메서드
     private void commonData(Model model) {
-        model.addAttribute("categories", bookClient.getCategories());
-//        model.addAttribute("popularTags", bookClient.getPopularTags());
+        try {
+            model.addAttribute("categories", bookClient.getCategories());
+            // model.addAttribute("popularTags", bookClient.getPopularTags());
+        } catch (Exception e) {
+            log.warn("카테고리 조회 실패", e);
+            model.addAttribute("categories", Collections.emptyList());
+        }
     }
 
 
@@ -261,5 +292,36 @@ public class BookViewController {
 
     private String toStr(Object v) {
         return v == null ? null : String.valueOf(v);
+    }
+
+    private String resolveGuestId(HttpServletRequest request) {
+        String gid = CookieUtils.getCookieValue(request, "GUEST_ID");
+        if (gid == null) {
+            gid = CookieUtils.getCookieValue(request, "guestId"); // 하위 호환
+        }
+        return gid;
+    }
+
+    private void mergeRecentViews(HttpServletRequest request, String accessToken, String guestId) {
+        if (guestId == null || accessToken == null || accessToken.isBlank()) {
+            return;
+        }
+        if (request.getSession().getAttribute("recentViewsMergeAttempted") != null) {
+            return;
+        }
+        try {
+            bookClient.mergeRecentViews(toBearer(accessToken), guestId);
+        } catch (Exception e) {
+            log.warn("최근 본 도서 병합 실패", e);
+        } finally {
+            request.getSession().setAttribute("recentViewsMergeAttempted", Boolean.TRUE);
+        }
+    }
+
+    private String toBearer(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return null;
+        }
+        return accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
     }
 }

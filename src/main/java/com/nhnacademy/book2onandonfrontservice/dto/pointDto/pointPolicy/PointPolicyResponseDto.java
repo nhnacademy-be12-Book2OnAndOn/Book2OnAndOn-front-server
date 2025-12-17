@@ -9,7 +9,6 @@ public class PointPolicyResponseDto {
 
     private Integer pointPolicyId;
     private String pointPolicyName;
-    private Double pointAddRate;
     private Integer pointAddPoint;
     private Boolean pointIsActive;
 

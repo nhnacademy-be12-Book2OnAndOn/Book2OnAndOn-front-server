@@ -3,7 +3,9 @@ package com.nhnacademy.book2onandonfrontservice.controller.bookController;
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookLikeToggleResponse;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
+import com.nhnacademy.book2onandonfrontservice.util.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,18 +26,37 @@ public class BookApiController {
     @PostMapping("/{bookId}/likes")
     public ResponseEntity<?> toggleLike(HttpServletRequest request,
                                         @PathVariable Long bookId) {
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
-        try {
-            BookLikeToggleResponse response = bookClient.toggleLike(token, bookId);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            String msg = e.getMessage();
-            log.error("좋아요 요청 실패: {}", msg);
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        if ((accessToken == null || accessToken.isBlank())) {
+            // 브라우저가 Authorization 헤더를 보낸 경우도 함께 허용 (프록시/테스트 시나리오)
+            String headerToken = request.getHeader("Authorization");
+            if (headerToken != null && !headerToken.isBlank()) {
+                accessToken = headerToken.startsWith("Bearer ") ? headerToken.substring(7) : headerToken;
+            }
+        }
 
-            if (msg != null && msg.contains("401")) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        Long userId = JwtUtils.getUserId(accessToken);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 정보가 올바르지 않습니다.");
+        }
+
+        String token = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+        try {
+            BookLikeToggleResponse response = bookClient.toggleLike(token, userId, bookId);
+            return ResponseEntity.ok(response);
+        } catch (FeignException e) {
+            int status = e.status();
+            log.error("좋아요 요청 실패: {}", e.getMessage());
+            if (status == 401 || status == 403) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
             }
-
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("좋아요 처리에 실패했습니다.");
+        } catch (Exception e) {
+            log.error("좋아요 요청 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("좋아요 처리에 실패했습니다.");
         }
     }

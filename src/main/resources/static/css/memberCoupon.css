@@ -7,13 +7,13 @@
 
 .page-header {
     margin-bottom: 20px;
-    border-bottom: 2px solid #2d5016;
+    border-bottom: 2px solid #205433;
     padding-bottom: 1rem;
 }
 
 .page-title {
     font-size: 1.8rem;
-    color: #2d5016;
+    color: #205433;
     font-weight: bold;
 }
 
@@ -43,7 +43,7 @@
 }
 
 .tab-item.active {
-    background: #2d5016;
+    background: #205433;
     color: white;
     font-weight: bold;
 }
@@ -83,7 +83,7 @@
 .coupon-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(45, 80, 22, 0.15);
-    border-color: #2d5016;
+    border-color: #205433;
 }
 
 /* 사용 불가 스타일 */
@@ -210,7 +210,7 @@
 }
 
 .page-link.active {
-    background-color: #2d5016;
+    background-color: #205433;
     color: white;
     border-color: #2d5016;
 }

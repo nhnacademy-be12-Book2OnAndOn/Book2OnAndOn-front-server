@@ -403,6 +403,39 @@
         }
     })();
 
+    const recentMetaEl = document.getElementById('recentMeta');
+    const recentBook = (function () {
+        if (!recentMetaEl) return {};
+        const id = Number(recentMetaEl.dataset.id) || null;
+        const title = recentMetaEl.dataset.title || null;
+        const authorRaw = recentMetaEl.dataset.author || '';
+        const contributors = authorRaw
+            ? authorRaw.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+        const thumb = recentMetaEl.dataset.thumb || null;
+        return { id, title, contributorNames: contributors, thumbnail: thumb };
+    })();
+
+    function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    function setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${date.toUTCString()}`;
+    }
+
+    // 비로그인 시에도 guest id를 남겨두어 로그인 시 병합될 수 있게 함
+    (function ensureGuestId() {
+        const COOKIE_NAME = 'GUEST_ID';
+        if (!getCookie(COOKIE_NAME)) {
+            const gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+            setCookie(COOKIE_NAME, gid, 30);
+        }
+    })();
+
     function changeMainImage(src) {
         document.getElementById('mainImg').src = src;
     }
