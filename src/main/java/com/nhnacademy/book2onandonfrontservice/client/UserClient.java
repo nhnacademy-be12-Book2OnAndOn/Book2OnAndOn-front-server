@@ -96,7 +96,7 @@ public interface UserClient {
     @DeleteMapping("/api/users/me")
     void withdrawUser(
             @RequestHeader("Authorization") String accessToken,
-            @RequestBody(required = false) String reason
+            @RequestParam("reason") String reason
     );
 
     //[Admin] 전체 회원 목록 조회

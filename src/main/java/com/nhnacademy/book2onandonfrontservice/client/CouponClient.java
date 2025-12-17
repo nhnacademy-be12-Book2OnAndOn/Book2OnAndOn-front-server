@@ -30,9 +30,9 @@ public interface CouponClient {
                               @RequestBody CouponUpdateDto updateDto);
 
     @GetMapping("/api/coupons/appliable")
-    List<CouponDto> getAppliableCoupons(@RequestParam("bookId") Long bookId,
+    CouponDto getAppliableCoupons(@RequestParam("bookId") Long bookId,
                                   @RequestParam("categoryIds") List<Long> categoryIds);
 
-    @PostMapping("/api/coupons/{couponId}")
+    @PostMapping("/api/coupons/{couponId}/issue")
     void issueCoupon(@RequestHeader("Authorization") String accessToken, @PathVariable("couponId") Long couponId);
 }
