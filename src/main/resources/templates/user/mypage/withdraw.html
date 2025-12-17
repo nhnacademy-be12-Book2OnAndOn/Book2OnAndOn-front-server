@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/mypage-layout :: layout(~{::title}, 'withdraw', ~{::content})}">
+      th:replace="~{layout/mypage-layout :: layout(~{::title}, 'withdraw', ~{::content}, ~{::extraHead})}">
 <head>
     <title>회원 탈퇴</title>
+    <th:block th:fragment="extraHead"></th:block>
 </head>
 <body>
 <div th:fragment="content">

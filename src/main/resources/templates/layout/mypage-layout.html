@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html th:fragment="layout (title, sidebarActive, content)"
+<html th:fragment="layout (title, sidebarActive, content, extraHead)"
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
+    <th:block th:if="${extraHead != null}" th:replace="${extraHead}"></th:block>
 </head>
 
 <body class="mypage-page">

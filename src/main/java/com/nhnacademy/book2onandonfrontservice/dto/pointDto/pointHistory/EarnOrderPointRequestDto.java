@@ -16,9 +16,12 @@ public class EarnOrderPointRequestDto {
     private Long userId;
 
     @NotNull
-    private Long orderItemId;
+    private Long orderId;
 
     @NotNull
-    private Integer orderAmount; // 결제 금액 * 적립률
+    private Integer pureAmount;
+
+    @NotNull
+    private Double pointAddRate; // <- 회원 등급 적립률 받아옴
 
 }

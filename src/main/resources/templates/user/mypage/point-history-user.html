@@ -2,11 +2,13 @@
 <html lang="ko" th:replace="~{layout/mypage-layout :: layout(
         title = ~{::title},
         sidebarActive = 'points',
-        content = ~{::content}
+        content = ~{::content},
+        extraHead = ~{::extraHead}
       )}" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title>포인트 내역</title>
+    <th:block th:fragment="extraHead"></th:block>
 </head>
 
 <body>

@@ -28,6 +28,15 @@ public interface PointUserClient {
             @RequestParam("size") int size
     );
 
+    // 1-1. 내 포인트 이력 조회(type 필터용 (GET /users/me/points?type=EARN or USE))
+    @GetMapping(value = "/api/users/me/points", params = "type")
+    Page<PointHistoryResponseDto> getMyPointHistoryByType(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestParam("type") String type,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size
+    );
+
     // 2. 내 현재 포인트 조회
     @GetMapping("/api/users/me/points/current")
     CurrentPointResponseDto getMyCurrentPoint(

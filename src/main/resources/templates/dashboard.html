@@ -26,7 +26,8 @@
             <div class="hero-visual">
                 <div class="hero-card">
                     <div class="hero-image">
-                        <img alt="추천 도서" th:if="${promotion?.imageUrl != null}" th:src="${promotion.imageUrl}">
+                        <img alt="추천 도서" th:if="${promotion?.imageUrl != null}" th:src="${promotion.imageUrl}"
+                             onerror="this.onerror=null; this.src='/images/no-image.png';">
                         <img alt="기본 이미지"
                              src="https://images.unsplash.com/photo-1473755504818-b72b6dfdc226?auto=format&fit=crop&w=820&q=80"
                              th:if="${promotion?.imageUrl == null}">
@@ -287,29 +288,7 @@
             .catch(e => console.error(e));
     }
 
-    function toggleLike(btn, bookId) {
-        fetch(`/api/front/books/${bookId}/likes`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'}
-        })
-            .then(async res => {
-                if (res.ok) return res.json();
-                if (res.status === 401) throw new Error('UNAUTHORIZED');
-                throw new Error(await res.text() || 'FAILED');
-            })
-            .then(data => {
-                const countSpan = btn.querySelector('.like-count');
-                btn.classList.toggle('active', data.liked);
-                if (countSpan) countSpan.textContent = data.likeCount;
-            })
-            .catch(e => {
-                if (e.message === 'UNAUTHORIZED') {
-                    if(confirm('로그인이 필요합니다. 이동하시겠습니까?')) location.href = '/login';
-                } else {
-                    alert('오류 발생');
-                }
-            });
-    }
+    const toggleLike = window.toggleLike;
 
     // 슬라이더 초기화 (인기, 신간, 주간/일간 베스트 공용)
     document.addEventListener('DOMContentLoaded', () => {

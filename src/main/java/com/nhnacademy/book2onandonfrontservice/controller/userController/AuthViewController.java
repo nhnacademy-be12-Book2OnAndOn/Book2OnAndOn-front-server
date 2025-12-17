@@ -69,11 +69,12 @@ public class AuthViewController {
                         Model model) {
         try {
             TokenResponseDto token = userClient.login(loginRequest);
+            boolean secureRequest = isSecureRequest(request);
 
             // 쿠키 설정 (Access Token)
             Cookie accessCookie = new Cookie("accessToken", token.getAccessToken());
             accessCookie.setHttpOnly(true);
-            accessCookie.setSecure(true);
+            accessCookie.setSecure(secureRequest);
             accessCookie.setPath("/");
             if (loginRequest.isRememberMe()) {
                 accessCookie.setMaxAge(1800); // 30분
@@ -85,7 +86,7 @@ public class AuthViewController {
             // 쿠키 설정 (Refresh Token)
             Cookie refreshCookie = new Cookie("refreshToken", token.getRefreshToken());
             refreshCookie.setHttpOnly(true);
-            refreshCookie.setSecure(true);
+            refreshCookie.setSecure(secureRequest);
             refreshCookie.setPath("/");
             if (loginRequest.isRememberMe()) {
                 refreshCookie.setMaxAge(604800); // 7일
@@ -96,11 +97,12 @@ public class AuthViewController {
 
             // 최근 본 상품 병합 (비회원 -> 회원)
             try {
-                String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
+                String guestId = resolveGuestId(request);
                 String bearerToken = "Bearer " + token.getAccessToken();
 
                 if (guestId != null) {
                     bookClient.mergeRecentViews(bearerToken, guestId);
+                    clearGuestIdCookie(response, secureRequest);
                 }
             } catch (Exception e) {
                 log.warn("로그인 후 최근 본 상품 병합 실패", e);
@@ -303,11 +305,37 @@ public class AuthViewController {
         return "redirect:/login?logout";
     }
 
+    private boolean isSecureRequest(HttpServletRequest request) {
+        String proto = request.getHeader("X-Forwarded-Proto");
+        return request.isSecure() || "https".equalsIgnoreCase(proto);
+    }
+
     // 쿠키 삭제 헬퍼 메서드
     private void deleteCookie(HttpServletResponse response, String name) {
         Cookie cookie = new Cookie(name, null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
+        response.addCookie(cookie);
+    }
+
+    private String resolveGuestId(HttpServletRequest request) {
+        String gid = CookieUtils.getCookieValue(request, "GUEST_ID");
+        if (gid == null) {
+            gid = CookieUtils.getCookieValue(request, "guestId"); // 하위 호환
+        }
+        return gid;
+    }
+
+    private void clearGuestIdCookie(HttpServletResponse response, boolean secure) {
+        deleteCookieWithSecure(response, "GUEST_ID", secure);
+        deleteCookieWithSecure(response, "guestId", secure);
+    }
+
+    private void deleteCookieWithSecure(HttpServletResponse response, String name, boolean secure) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        cookie.setSecure(secure);
         response.addCookie(cookie);
     }
 
@@ -363,7 +391,6 @@ public class AuthViewController {
 
 
     // PAYCO Callback 처리
-    // PAYCO Callback 처리
     @GetMapping("/login/oauth2/code/payco")
     public String paycoCallback(@RequestParam String code,
                                 HttpServletRequest request,
@@ -371,29 +398,31 @@ public class AuthViewController {
         try {
             // PAYCO 로그인 요청
             TokenResponseDto token = userClient.loginWithPayco(new PaycoLoginRequest(code));
+            boolean secureRequest = isSecureRequest(request);
 
             // 쿠키 설정
             Cookie accessCookie = new Cookie("accessToken", token.getAccessToken());
             accessCookie.setHttpOnly(true);
-            accessCookie.setSecure(true);
+            accessCookie.setSecure(secureRequest);
             accessCookie.setPath("/");
             accessCookie.setMaxAge(1800);
             response.addCookie(accessCookie);
 
             Cookie refreshCookie = new Cookie("refreshToken", token.getRefreshToken());
             refreshCookie.setHttpOnly(true);
-            refreshCookie.setSecure(true);
+            refreshCookie.setSecure(secureRequest);
             refreshCookie.setPath("/");
             refreshCookie.setMaxAge(604800);
             response.addCookie(refreshCookie);
 
             // 최근 본 상품 병합
             try {
-                String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
+                String guestId = resolveGuestId(request);
                 String bearerToken = "Bearer " + token.getAccessToken();
 
                 if (guestId != null) {
                     bookClient.mergeRecentViews(bearerToken, guestId);
+                    clearGuestIdCookie(response, secureRequest);
                 }
             } catch (Exception e) {
                 log.warn("PAYCO 로그인 후 데이터 병합 실패", e);

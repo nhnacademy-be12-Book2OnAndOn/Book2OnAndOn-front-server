@@ -24,8 +24,8 @@
             <button class="btn-accent" onclick="openCreateModal()">+ 미등록 등급 활성화</button>
         </div>
 
-        <div th:if="${param.error}"
-             class="grade-alert">
+        <div class="grade-alert"
+             th:if="${param.error}">
             ❌ 이미 존재하는 등급이거나 잘못된 요청입니다.
         </div>
 
@@ -53,8 +53,9 @@
                     </td>
                     <td th:text="${#numbers.formatInteger(grade.pointCutline, 0, 'COMMA')} + '원'"></td>
                     <td class="table-actions">
-                        <button class="btn-small" type="button"
-                                th:onclick="openUpdateModal([[${grade.gradeId}]], [[${grade.gradeName}]], [[${grade.pointAddRate}]], [[${grade.pointCutline}]])">
+                        <button class="btn-small"
+                                th:onclick="openUpdateModal([[${grade.gradeId}]], [[${grade.gradeName}]], [[${grade.pointAddRate}]], [[${grade.pointCutline}]])"
+                                type="button">
                             수정
                         </button>
                     </td>
@@ -65,24 +66,25 @@
 
         <div class="admin-toolbar mt-20">
             <p class="muted muted-note">
-                ℹ️ <strong>기준 금액</strong>: 최근 3개월간의 순수 주문 금액(배송비/포장비 제외) 합계입니다.<br>
-                ℹ️ 등급 산정은 매 분기(1, 4, 7, 10월) 1일 새벽에 자동으로 수행됩니다.<br>
-                ⚠️ <strong>주의:</strong> 새로운 등급을 추가하려면 먼저 개발팀을 통해 <strong>서버 코드(Enum)에 등급명이 반영</strong>되어야 합니다.<br>
-                코드가 배포된 후, 이 화면에서 '미등록 등급 활성화'를 통해 세부 정책(적립률, 기준금액)을 설정해 주세요.
+                &bull; <strong style="color: #2f6242">기준 금액</strong>: 최근 3개월간의 순수 주문 금액(배송비/포장비 제외) 합계입니다.<br>
+                &bull; 등급 산정은 매 분기(1, 4, 7, 10월) 1일 새벽에 자동으로 수행됩니다.<br>
+                &bull; <strong style="color: #e53935">주의:</strong> 새로운 등급을 추가하려면 먼저 개발팀을 통해 <strong>서버 코드(Enum)에 등급명이
+                반영</strong>되어야 합니다.<br>
+                &bull; 코드가 배포된 후, 이 화면에서 '미등록 등급 활성화'를 통해 세부 정책(적립률, 기준금액)을 설정해 주세요.
             </p>
         </div>
     </main>
 </div>
 
-<div id="gradeModal" class="modal-overlay">
+<div class="modal-overlay" id="gradeModal">
     <div class="modal-card">
-        <h3 id="modalTitle" class="modal-title-grade">등급 설정</h3>
+        <h3 class="modal-title-grade" id="modalTitle">등급 설정</h3>
 
         <form id="gradeForm" method="post">
             <div class="form-field">
                 <label for="gradeName">등급명</label>
-                <input type="text" id="gradeName" name="gradeName" class="form-control" placeholder="예: DIAMOND"
-                       required>
+                <input class="form-control" id="gradeName" name="gradeName" placeholder="예: DIAMOND" required
+                       type="text">
                 <p class="helper-text helper-note" id="nameHelper">
                     * 개발팀으로부터 먼저 <strong>등급명을 제공받은 후</strong> 입력해주세요.
                 </p>
@@ -91,19 +93,19 @@
             <div class="form-grid">
                 <div class="form-field">
                     <label for="pointAddRate">적립률 (소수점)</label>
-                    <input type="number" id="pointAddRate" name="pointAddRate" class="form-control" placeholder="0.05"
-                           step="0.001" min="0" max="1" required>
+                    <input class="form-control" id="pointAddRate" max="1" min="0" name="pointAddRate"
+                           placeholder="0.05" required step="0.001" type="number">
                 </div>
                 <div class="form-field">
                     <label for="pointCutline">기준 금액 (원)</label>
-                    <input type="number" id="pointCutline" name="pointCutline" class="form-control" placeholder="500000"
-                           min="0" step="1000" required>
+                    <input class="form-control" id="pointCutline" min="0" name="pointCutline" placeholder="500000"
+                           required step="1000" type="number">
                 </div>
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn-ghost" onclick="closeModal()">취소</button>
-                <button type="submit" class="btn-primary" id="submitBtn">저장</button>
+                <button class="btn-ghost" onclick="closeModal()" type="button">취소</button>
+                <button class="btn-primary" id="submitBtn" type="submit">저장</button>
             </div>
         </form>
     </div>
