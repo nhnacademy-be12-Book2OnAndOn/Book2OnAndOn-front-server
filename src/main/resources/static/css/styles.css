@@ -25,9 +25,23 @@
 }
 
 body {
-    background: var(--ivory);
+    background: #f5f7f2;
     color: var(--gray-900);
     line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+    min-height: 65vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    min-height: 65vh;
 }
 
 img {
@@ -1102,6 +1116,8 @@ img {
     color: rgba(255, 255, 255, 0.85);
     padding: 2.25rem 0 1.25rem;
     margin-top: 0;
+    width: 100%;
+    margin-top: auto;
 }
 
 .footer-grid {
@@ -1592,6 +1608,20 @@ img {
     gap: 2px;
 }
 
+/* 구매 액션 내부에 금액/수량 배치 보강 */
+.purchase-actions .purchase-row {
+    margin-top: 0.5rem;
+}
+.purchase-actions .total-price-preview {
+    white-space: nowrap;
+}
+.purchase-actions .quantity-control {
+    flex-shrink: 0;
+}
+.purchase-actions .purchase-row + .btn-group {
+    margin-top: 12px;
+}
+
 .purchase-row {
     display: flex;
     align-items: center;
@@ -1689,7 +1719,7 @@ img {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-soft);
     padding: 2rem;
-    min-height: 500px;
+    min-height: 65vh;
 }
 
 .tab-nav {

@@ -268,6 +268,16 @@ public class MyPageViewController {
         return "user/mypage/likes";
     }
 
+    // 주문 내역 페이지 (/users/me/orders)
+    @GetMapping("/orders")
+    public String myOrders(HttpServletRequest request) {
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+        return "orderpayment/OrderHistory";
+    }
+
     //내 정보 수정 페이지
     @GetMapping("/edit")
     public String editForm(HttpServletRequest request, Model model) {
