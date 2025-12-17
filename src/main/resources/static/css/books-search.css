@@ -109,3 +109,38 @@
     color: #fff;
     border-color: #2d5f3f;
 }
+
+/* 반응형 */
+@media (max-width: 992px) {
+    .search-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+    .search-sort {
+        width: 100%;
+    }
+    .book-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 18px;
+    }
+}
+
+@media (max-width: 640px) {
+    .book-section {
+        margin: 1.5rem auto;
+    }
+    .search-summary {
+        padding: 1rem;
+    }
+    .book-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 14px;
+    }
+    .book-card {
+        font-size: 0.95rem;
+    }
+    .search-empty {
+        padding: 36px;
+    }
+}

@@ -1294,3 +1294,64 @@
     background-color: #2d6cdf !important;
     color: #fff !important;
 }
+
+/* ============================
+   Responsive
+   ============================ */
+@media (max-width: 1024px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+        padding: 1.5rem 0;
+    }
+    .dashboard-sidebar {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+    .dashboard-sidebar h3 {
+        width: 100%;
+    }
+    .dashboard-menu {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.6rem;
+    }
+    .dashboard-menu li {
+        margin: 0;
+    }
+    .dashboard-main {
+        padding: 1.6rem 1.4rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .mypage-shell {
+        padding: 2.5rem 0 2rem;
+    }
+    .card-grid,
+    .card-grid.quick-stats {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    .dashboard-card {
+        padding: 1.4rem;
+        min-height: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-sidebar {
+        padding: 1rem;
+    }
+    .dashboard-main {
+        padding: 1.2rem 1rem;
+    }
+    .dashboard-header h2 {
+        font-size: 1.4rem;
+    }
+    .muted {
+        font-size: 0.85rem;
+    }
+}

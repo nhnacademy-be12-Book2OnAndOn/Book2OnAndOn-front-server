@@ -711,6 +711,60 @@ body {
     color: #234132;
 }
 
+/* 반응형 */
+@media (max-width: 1200px) {
+    .admin-container {
+        flex-direction: column;
+        padding: 1.8rem 1rem;
+    }
+    .admin-sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .admin-menu {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.5rem;
+    }
+    .admin-menu a {
+        text-align: center;
+    }
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-content {
+        padding: 1.2rem;
+    }
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .admin-header h2 {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-container {
+        gap: 1rem;
+    }
+    .stat-card {
+        padding: 18px;
+    }
+    .admin-table-wrap,
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+}
+
 /* 태그 전용 해시태그 스타일 */
 .tag-chip {
     background: #e9f0ec;
