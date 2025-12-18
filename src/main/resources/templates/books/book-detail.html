@@ -128,6 +128,7 @@
                 <div class="btn-group">
                     <button type="button" class="like-btn large"
                             th:classappend="${bookDetail.likedByCurrentUser} ? 'active' : ''"
+                            th:attr="data-book-id=${bookDetail.id}, data-book-title=${bookDetail.title}, data-book-authors=${bookDetail.contributorName}, data-book-thumb=${(bookDetail.images != null and !bookDetail.images.isEmpty()) ? bookDetail.images[0].url : ''}, data-book-price-sales=${bookDetail.priceSales}, data-book-price-standard=${bookDetail.priceStandard}"
                             th:onclick="'toggleLike(this, ' + ${bookDetail.id} + ')'">
                         <span class="heart-icon"></span>
                         <span class="like-count" th:text="${bookDetail.likeCount}">0</span>

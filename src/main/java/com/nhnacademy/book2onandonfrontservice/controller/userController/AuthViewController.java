@@ -301,6 +301,8 @@ public class AuthViewController {
         // 클라이언트 쿠키 강제 삭제
         deleteCookie(response, "accessToken");
         deleteCookie(response, "refreshToken");
+        deleteCookie(response, "guestId");
+        deleteCookie(response, "GUEST_ID");
 
         return "redirect:/login?logout";
     }

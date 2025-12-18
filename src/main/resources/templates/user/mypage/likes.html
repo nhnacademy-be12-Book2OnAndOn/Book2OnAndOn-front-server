@@ -73,6 +73,87 @@
                th:href="@{/users/me/likes(page=${currentPage + 1})}">다음</a>
         </div>
     </div>
+    <div id="likedFallback" class="liked-grid" style="display:none;"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fallback = document.getElementById('likedFallback');
+            if (!fallback) return;
+            if (document.querySelectorAll('.liked-card').length > 0) return;
+            let data = {};
+            try {
+                data = JSON.parse(localStorage.getItem('likedBooks') || '{}');
+            } catch (e) {
+                data = {};
+            }
+            const items = Object.values(data).filter(item => item && item.id);
+            if (items.length === 0) return;
+
+            const empty = document.querySelector('.liked-empty');
+            if (empty) empty.style.display = 'none';
+            fallback.style.display = 'grid';
+
+            const formatDate = (value) => {
+                if (!value) return '';
+                const date = new Date(value);
+                if (Number.isNaN(date.getTime())) return '';
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            items.forEach(item => {
+                const card = document.createElement('a');
+                card.className = 'liked-card';
+                card.href = `/books/${item.id}`;
+
+                const thumb = document.createElement('div');
+                thumb.className = 'liked-thumb';
+                const img = document.createElement('img');
+                img.alt = '도서 이미지';
+                img.src = item.thumbnail || '/images/no-image.png';
+                thumb.appendChild(img);
+
+                const body = document.createElement('div');
+                body.className = 'liked-body';
+
+                const title = document.createElement('h5');
+                title.className = 'liked-title';
+                title.textContent = item.title || '도서 제목';
+
+                const authors = document.createElement('p');
+                authors.className = 'liked-authors';
+                authors.textContent = item.authors || '';
+
+                const price = document.createElement('div');
+                price.className = 'liked-price';
+                const sale = document.createElement('span');
+                sale.className = 'price-sale';
+                sale.textContent = (item.priceSales || 0).toLocaleString() + '원';
+                price.appendChild(sale);
+                if (item.priceStandard && item.priceStandard > item.priceSales) {
+                    const origin = document.createElement('span');
+                    origin.className = 'price-origin';
+                    origin.textContent = item.priceStandard.toLocaleString() + '원';
+                    price.appendChild(origin);
+                }
+
+                const meta = document.createElement('div');
+                meta.className = 'liked-meta';
+                const likedDate = formatDate(item.likedAt);
+                meta.textContent = likedDate ? `찜한 날짜 · ${likedDate}` : '찜한 날짜 · -';
+
+                body.appendChild(title);
+                body.appendChild(authors);
+                body.appendChild(price);
+                body.appendChild(meta);
+
+                card.appendChild(thumb);
+                card.appendChild(body);
+                fallback.appendChild(card);
+            });
+        });
+    </script>
 </div>
 </body>
 </html>

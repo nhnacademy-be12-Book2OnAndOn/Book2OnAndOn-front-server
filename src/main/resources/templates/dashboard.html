@@ -93,6 +93,7 @@
                                 <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
                                     <button class="like-btn"
                                             th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
+                                            th:attr="data-book-id=${book.id}, data-book-title=${book.title}, data-book-authors=${book.contributorNames != null ? #strings.listJoin(book.contributorNames, ', ') : ''}, data-book-thumb=${book.thumbnail}, data-book-price-sales=${book.priceSales}, data-book-price-standard=${book.priceStandard}"
                                             th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
                                             type="button">
                                         <span class="heart-icon"></span>
@@ -394,6 +395,33 @@
 
             update();
         });
+    });
+
+    // 인기 도서 좋아요 카운트 주기 갱신
+    document.addEventListener('DOMContentLoaded', () => {
+        const refreshLikeCounts = async () => {
+            const likeButtons = document.querySelectorAll('#popularSlider .like-btn[data-book-id]');
+            if (likeButtons.length === 0) return;
+            try {
+                const res = await fetch('/front/books/popular?page=0&size=20', { credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const list = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+                const map = new Map(list.map(item => [String(item.id), item.likeCount]));
+                likeButtons.forEach(btn => {
+                    const count = map.get(btn.dataset.bookId);
+                    const countSpan = btn.querySelector('.like-count');
+                    if (countSpan && typeof count === 'number') {
+                        countSpan.textContent = count;
+                    }
+                });
+            } catch (e) {
+                // ignore polling errors
+            }
+        };
+
+        refreshLikeCounts();
+        setInterval(refreshLikeCounts, 20000);
     });
 
     // 메인 페이지에서 사이드바 토글이 확실히 동작하도록 재바인딩

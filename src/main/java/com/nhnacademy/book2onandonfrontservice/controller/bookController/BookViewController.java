@@ -40,14 +40,18 @@ public class BookViewController {
 
     /// 메인 페이지 (대시보드)
     @GetMapping("/")
-    public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
+    public String dashboard(@RequestParam(defaultValue = "0") int page,
+                            HttpServletRequest request,
+                            Model model) {
         commonData(model);
-        Page<BookDto> newBooks = bookClient.getNewArrivals(null, page, 0);
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        String bearer = toBearer(accessToken);
+        Page<BookDto> newBooks = bookClient.getNewArrivals(bearer, null, page, 0);
         List<BookDto> bestsellerDaily = Collections.emptyList();
         List<BookDto> bestsellerWeek = Collections.emptyList();
         Page<BookDto> likeBest = Page.empty();
         try {
-            likeBest = bookClient.getPopularBooks(page, 0);
+            likeBest = bookClient.getPopularBooks(bearer, page, 0);
 //            log.info("인기도서 갯수: {}", likeBest.getSize());
         } catch (Exception e) {
             log.error("인기 도서 조회 실패", e);
@@ -75,10 +79,12 @@ public class BookViewController {
     @GetMapping("/books/search")
     public String searchBooks(@ModelAttribute BookSearchCondition condition,
                               @PageableDefault(size = 12) Pageable pageable,
+                              HttpServletRequest request,
                               Model model) {
         Page<BookDto> result = Page.empty(pageable);
         try {
-            result = bookClient.searchBooks(condition, pageable);
+            String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+            result = bookClient.searchBooks(toBearer(accessToken), condition, pageable);
         } catch (Exception e) {
             log.error("도서 검색 실패", e);
             model.addAttribute("searchError", "검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
@@ -92,8 +98,11 @@ public class BookViewController {
 
     /// 카테고리별 조회
     @GetMapping("/books/categories/{categoryId}")
-    public String getBooksByCategoryId(@PathVariable Long categoryId, Model model) {
-        Page<BookDto> booksByCategory = bookClient.getBooksByCategories(categoryId);
+    public String getBooksByCategoryId(@PathVariable Long categoryId,
+                                       HttpServletRequest request,
+                                       Model model) {
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        Page<BookDto> booksByCategory = bookClient.getBooksByCategories(toBearer(accessToken), categoryId);
         CategoryDto category = bookClient.getCategoryInfo(categoryId);
         model.addAttribute("books", booksByCategory);
         model.addAttribute("currentCategoryId", categoryId);
@@ -123,18 +132,18 @@ public class BookViewController {
         }
     }
 
-    private Page<BookDto> fetchNewArrivals() {
+    private Page<BookDto> fetchNewArrivals(String accessToken) {
         try {
-            return bookClient.getNewArrivals(null, 0, DASHBOARD_SECTION_SIZE);
+            return bookClient.getNewArrivals(toBearer(accessToken), null, 0, DASHBOARD_SECTION_SIZE);
         } catch (Exception e) {
             log.error("신간 도서 조회 실패", e);
             return Page.empty();
         }
     }
 
-    private List<BookDto> fetchPopular(int page) {
+    private List<BookDto> fetchPopular(String accessToken, int page) {
         try {
-            Page<BookDto> pageResult = bookClient.getPopularBooks(page, DASHBOARD_SECTION_SIZE);
+            Page<BookDto> pageResult = bookClient.getPopularBooks(toBearer(accessToken), page, DASHBOARD_SECTION_SIZE);
             return pageResult != null && pageResult.getContent() != null
                     ? cleanBookList(pageResult.getContent())
                     : Collections.emptyList();
@@ -144,9 +153,9 @@ public class BookViewController {
         }
     }
 
-    private List<BookDto> fetchBestsellers(String period) {
+    private List<BookDto> fetchBestsellers(String accessToken, String period) {
         try {
-            return cleanBookList(bookClient.getBestsellers(period));
+            return cleanBookList(bookClient.getBestsellers(toBearer(accessToken), period));
         } catch (Exception e) {
             log.error("{} 베스트셀러 조회 실패", period, e);
             return Collections.emptyList();

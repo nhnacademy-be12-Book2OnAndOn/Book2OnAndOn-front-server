@@ -74,7 +74,7 @@ public class BookAdminController {
                             Model model) {
         Page<BookDto> result = Page.empty(pageable);
         try {
-            result = bookClient.searchBooks(condition, pageable);
+            result = bookClient.searchBooks(null, condition, pageable);
         } catch (Exception e) {
             log.error("관리자 도서 목록 조회 실패", e);
         }
