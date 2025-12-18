@@ -25,14 +25,14 @@ public interface CouponClient {
                                @RequestParam("size") int size,
                                @RequestParam(value = "status", required = false) String status);
 
-    @PutMapping("/api/admin/coupons/{couponId}")
+    @PutMapping("/api/admin/coupons/{coupon-id}")
     void updateCouponQuantity(@RequestHeader("Authorization") String accessToken, @PathVariable Long couponId,
                               @RequestBody CouponUpdateDto updateDto);
 
-    @GetMapping("/api/coupons/appliable")
+    @GetMapping("/api/coupons/issuable")
     List<CouponDto> getAppliableCoupons(@RequestParam("bookId") Long bookId,
                                   @RequestParam("categoryIds") List<Long> categoryIds);
 
-    @PostMapping("/api/coupons/{couponId}")
-    void issueCoupon(@RequestHeader("Authorization") String accessToken, @PathVariable("couponId") Long couponId);
+    @PostMapping("/api/coupons/{coupon-id}")
+    void issueCoupon(@RequestHeader("Authorization") String accessToken, @PathVariable("coupon-id") Long couponId);
 }

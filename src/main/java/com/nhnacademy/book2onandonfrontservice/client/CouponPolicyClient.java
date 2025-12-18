@@ -31,9 +31,9 @@ public interface CouponPolicyClient {
 
 
     // 정책 상세 조회 (단건)
-    @GetMapping("/api/admin/coupon-policies/{couponPolicyId}")
+    @GetMapping("/api/admin/coupon-policies/{coupon-policy-id}")
     CouponPolicyDto getPolicy(@RequestHeader("Authorization") String accessToken,
-                              @PathVariable("couponPolicyId") Long couponPolicyId);
+                              @PathVariable("coupon-policy-id") Long couponPolicyId);
 
 
     // 정책 생성
@@ -43,14 +43,14 @@ public interface CouponPolicyClient {
 
 
     // 정책 수정
-    @PutMapping("/api/admin/coupon-policies/{couponPolicyId}")
+    @PutMapping("/api/admin/coupon-policies/{coupon-policy-id}")
     void updatePolicy(@RequestHeader("Authorization") String accessToken,
-                      @PathVariable("couponPolicyId") Long couponPolicyId,
+                      @PathVariable("coupon-policy-id") Long couponPolicyId,
                       @RequestBody CouponPolicyUpdateDto requestDto);
 
     // 정책 비활성화 (삭제)
-    @DeleteMapping("/api/admin/coupon-policies/{couponPolicyId}")
+    @DeleteMapping("/api/admin/coupon-policies/{coupon-policy-id}")
     void deactivatePolicy(@RequestHeader("Authorization") String accessToken,
-                          @PathVariable("couponPolicyId") Long couponPolicyId);
+                          @PathVariable("coupon-policy-id") Long couponPolicyId);
 
 }
