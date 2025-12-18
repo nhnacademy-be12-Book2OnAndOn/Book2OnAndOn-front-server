@@ -177,9 +177,9 @@ public class AdminViewController {
         return "admin/coupon/list";
     }
 
-    @PostMapping("/coupons/{couponId}/update-quantity")
+    @PostMapping("/coupons/{coupon-id}/update-quantity")
     public String updateQuantity(HttpServletRequest request,
-                                 @PathVariable("couponId") Long couponId,
+                                 @PathVariable("coupon-id") Long couponId,
                                  @RequestParam(required = false) Integer quantity) {
 
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
