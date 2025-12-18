@@ -48,7 +48,7 @@ public class BookViewController {
         Page<BookDto> likeBest = Page.empty();
         try {
             likeBest = bookClient.getPopularBooks(page, 0);
-            log.info("인기도서 갯수: {}", likeBest.getSize());
+//            log.info("인기도서 갯수: {}", likeBest.getSize());
         } catch (Exception e) {
             log.error("인기 도서 조회 실패", e);
         }

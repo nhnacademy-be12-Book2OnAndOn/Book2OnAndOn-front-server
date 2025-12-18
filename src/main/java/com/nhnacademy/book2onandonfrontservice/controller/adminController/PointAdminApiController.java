@@ -1,11 +1,13 @@
 package com.nhnacademy.book2onandonfrontservice.controller.adminController;
 
 import com.nhnacademy.book2onandonfrontservice.client.PointAdminClient;
+import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.EarnPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryAdminAdjustRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
+import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class PointAdminApiController {
 
     private final PointAdminClient pointAdminClient;
+    private final UserClient userClient;
 
-    public PointAdminApiController(PointAdminClient pointAdminClient) {
+    public PointAdminApiController(PointAdminClient pointAdminClient, UserClient userClient) {
         this.pointAdminClient = pointAdminClient;
+        this.userClient = userClient;
     }
 
     @GetMapping
@@ -38,6 +42,10 @@ public class PointAdminApiController {
         if (accessToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
+        ResponseEntity<?> validation = validateUser(accessToken, userId);
+        if (validation != null) {
+            return validation;
+        }
         try {
             Page<PointHistoryResponseDto> history = pointAdminClient.getUserPointHistory(accessToken, userId, page, size);
             Map<String, Object> payload = new HashMap<>();
@@ -47,6 +55,8 @@ public class PointAdminApiController {
             payload.put("number", history.getNumber());
             payload.put("size", history.getSize());
             return ResponseEntity.ok(payload);
+        } catch (FeignException.NotFound e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("포인트 이력 조회에 실패했습니다.");
         }
@@ -59,9 +69,15 @@ public class PointAdminApiController {
         if (accessToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
+        ResponseEntity<?> validation = validateUser(accessToken, userId);
+        if (validation != null) {
+            return validation;
+        }
         try {
             CurrentPointResponseDto current = pointAdminClient.getUserCurrentPoint(accessToken, userId);
             return ResponseEntity.ok(current);
+        } catch (FeignException.NotFound e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("현재 포인트 조회에 실패했습니다.");
         }
@@ -93,5 +109,16 @@ public class PointAdminApiController {
             return null;
         }
         return token.startsWith("Bearer ") ? token : "Bearer " + token;
+    }
+
+    private ResponseEntity<?> validateUser(String accessToken, Long userId) {
+        try {
+            userClient.getUserDetail(accessToken, userId);
+            return null;
+        } catch (FeignException.NotFound e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
+        } catch (FeignException e) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("사용자 조회에 실패했습니다.");
+        }
     }
 }

@@ -20,6 +20,7 @@
 .mt-8 { margin-top: 8px; }
 .mt-10 { margin-top: 10px; }
 .flex-1 { flex: 1; }
+.category-tag-grid { grid-template-columns: 1fr; }
 
 #preview { display: none; margin-top: 10px; gap: 10px; flex-wrap: wrap; }
 .preview-chip {
