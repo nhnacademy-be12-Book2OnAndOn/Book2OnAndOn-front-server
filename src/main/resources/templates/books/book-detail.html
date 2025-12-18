@@ -5,153 +5,8 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title th:text="${bookDetail.title} + ' - Book2OnAndOn'">도서 상세 - Book2OnAndOn</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/book-detail.css}">
 </head>
-<style>
-    /* =========================================
-       1. 커스텀 모달 기본 스타일 (기존 유지 + 너비 수정)
-       ========================================= */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;
-    }
-    .modal-overlay.open { display: flex; }
-
-    .modal-content-custom {
-        background-color: #fff;
-        border-radius: 12px;
-        /* [중요] 모달 너비를 넓게 설정해야 쿠폰 카드가 예쁘게 나옵니다 */
-        width: 90%;
-        max-width: 600px;
-        max-height: 85vh;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        overflow: hidden; /* 내부 스크롤 */
-    }
-
-    .modal-header-custom {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 20px;
-        border-bottom: 2px solid #2d5016; /* 포인트 컬러 */
-        background: #fff;
-    }
-    .modal-header-custom h3 { margin: 0; color: #2d5016; font-weight: bold; font-size: 1.25rem; }
-
-    .close-modal-btn {
-        background: none; border: none; font-size: 2rem; cursor: pointer; line-height: 0.5; color: #999;
-    }
-    .close-modal-btn:hover { color: #333; }
-
-    .modal-body-custom {
-        overflow-y: auto;
-        flex: 1;
-        padding: 20px;
-        background-color: #f8f9fa; /* 연한 회색 배경 */
-    }
-
-    .modal-footer-custom {
-        padding: 15px 20px;
-        border-top: 1px solid #eee;
-        text-align: right;
-        background: #fff;
-    }
-
-    .coupon-list-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    /* 카드 상단: 할인율 + 정보 */
-    .card-upper {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-
-    /* 왼쪽: 할인율 강조 영역 */
-    .discount-display {
-        display: flex;
-        align-items: baseline;
-        justify-content: center;
-        gap: 2px;
-        min-width: 90px;
-        padding-right: 20px;
-        border-right: 2px dashed #e6efe7;
-        color: #1f5a2f;
-    }
-
-    .discount-val { font-size: 2.2rem; font-weight: 900; line-height: 1; }
-    .discount-unit { font-size: 1.0rem; font-weight: 700; }
-
-    /* 오른쪽: 쿠폰 이름 및 조건 */
-    .coupon-info { flex: 1; }
-
-    .coupon-name {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: #1f4a30;
-        margin-bottom: 4px;
-        line-height: 1.3;
-    }
-
-    .coupon-condition { font-size: 0.85rem; color: #666; }
-
-    /* 카드 하단: 날짜 + 버튼 */
-    .card-bottom {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 12px;
-        border-top: 1px solid #f0f0f0;
-    }
-
-    .date-info {
-        font-size: 0.85rem;
-        color: #2f4c36;
-        font-weight: 600;
-        background-color: #e8f5e9;
-        padding: 4px 8px;
-        border-radius: 4px;
-    }
-
-    /* 다운로드 버튼 스타일 */
-    .btn-download {
-        background-color: white;
-        border: 1px solid #2d5016;
-        color: #2d5016;
-        padding: 6px 16px;
-        border-radius: 6px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-download:hover {
-        background-color: #2d5016;
-        color: white;
-    }
-
-    .btn-download:disabled {
-        background-color: #eee;
-        border-color: #ccc;
-        color: #999;
-        cursor: not-allowed;
-    }
-
-    /* 발급 완료 상태 */
-    .btn-download.completed {
-        background-color: #6c757d;
-        border-color: #6c757d;
-        color: white;
-    }
-</style>
 <body>
 <th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
@@ -259,21 +114,21 @@
                         </button>
                     </div>
 
-                </div>
-
-                <div class="purchase-row">
-                    <div class="quantity-control">
-                        <button type="button" onclick="adjustQuantity(-1)">-</button>
-                        <input type="text" id="quantity" value="1" readonly>
-                        <button type="button" onclick="adjustQuantity(1)">+</button>
-                    </div>
-                    <div class="total-price-preview">
-                        총 상품금액 <strong id="totalPrice" th:text="${#numbers.formatInteger(bookDetail.priceSales, 0, 'COMMA')}">19,800</strong>원
+                    <div class="purchase-row">
+                        <div class="quantity-control">
+                            <button type="button" onclick="adjustQuantity(-1)">-</button>
+                            <input type="text" id="quantity" value="1" readonly>
+                            <button type="button" onclick="adjustQuantity(1)">+</button>
+                        </div>
+                        <div class="total-price-preview">
+                            총 상품금액 <strong id="totalPrice" th:text="${#numbers.formatInteger(bookDetail.priceSales, 0, 'COMMA')}">19,800</strong>원
+                        </div>
                     </div>
                 </div>
                 <div class="btn-group">
                     <button type="button" class="like-btn large"
                             th:classappend="${bookDetail.likedByCurrentUser} ? 'active' : ''"
+                            th:attr="data-book-id=${bookDetail.id}, data-book-title=${bookDetail.title}, data-book-authors=${bookDetail.contributorName}, data-book-thumb=${(bookDetail.images != null and !bookDetail.images.isEmpty()) ? bookDetail.images[0].url : ''}, data-book-price-sales=${bookDetail.priceSales}, data-book-price-standard=${bookDetail.priceStandard}"
                             th:onclick="'toggleLike(this, ' + ${bookDetail.id} + ')'">
                         <span class="heart-icon"></span>
                         <span class="like-count" th:text="${bookDetail.likeCount}">0</span>
@@ -340,12 +195,53 @@
 
             <div id="reviews" class="content-block">
                 <div class="review-header">
-                    <h3>리뷰</h3>
+                    <h3>고객 리뷰</h3>
                     <button class="btn secondary sm">리뷰 작성</button>
                 </div>
 
+                <div class="review-summary-card" th:data-rating="${bookDetail.rating}">
+                    <div class="review-score-block">
+                        <div class="score-value" th:text="${bookDetail.rating}">4.8</div>
+                        <div class="score-stars" aria-label="평균 평점">
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star">★</span>
+                        </div>
+                        <div class="score-count" th:text="${bookDetail.reviewCount} + '개 리뷰'">1,247개 리뷰</div>
+                    </div>
+                    <div class="review-bars">
+                        <div class="review-bar-row" data-star="5">
+                            <span class="label">5점</span>
+                            <div class="review-bar"><span class="fill"></span></div>
+                            <span class="percent">0%</span>
+                        </div>
+                        <div class="review-bar-row" data-star="4">
+                            <span class="label">4점</span>
+                            <div class="review-bar"><span class="fill"></span></div>
+                            <span class="percent">0%</span>
+                        </div>
+                        <div class="review-bar-row" data-star="3">
+                            <span class="label">3점</span>
+                            <div class="review-bar"><span class="fill"></span></div>
+                            <span class="percent">0%</span>
+                        </div>
+                        <div class="review-bar-row" data-star="2">
+                            <span class="label">2점</span>
+                            <div class="review-bar"><span class="fill"></span></div>
+                            <span class="percent">0%</span>
+                        </div>
+                        <div class="review-bar-row" data-star="1">
+                            <span class="label">1점</span>
+                            <div class="review-bar"><span class="fill"></span></div>
+                            <span class="percent">0%</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="review-list">
-                    <div class="review-item" th:each="review : ${bookDetail.reviews}">
+                    <div class="review-item" th:each="review : ${bookDetail.reviews}" th:data-score="${review.score}">
                         <div class="review-meta">
                             <span class="reviewer" th:text="${review.writerName} ?: '익명'">사용자</span>
                             <span class="stars">★ <span th:text="${review.score}">5</span></span>
@@ -369,39 +265,6 @@
     const unitPrice = [[${bookDetail.priceSales}]];
     const bookId = [[${bookDetail.id}]];
     const categoryIds = [[${bookDetail.categories != null ? bookDetail.categories.![id] : {}}]];
-
-    const recentMetaEl = document.getElementById('recentMeta');
-    const recentBook = (function () {
-        if (!recentMetaEl) return {};
-        const id = Number(recentMetaEl.dataset.id) || null;
-        const title = recentMetaEl.dataset.title || null;
-        const authorRaw = recentMetaEl.dataset.author || '';
-        const contributors = authorRaw
-            ? authorRaw.split(',').map(s => s.trim()).filter(Boolean)
-            : [];
-        const thumb = recentMetaEl.dataset.thumb || null;
-        return { id, title, contributorNames: contributors, thumbnail: thumb };
-    })();
-
-    function getCookie(name) {
-        const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
-        return match ? decodeURIComponent(match[1]) : null;
-    }
-
-    function setCookie(name, value, days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${date.toUTCString()}`;
-    }
-
-    // 비로그인 시에도 guest id를 남겨두어 로그인 시 병합될 수 있게 함
-    (function ensureGuestId() {
-        const COOKIE_NAME = 'GUEST_ID';
-        if (!getCookie(COOKIE_NAME)) {
-            const gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-            setCookie(COOKIE_NAME, gid, 30);
-        }
-    })();
 
     const recentMetaEl = document.getElementById('recentMeta');
     const recentBook = (function () {
@@ -629,6 +492,41 @@
             }
         }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const reviewItems = document.querySelectorAll('#reviews .review-item');
+        const reviewBars = document.querySelectorAll('#reviews .review-bar-row');
+        const summaryCard = document.querySelector('#reviews .review-summary-card');
+        if (summaryCard) {
+            const ratingValue = Number(summaryCard.dataset.rating) || 0;
+            const filled = Math.max(0, Math.min(5, Math.round(ratingValue)));
+            const stars = summaryCard.querySelectorAll('.score-stars .star');
+            stars.forEach((star, index) => {
+                if (index < filled) {
+                    star.classList.add('filled');
+                } else {
+                    star.classList.remove('filled');
+                }
+            });
+        }
+        if (reviewBars.length === 0) return;
+        const counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+        reviewItems.forEach(item => {
+            const score = Math.round(Number(item.dataset.score));
+            if (score >= 1 && score <= 5) {
+                counts[score] += 1;
+            }
+        });
+        const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+        reviewBars.forEach(row => {
+            const star = Number(row.dataset.star);
+            const percent = total > 0 ? Math.round((counts[star] / total) * 100) : 0;
+            const fill = row.querySelector('.fill');
+            const label = row.querySelector('.percent');
+            if (fill) fill.style.width = `${percent}%`;
+            if (label) label.textContent = `${percent}%`;
+        });
+    });
     /*]]>*/
 </script>
 <div id="couponModal" class="modal-overlay">

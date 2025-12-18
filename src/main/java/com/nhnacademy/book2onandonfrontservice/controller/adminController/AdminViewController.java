@@ -118,8 +118,15 @@ public class AdminViewController {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
         try {
-            UserResponseDto user = userClient.getUserDetail(token, userId);
-            model.addAttribute("user", user);
+            UserResponseDto targetUser = userClient.getUserDetail(token, userId);
+            model.addAttribute("targetUser", targetUser);
+            try {
+                CurrentPointResponseDto currentPoint =
+                        pointAdminClient.getUserCurrentPoint(token, userId);
+                model.addAttribute("currentPoint", currentPoint);
+            } catch (Exception e) {
+                log.warn("회원 현재 포인트 조회 실패 (userId={})", userId, e);
+            }
             return "admin/user-detail";
         } catch (Exception e) {
             return "redirect:/admin/users?error=not_found";
@@ -177,9 +184,9 @@ public class AdminViewController {
         return "admin/coupon/list";
     }
 
-    @PostMapping("/coupons/{couponId}/update-quantity")
+    @PostMapping("/coupons/{coupon-id}/update-quantity")
     public String updateQuantity(HttpServletRequest request,
-                                 @PathVariable("couponId") Long couponId,
+                                 @PathVariable("coupon-id") Long couponId,
                                  @RequestParam(required = false) Integer quantity) {
 
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
@@ -319,12 +326,23 @@ public class AdminViewController {
     @GetMapping("/delivery-policies/update/{id}")
     public String updateForm(HttpServletRequest request, @PathVariable Long id, Model model) {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        try {
+            Page<DeliveryPolicyDto> page = deliveryPolicyClient.getDeliveryPolicies(token, 0, 1000);
+            DeliveryPolicyDto policy = page.getContent().stream()
+                    .filter(item -> item.getDeliveryPolicyId() != null && item.getDeliveryPolicyId().equals(id))
+                    .findFirst()
+                    .orElse(null);
 
-        DeliveryPolicyDto policy = deliveryPolicyClient.getDeliveryPolicy(token, id);
+            if (policy == null) {
+                return "redirect:/admin/delivery-policies?error=not_found";
+            }
 
-        model.addAttribute("deliveryPolicyDto", policy);
-        model.addAttribute("pageTitle", "배송 정책 수정");
-        return "admin/delivery/form";
+            model.addAttribute("deliveryPolicyDto", policy);
+            model.addAttribute("pageTitle", "배송 정책 수정");
+            return "admin/delivery/form";
+        } catch (Exception e) {
+            return "redirect:/admin/delivery-policies?error=load_failed";
+        }
     }
 
     @PostMapping("/delivery-policies/{id}")

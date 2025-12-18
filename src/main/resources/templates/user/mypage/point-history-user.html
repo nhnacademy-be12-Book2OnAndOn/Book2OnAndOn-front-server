@@ -29,21 +29,24 @@
             </div>
             <p class="subtext">구매와 활동으로 모은 포인트</p>
         </div>
-        <div class="point-metrics">
-            <div class="point-metric-card">
-                <span class="metric-label">이번 달 적립</span>
-                <span class="metric-value" id="monthlyEarned">0 P</span>
-            </div>
-            <div class="point-metric-card">
-                <span class="metric-label">이번 달 사용</span>
-                <span class="metric-value" id="monthlyUsed">0 P</span>
-            </div>
-            <div class="point-metric-card">
-                <span class="metric-label">소멸 예정</span>
-                <span class="metric-value" id="expiringPoint">0 P</span>
+            <div class="point-metrics">
+                <div class="point-metric-card">
+                    <span class="metric-label">이번 달 적립</span>
+                    <span class="metric-value" id="monthlyEarned"
+                          th:text="${summary != null ? #numbers.formatInteger(summary.earnedThisMonth, 0, 'COMMA') : 0} + ' P'">0 P</span>
+                </div>
+                <div class="point-metric-card">
+                    <span class="metric-label">이번 달 사용</span>
+                    <span class="metric-value" id="monthlyUsed"
+                          th:text="${summary != null ? #numbers.formatInteger(summary.usedThisMonth, 0, 'COMMA') : 0} + ' P'">0 P</span>
+                </div>
+                <div class="point-metric-card">
+                    <span class="metric-label">소멸 예정</span>
+                    <span class="metric-value" id="expiringPoint"
+                          th:text="${expiring != null ? #numbers.formatInteger(expiring.expiringAmount, 0, 'COMMA') : 0} + ' P'">0 P</span>
+                </div>
             </div>
         </div>
-    </div>
 
     <div class="dashboard-card point-history-card">
         <div class="card-head">
@@ -68,12 +71,32 @@
                 </tr>
                 </thead>
                 <tbody id="historyTableBody">
-                <tr>
-                    <td class="empty-state" colspan="6">
-                        <!--                        <div class="empty-state-icon">⏳</div>-->
-                        <div>포인트 내역을 불러오는 중...</div>
-                    </td>
-                </tr>
+                <th:block th:if="${histories != null and !histories.isEmpty()}">
+                    <tr th:each="item : ${histories}">
+                        <td th:text="${item.pointCreatedDate}">2025-01-01</td>
+                        <td>
+                            <span class="status-badge"
+                                  th:classappend="${item.pointHistoryChange > 0} ? 'badge-earn' : 'badge-use'"
+                                  th:text="${item.pointHistoryChange > 0 ? '적립' : '사용'}">적립</span>
+                        </td>
+                        <td th:text="${item.pointReason != null ? item.pointReason : '-'}">내용</td>
+                        <td class="point-change"
+                            th:classappend="${item.pointHistoryChange > 0} ? ' point-plus' : ' point-minus'">
+                            <span th:text="${item.pointHistoryChange > 0 ? '+' : '-'} + ${#numbers.formatInteger(T(Math).abs(item.pointHistoryChange), 0, 'COMMA')} + ' P'">+0 P</span>
+                        </td>
+                        <td>
+                            <strong th:text="${#numbers.formatInteger(item.totalPoints != null ? item.totalPoints : (item.remainingPoint != null ? item.remainingPoint : 0), 0, 'COMMA')} + ' P'">0 P</strong>
+                        </td>
+                        <td th:text="${item.pointExpiredDate != null ? item.pointExpiredDate : '-'}">-</td>
+                    </tr>
+                </th:block>
+                <th:block th:if="${histories == null or histories.isEmpty()}">
+                    <tr>
+                        <td class="empty-state" colspan="6">
+                            <div>포인트 내역을 불러오는 중...</div>
+                        </td>
+                    </tr>
+                </th:block>
                 </tbody>
             </table>
         </div>
@@ -86,9 +109,9 @@
     window.initialPointHistory = /*[[${histories}]]*/ [];
     window.initialTotalPages = /*[[${totalPages}]]*/ 0;
     window.initialCurrentPointValue = /*[[${currentPoint != null ? currentPoint.currentPoint : null}]]*/ null;
-    window.initialMonthlyEarned = /*[[${summary != null ? summary.monthlyEarned : 0}]]*/ 0;
-    window.initialMonthlyUsed = /*[[${summary != null ? summary.monthlyUsed : 0}]]*/ 0;
-    window.initialExpiringPoint = /*[[${expiring != null ? expiring.expiringPoint : 0}]]*/ 0;
+    window.initialMonthlyEarned = /*[[${summary != null ? summary.earnedThisMonth : 0}]]*/ 0;
+    window.initialMonthlyUsed = /*[[${summary != null ? summary.usedThisMonth : 0}]]*/ 0;
+    window.initialExpiringPoint = /*[[${expiring != null ? expiring.expiringAmount : 0}]]*/ 0;
 </script>
 <script th:src="@{/js/pointHistoryUser.js}"></script>
 </body>

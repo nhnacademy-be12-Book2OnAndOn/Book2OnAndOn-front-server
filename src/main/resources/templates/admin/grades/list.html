@@ -29,8 +29,19 @@
             ❌ 이미 존재하는 등급이거나 잘못된 요청입니다.
         </div>
 
+        <div class="admin-toolbar">
+            <div class="admin-search">
+                <label for="gradeSearch">검색</label>
+                <input class="form-control"
+                       data-search-target="#gradeTable"
+                       id="gradeSearch"
+                       placeholder="등급명, 적립률, 기준 금액"
+                       type="text">
+            </div>
+        </div>
+
         <div class="table-card">
-            <table class="admin-table">
+            <table class="admin-table" id="gradeTable">
                 <thead>
                 <tr>
                     <th>ID</th>
@@ -166,6 +177,7 @@
         if (event.target === modal) closeModal();
     }
 </script>
+<script src="/js/admin-table-search.js"></script>
 
 </body>
 </html>

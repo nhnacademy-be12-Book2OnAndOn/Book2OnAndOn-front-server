@@ -173,6 +173,7 @@ public interface UserClient {
     @GetMapping("/api/users/me/likes")
     Page<MyLikedBookResponseDto> getMyLikedBooks(
             @RequestHeader("Authorization") String accessToken,
+            @RequestHeader(value = "X-USER-ID", required = false) Long userId,
             @RequestParam("page") int page,
             @RequestParam("size") int size
     );

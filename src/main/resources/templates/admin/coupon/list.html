@@ -35,8 +35,19 @@
                th:href="@{/admin/coupons(status='DEACTIVE')}">비활성</a>
         </div>
 
+        <div class="admin-toolbar">
+            <div class="admin-search">
+                <label for="couponSearch">검색</label>
+                <input class="form-control"
+                       data-search-target="#couponTable"
+                       id="couponSearch"
+                       placeholder="쿠폰명, 혜택, 상태"
+                       type="text">
+            </div>
+        </div>
+
         <div class="table-card">
-            <table class="admin-table">
+            <table class="admin-table" id="couponTable">
                 <thead>
                 <tr>
                     <th>ID</th>
@@ -195,6 +206,7 @@
         }
     }
 </script>
+<script src="/js/admin-table-search.js"></script>
 
 </body>
 </html>

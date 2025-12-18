@@ -28,6 +28,16 @@ body {
     background: var(--ivory);
     color: var(--gray-900);
     line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+    min-height: 65vh;
+    display: flex;
+    flex-direction: column;
 }
 
 img {
@@ -1001,7 +1011,7 @@ img {
     max-height: 420px;
     overflow: hidden;
     background: #fff;
-    border: 1px solid rgba(0,0,0,0.08);
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 14px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
     opacity: 0;
@@ -1061,13 +1071,13 @@ img {
     border-radius: 10px;
     text-decoration: none;
     color: inherit;
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     background: #fff;
 }
 
 .recent-item:hover {
     border-color: var(--green-600);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 .recent-item img {
@@ -1102,6 +1112,8 @@ img {
     color: rgba(255, 255, 255, 0.85);
     padding: 2.25rem 0 1.25rem;
     margin-top: 0;
+    width: 100%;
+    margin-top: auto;
 }
 
 .footer-grid {
@@ -1288,15 +1300,18 @@ img {
     align-items: center;
     gap: 4px;
 }
+
 .like-btn:hover {
     border-color: #ff6b6b;
     color: #ff6b6b;
 }
+
 .like-btn.active {
     color: #ff6b6b; /* 활성화 시 빨간색 */
     border-color: #ff6b6b;
     font-weight: bold;
 }
+
 /* 하트 아이콘 */
 .heart-icon::before {
     content: '♥';
@@ -1329,7 +1344,7 @@ img {
     border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-soft);
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     background: #fff;
     display: flex;
     align-items: center;
@@ -1447,7 +1462,7 @@ img {
 
 .soft-divider {
     border: 0;
-    border-top: 1px solid rgba(0,0,0,0.08);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
     margin: 1.5rem 0;
 }
 
@@ -1490,7 +1505,7 @@ img {
 
 .meta-info-box {
     background: #fff;
-    border: 1px solid rgba(0,0,0,0.06);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: var(--radius-md);
     padding: 1.2rem;
     margin-bottom: 1.5rem;
@@ -1536,7 +1551,7 @@ img {
 /* Purchase Actions */
 .purchase-actions {
     background: var(--white);
-    border: 1px solid rgba(0,0,0,0.08);
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: var(--radius-md);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
@@ -1553,7 +1568,7 @@ img {
     margin-bottom: 1rem;
     width: 100%;
     background: #f6f8f5;
-    border: 1px solid rgba(0,0,0,0.06);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 10px;
     padding: 0.75rem 1rem;
 }
@@ -1590,6 +1605,23 @@ img {
     display: flex;
     flex-direction: column;
     gap: 2px;
+}
+
+/* 구매 액션 내부에 금액/수량 배치 보강 */
+.purchase-actions .purchase-row {
+    margin-top: 0.5rem;
+}
+
+.purchase-actions .total-price-preview {
+    white-space: nowrap;
+}
+
+.purchase-actions .quantity-control {
+    flex-shrink: 0;
+}
+
+.purchase-actions .purchase-row + .btn-group {
+    margin-top: 12px;
 }
 
 .purchase-row {
@@ -1689,7 +1721,7 @@ img {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-soft);
     padding: 2rem;
-    min-height: 500px;
+    min-height: 65vh;
 }
 
 .tab-nav {
@@ -1799,11 +1831,92 @@ img {
     text-decoration: none;
     color: inherit;
 }
+
 .no-deco:hover {
     color: var(--green-700);
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+    .header-bar {
+        flex-wrap: wrap;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .global-search {
+        order: 3;
+        width: 100%;
+    }
+}
+
+@media (max-width: 1024px) {
+    .container {
+        width: min(100%, calc(100% - 1.5rem));
+    }
+
+    .header-bar {
+        gap: 0.75rem;
+    }
+
+    .category-nav .container {
+        overflow-x: auto;
+        padding: 0 0.5rem;
+    }
+
+    .chip-list {
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .logo-link {
+        gap: 0.5rem;
+    }
+
+    .brand-name {
+        font-size: 1.3rem;
+    }
+
+    .global-search .group {
+        flex-direction: row;
+    }
+
+    .category-sidebar {
+        width: 82%;
+        max-width: 320px;
+    }
+
+    .book-grid,
+    .featured-grid,
+    .section-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+    }
+
+    .card-grid,
+    .collection-grid,
+    .review-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+}
+
 @media (max-width: 900px) {
     .product-wrapper {
         grid-template-columns: 1fr;
@@ -1814,5 +1927,47 @@ img {
         position: static;
         max-width: 400px;
         margin: 0 auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .global-search .input {
+        height: 44px;
+        padding-left: 2.5rem;
+    }
+
+    .chip {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .product-actions {
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .product-actions .btn,
+    .cart-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .product-info h1 {
+        font-size: 1.4rem;
+    }
+
+    .price-box {
+        align-items: flex-start;
     }
 }

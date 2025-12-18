@@ -1,6 +1,12 @@
 const API_BASE = '/orders';
-const USER_ID = 10;
-const IS_MEMBER_LOGGED_IN = true;
+const IS_MEMBER_LOGGED_IN =
+    (typeof window !== 'undefined' && window.IS_MEMBER_LOGGED_IN !== undefined)
+        ? Boolean(window.IS_MEMBER_LOGGED_IN)
+        : false;
+const USER_ID =
+    (typeof window !== 'undefined' && window.USER_ID !== undefined)
+        ? window.USER_ID
+        : null;
 
 // 백엔드 Enum과 일치
 const ORDER_STATUS = {

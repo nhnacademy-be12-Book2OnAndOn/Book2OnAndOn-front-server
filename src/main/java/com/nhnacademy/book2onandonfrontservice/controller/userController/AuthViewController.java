@@ -295,6 +295,8 @@ public class AuthViewController {
                 // Bearer  붙여서 백엔드 전송
                 userClient.logout("Bearer " + rawAccessToken);
             } catch (Exception e) {
+                // 백엔드 호출이 실패하더라도(이미 만료됨 등),
+                // 프론트엔드에서는 무조건 로그아웃 처리를 진행해야 함.
                 log.warn("백엔드 로그아웃 호출 실패 (토큰 만료 등): {}", e.getMessage());
             }
         }
