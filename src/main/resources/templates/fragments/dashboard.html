@@ -29,7 +29,11 @@
                                             <div class="price-info">
                                                 <span class="price" th:text="${b.priceSales != null} ? '₩' + ${#numbers.formatInteger(b.priceSales, 0, 'COMMA')} : '가격미정'">₩0</span>
                                             </div>
-                                            <button class="like-btn" th:classappend="${b.likedByCurrentUser} ? 'active' : ''" th:onclick="'toggleLike(this, ' + ${b.id} + ')'" type="button">
+                                            <button class="like-btn"
+                                                    th:classappend="${b.likedByCurrentUser} ? 'active' : ''"
+                                                    th:attr="data-book-id=${b.id}, data-book-title=${b.title}, data-book-authors=${b.contributorNames != null ? #strings.listJoin(b.contributorNames, ', ') : ''}, data-book-thumb=${b.thumbnail}, data-book-price-sales=${b.priceSales}, data-book-price-standard=${b.priceStandard}"
+                                                    th:onclick="'toggleLike(this, ' + ${b.id} + ')'"
+                                                    type="button">
                                                 <span class="heart-icon"></span>
                                                 <span class="like-count" th:text="${b.likeCount}">0</span>
                                             </button>

@@ -1,7 +1,7 @@
 /* Guest order lookup page styles */
 
 .guest-order-page {
-    background: #f5f7f2;
+    background: var(--ivory);
 }
 
 .order-guest-shell {

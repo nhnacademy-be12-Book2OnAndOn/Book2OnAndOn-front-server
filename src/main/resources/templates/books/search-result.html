@@ -26,9 +26,9 @@
 
         <div>
             <select class="search-sort" onchange="location.href=this.value">
-                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='score')}"
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='score', priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}"
                         th:selected="${condition.sort == null or condition.sort.toString() == 'score'}">정확도순</option>
-                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='publishDate,desc')}"
+                <option th:value="@{/books/search(keyword=${condition.keyword}, sort='publishDate,desc', priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}"
                         th:selected="${condition.sort != null and condition.sort.toString().contains('publishDate')}">최신순</option>
             </select>
         </div>
@@ -39,31 +39,78 @@
         <a class="btn-green" href="/">홈으로 가기</a>
     </div>
 
-    <div th:unless="${books.isEmpty()}" class="book-grid">
-
-        <div th:each="book : ${books}" class="book-card">
-
-            <a class="card-overlay-link" th:href="@{/books/{id}(id=${book.id})}"></a>
-
-            <div class="book-cover">
-                <img th:src="${book.thumbnail != null and book.thumbnail != '' ? book.thumbnail : '/images/no-image.png'}"
-                     alt="책 표지"
-                     onerror="this.src='https://via.placeholder.com/240x300?text=No+Image'"/>
-            </div>
-
-            <div class="book-details">
-                <div class="book-title" th:text="${book.title}">책 제목</div>
-                <div class="book-author" th:text="${book.contributorNames != null ? #strings.listJoin(book.contributorNames, ', ') : ''}">저자</div>
-
-                <div class="price-row">
-                    <span class="book-price" th:text="${#numbers.formatInteger(book.priceSales, 0, 'COMMA') + '원'}">15,000원</span>
-                    <span class="book-rating">★ <span th:text="${book.rating}">0.0</span></span>
+    <div th:unless="${books.isEmpty()}" class="search-layout">
+        <aside class="search-filters">
+            <div class="filter-card">
+                <h4>필터</h4>
+                <div class="filter-group">
+                    <p class="filter-title">가격대</p>
+                    <label class="filter-option">
+                        <input type="radio" name="priceRange" value="all" checked>
+                        <span>전체</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="priceRange" value="under-15000">
+                        <span>15,000원 이하</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="priceRange" value="15000-25000">
+                        <span>15,000 - 25,000원</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="priceRange" value="over-25000">
+                        <span>25,000원 이상</span>
+                    </label>
                 </div>
+                <div class="filter-divider"></div>
+                <div class="filter-group">
+                    <p class="filter-title">평점</p>
+                    <label class="filter-option">
+                        <input type="radio" name="ratingRange" value="4.5">
+                        <span>★ 4.5점 이상</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="ratingRange" value="4.0">
+                        <span>★ 4점 이상</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="ratingRange" value="3.5">
+                        <span>★ 3.5점 이상</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="ratingRange" value="all" checked>
+                        <span>★ 전체</span>
+                    </label>
+                </div>
+                <button type="button" class="filter-reset">필터 초기화</button>
             </div>
+        </aside>
 
-            <button type="button" class="btn-outline-green" onclick="alert('장바구니 기능 연결 필요')">
-                장바구니
-            </button>
+        <div class="book-grid">
+            <div th:each="book : ${books}" class="book-card"
+                 th:attr="data-price=${book.priceSales}, data-rating=${book.rating != null ? book.rating : 0}">
+                <a class="card-overlay-link" th:href="@{/books/{id}(id=${book.id})}"></a>
+
+                <div class="book-cover">
+                    <img th:src="${book.thumbnail != null and book.thumbnail != '' ? book.thumbnail : '/images/no-image.png'}"
+                         alt="책 표지"
+                         onerror="this.src='https://via.placeholder.com/240x300?text=No+Image'"/>
+                </div>
+
+                <div class="book-details">
+                    <div class="book-title" th:text="${book.title}">책 제목</div>
+                    <div class="book-author" th:text="${book.contributorNames != null ? #strings.listJoin(book.contributorNames, ', ') : ''}">저자</div>
+
+                    <div class="price-row">
+                        <span class="book-price" th:text="${#numbers.formatInteger(book.priceSales, 0, 'COMMA') + '원'}">15,000원</span>
+                        <span class="book-rating">★ <span th:text="${book.rating}">0.0</span></span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-outline-green" onclick="alert('장바구니 기능 연결 필요')">
+                    장바구니
+                </button>
+            </div>
         </div>
     </div>
 
@@ -71,22 +118,23 @@
          th:with="totalPagesCalc=${(page.totalElements + page.size - 1) / page.size}"
          class="pagination">
         <a th:if="${page.number > 0}"
-           th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number - 1})}">&lt;</a>
+           th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number - 1}, priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}">&lt;</a>
 
         <th:block th:each="i : ${#numbers.sequence(0, totalPagesCalc - 1)}">
             <a th:if="${i >= page.number - 2 and i <= page.number + 2}"
                th:classappend="${i == page.number} ? 'active'"
                th:text="${i + 1}"
-               th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${i})}">1</a>
+               th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${i}, priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}">1</a>
         </th:block>
 
         <a th:if="${page.number + 1 < totalPagesCalc}"
-           th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number + 1})}">&gt;</a>
+           th:href="@{/books/search(keyword=${condition.keyword}, sort=${condition.sort}, page=${page.number + 1}, priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}">&gt;</a>
     </div>
 
 </main>
 
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script th:src="@{/js/book-filters.js}"></script>
 
 </body>
 </html>

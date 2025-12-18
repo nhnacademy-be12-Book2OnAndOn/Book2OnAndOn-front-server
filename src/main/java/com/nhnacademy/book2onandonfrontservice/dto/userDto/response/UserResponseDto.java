@@ -1,5 +1,6 @@
 package com.nhnacademy.book2onandonfrontservice.dto.userDto.response;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,8 @@ public class UserResponseDto {
     private String email;
     private String phone;
     private String nickname;
+    @JsonAlias({"point", "totalPoint", "currentPoint"})
+    private Integer point;
     private String role;
     private String gradeName;
     private String status;

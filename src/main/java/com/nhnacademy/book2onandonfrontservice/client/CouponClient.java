@@ -26,7 +26,7 @@ public interface CouponClient {
                                @RequestParam(value = "status", required = false) String status);
 
     @PutMapping("/api/admin/coupons/{coupon-id}")
-    void updateCouponQuantity(@RequestHeader("Authorization") String accessToken, @PathVariable Long couponId,
+    void updateCouponQuantity(@RequestHeader("Authorization") String accessToken, @PathVariable("coupon-id") Long couponId,
                               @RequestBody CouponUpdateDto updateDto);
 
     @GetMapping("/api/coupons/issuable")

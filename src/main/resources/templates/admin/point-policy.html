@@ -24,14 +24,25 @@
     <main class="admin-content">
         <div class="admin-header">
             <div>
-                <p class="eyebrow">포인트 정책</p>
+                <p class="eyebrow">포인트 정책 관리 목록</p>
                 <h2>포인트 정책 관리</h2>
             </div>
-            <button class="btn-primary" onclick="loadPolicies()">🔄 새로고침</button>
+            <!--            <button class="btn-primary" onclick="loadPolicies()">새로고침</button>-->
         </div>
 
         <div class="table-card policies-table">
-            <table class="admin-table">
+            <div class="admin-toolbar">
+                <div class="admin-search">
+                    <label for="pointPolicySearch">검색</label>
+                    <input class="form-control"
+                           data-search-target="#pointPolicyTable"
+                           id="pointPolicySearch"
+                           placeholder="정책명, 상태"
+                           type="text">
+                </div>
+            </div>
+
+            <table class="admin-table" id="pointPolicyTable">
                 <thead>
                 <tr>
                     <th>정책 ID</th>
@@ -102,10 +113,10 @@
         <div class="form-group" style="display:flex; align-items:center; gap:12px;">
             <label class="form-label" style="margin:0;">활성 상태</label>
             <label class="toggle-pill">
-                <input id="activeToggle" type="checkbox" onchange="syncActiveLabel()">
+                <input id="activeToggle" onchange="syncActiveLabel()" type="checkbox">
                 <span class="toggle-switch"></span>
             </label>
-            <span id="activeStateLabel" class="muted" style="min-width:48px; text-align:left;">활성</span>
+            <span class="muted" id="activeStateLabel" style="min-width:48px; text-align:left;">활성</span>
         </div>
         <div class="modal-actions">
             <button class="btn btn-secondary" onclick="closeActiveModal()" type="button">취소</button>
@@ -115,6 +126,7 @@
 </div>
 
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script src="/js/admin-table-search.js"></script>
 <script src="/js/pointPolicy.js"></script>
 </body>
 </html>
