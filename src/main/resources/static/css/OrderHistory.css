@@ -264,3 +264,58 @@ select#sortOrderSelect {
     align-self: flex-end;
     margin-left: 5px;
 }
+
+
+/* 주문 안내 가이드 섹션 */
+.order-guide-section {
+    margin: 40px 0 20px 0;
+    padding: 20px;
+    background-color: #fcfcfc;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #555;
+}
+
+.guide-header { margin-bottom: 20px; line-height: 1.8; color: #666; }
+.guide-header strong { color: #1a73e8; }
+
+.process-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 25px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+}
+
+.process-step { text-align: center; flex: 1; }
+.step-icon { font-size: 26px; margin-bottom: 8px; opacity: 0.7; }
+.process-step span { font-weight: bold; color: #333; display: block; margin-bottom: 4px; font-size: 14px; }
+.step-desc { font-size: 11px; color: #999; margin: 0; }
+.process-arrow { color: #ddd; font-size: 12px; font-weight: normal; }
+
+.guide-footer-bar {
+    display: flex;
+    margin-top: 8px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.cancel-zone {
+    flex: 3; /* 주문접수 ~ 출고작업중까지의 비중 */
+    background-color: #e8f0fe;
+    color: #1a73e8;
+    border-radius: 4px 0 0 4px;
+}
+
+.return-zone {
+    flex: 1; /* 배송중/완료 비중 */
+    background-color: #f1f1f1;
+    color: #777;
+    border-radius: 0 4px 4px 0;
+}
