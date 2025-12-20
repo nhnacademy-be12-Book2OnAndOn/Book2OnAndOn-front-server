@@ -9,6 +9,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LocalSignUpRe
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LoginRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PasswordChangeRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PaycoLoginRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.ReissueRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressCreateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserUpdateRequest;
@@ -61,6 +62,11 @@ public interface UserClient {
     // [Auth] 임시비밀번호 발급
     @PostMapping("/api/auth/find-password")
     void findPassword(@RequestBody FindPasswordRequest request);
+
+    // [Auth] 토큰 재발급
+    @PostMapping("/api/auth/reissue")
+    TokenResponseDto reissue(@RequestBody ReissueRequestDto request);
+
 
     /*
      * [User] 내 정보 조회 (마이페이지용)

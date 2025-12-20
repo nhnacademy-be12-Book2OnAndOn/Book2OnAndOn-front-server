@@ -11,5 +11,5 @@ public class TokenResponseDto {
     private String accessToken;
     private String refreshToken;
     private String tokenType; // "Bearer"
-    private String expiresIn; // 만료시간 (선택)
+    private String expiresIn; // 만료시간
 }

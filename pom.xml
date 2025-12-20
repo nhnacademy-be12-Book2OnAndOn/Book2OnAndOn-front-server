@@ -73,7 +73,8 @@
         <dependency>
             <groupId>io.github.openfeign.form</groupId>
             <artifactId>feign-form-spring</artifactId>
-            <version>3.8.0</version> </dependency>
+            <version>3.8.0</version>
+        </dependency>
         <dependency>
             <groupId>io.github.openfeign.form</groupId>
             <artifactId>feign-form</artifactId>
@@ -99,6 +100,11 @@
             <groupId>org.webjars.npm</groupId>
             <artifactId>toast-ui__editor</artifactId>
             <version>3.2.2</version>
+        </dependency>
+        <!--Spring AOP 401 intercept-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
     </dependencies>
 
