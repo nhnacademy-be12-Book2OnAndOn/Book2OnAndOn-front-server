@@ -1,18 +1,17 @@
 <!DOCTYPE html>
-<html lang="ko" th:replace="~{layout/mypage-layout :: layout(
-        title = ~{::title},
-        sidebarActive = 'points',
-        content = ~{::content},
-        extraHead = ~{::extraHead}
-      )}" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/mypage-layout}"
+      th:with="sidebarActive='points'">
 
 <head>
-    <title>포인트 내역</title>
-    <th:block th:fragment="extraHead"></th:block>
+    <title layout:fragment="title">포인트 내역</title>
+    <th:block layout:fragment="extraHead"></th:block>
 </head>
 
 <body>
-<div class="mypage-content points-page" th:fragment="content">
+<div class="mypage-content points-page" layout:fragment="content">
     <div class="dashboard-header">
         <h2>포인트 내역</h2>
         <p class="muted">적립/사용 기록과 잔액을 한 번에 확인하세요.</p>

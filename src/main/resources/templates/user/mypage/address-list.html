@@ -1,19 +1,17 @@
 <!DOCTYPE html>
-<html lang="ko" th:replace="~{layout/mypage-layout :: layout(
-        title = ~{::title},
-        sidebarActive = 'addresses',
-        content = ~{::content},
-        extraHead = ~{::extraHead}
-      )}"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/mypage-layout}"
+      th:with="sidebarActive='addresses'">
 
 <head>
-    <title>배송지 관리</title>
-    <th:block th:fragment="extraHead"></th:block>
+    <title layout:fragment="title">배송지 관리</title>
+    <th:block layout:fragment="extraHead"></th:block>
 </head>
 
 <body>
-<div th:fragment="content">
+<div layout:fragment="content">
 
     <h2>주소 목록 관리</h2>
 

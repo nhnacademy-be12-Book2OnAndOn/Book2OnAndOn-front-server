@@ -117,7 +117,7 @@ public interface BookClient {
     /// 좋아요 토글 요청
     @PostMapping("/api/books/{bookId}/likes")
     BookLikeToggleResponse toggleLike(@RequestHeader("Authorization") String accessToken,
-                                      @RequestHeader("X-USER-ID") Long userId,
+                                      @RequestHeader("X-User-Id") Long userId,
                                       @PathVariable("bookId") Long bookId);
 
     /// --------------- elastic search ----------------- 북 검색엔진

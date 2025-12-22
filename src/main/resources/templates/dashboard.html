@@ -1,16 +1,13 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
 <head>
-    <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Book2OnAndOn - 온라인 서점</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <title layout:fragment="title">Book2OnAndOn - 온라인 서점</title>
 </head>
 <body>
-<th:block
-        th:replace="~{fragments/layout :: commonHeader(${user ?: session.user}, ${cartCount}, null, null, false)}"></th:block>
-
-<main th:with="currentUser=${user ?: session.user}">
+<main layout:fragment="content" th:with="currentUser=${user ?: session.user}">
     <section class="hero">
         <div class="container hero-inner">
             <div class="hero-text">
@@ -269,8 +266,6 @@
     </section>
 
 </main>
-
-<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 <script th:inline="javascript">
     /*<![CDATA[*/

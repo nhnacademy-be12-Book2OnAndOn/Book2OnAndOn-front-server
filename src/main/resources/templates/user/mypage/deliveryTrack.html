@@ -1,14 +1,19 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/mypage-layout}"
+      th:with="sidebarActive='orders'">
 <head>
     <meta charset="UTF-8">
-    <title>배송 조회</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/mypage-delivery-track.css">
+    <title layout:fragment="title">배송 조회</title>
+    <th:block layout:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/mypage-delivery-track.css}">
+    </th:block>
 </head>
 <body class="delivery-track">
 
-<div class="track-container">
+<div class="track-container" layout:fragment="content">
 
     <div class="track-header">
         <h2>📦 배송 정보</h2>
