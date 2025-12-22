@@ -18,10 +18,20 @@
                 <h2>도서 관리</h2>
                 <p class="muted">도서 등록/검색 및 수정</p>
             </div>
-            <div class="chip-tabs">
-                <a class="chip-tab" th:href="@{/admin/books/create}">+ 도서 등록</a>
+            <div class="chip-tabs" style="gap: 10px;">
+                <a class="chip-tab chip-ghost" th:href="@{/admin/books/create}">+ 도서 등록</a>
+                <form th:action="@{/admin/books/reindex/all}" method="post" style="display:inline;">
+                    <button type="submit" class="chip-tab chip-ghost">전체 재인덱싱</button>
+                </form>
             </div>
         </div>
+
+        <th:block th:if="${reindexMessage != null}">
+            <div class="alert success" th:text="${reindexMessage}"></div>
+        </th:block>
+        <th:block th:if="${reindexError != null}">
+            <div class="alert danger" th:text="${reindexError}"></div>
+        </th:block>
 
         <form class="admin-toolbar" method="get" th:action="@{/admin/books}" id="bookSearchForm" style="align-items: flex-end;">
             <div class="form-field" style="flex: 1; display: flex; gap: 12px; align-items: flex-end;">
@@ -37,6 +47,19 @@
             <input type="hidden" name="page" value="0">
             <input type="hidden" name="size" value="10">
         </form>
+
+        <div class="admin-toolbar reindex-toolbar">
+            <form th:action="@{/admin/books/reindex/category}" method="post" class="reindex-form">
+                <label class="reindex-label" for="categoryReindexInput">카테고리 ID</label>
+                <input id="categoryReindexInput" class="reindex-input" type="number" name="categoryId" placeholder="예: 10" required>
+                <button class="btn-ghost" type="submit">카테고리 재인덱싱</button>
+            </form>
+            <form th:action="@{/admin/books/reindex/tag}" method="post" class="reindex-form">
+                <label class="reindex-label" for="tagReindexInput">태그 ID</label>
+                <input id="tagReindexInput" class="reindex-input" type="number" name="tagId" placeholder="예: 5" required>
+                <button class="btn-ghost" type="submit">태그 재인덱싱</button>
+            </form>
+        </div>
 
         <section class="admin-detail-card" style="padding: 0;">
             <table class="admin-table">

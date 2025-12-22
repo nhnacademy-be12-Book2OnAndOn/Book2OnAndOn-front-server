@@ -676,12 +676,17 @@ body {
 }
 
 .chip-tab {
-    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
     border-radius: 10px;
     border: 1px solid #d5ddd6;
     background: #f3f6f4;
     color: #2d5f3f;
-    font-weight: 700;
+    font-weight: 800;
+    font-size: 1.05rem;
+    min-height: 52px;
     text-decoration: none;
     transition: all .2s;
     position: relative;
@@ -713,6 +718,51 @@ body {
     background: #f1f4f2;
     border-color: #dfe6e1;
     color: #234132;
+}
+
+.chip-ghost {
+    background: #f5f7f4;
+    border-color: #d5ddd6;
+    box-shadow: 0 8px 18px rgba(7, 28, 15, 0.08);
+    font-weight: 800;
+    padding: 10px 16px;
+}
+
+.chip-ghost:hover {
+    background: #e9f1ea;
+}
+
+.reindex-toolbar {
+    margin-top: -8px;
+    gap: 16px;
+}
+
+.reindex-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #f5f7f4;
+    border: 1px solid #d8e0da;
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+}
+
+.reindex-label {
+    font-weight: 800;
+    color: #1f4a30;
+    white-space: nowrap;
+    min-width: 86px;
+}
+
+.reindex-input {
+    width: 150px;
+    padding: 10px 12px;
+    border: 1px solid #d5ddd6;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    background: #fff;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
 }
 
 /* 반응형 */

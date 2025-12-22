@@ -1,6 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.controller.adminController;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
+import com.nhnacademy.book2onandonfrontservice.client.BookReindexClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSaveRequest;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
 @Controller
@@ -44,6 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class BookAdminController {
     private final BookClient bookClient;
+    private final BookReindexClient bookReindexClient;
 
     /// --------------------------Book Admin ------------------------------------
 
@@ -82,6 +85,42 @@ public class BookAdminController {
         model.addAttribute("books", result.getContent());
         model.addAttribute("condition", condition);
         return "admin/books/list";
+    }
+
+    @PostMapping("/books/reindex/all")
+    public String reindexAll(RedirectAttributes redirectAttributes) {
+        try {
+            bookReindexClient.reindexAll();
+            redirectAttributes.addFlashAttribute("reindexMessage", "전체 재인덱싱을 요청했습니다.");
+        } catch (Exception e) {
+            log.error("전체 재인덱싱 요청 실패", e);
+            redirectAttributes.addFlashAttribute("reindexError", "전체 재인덱싱 요청에 실패했습니다.");
+        }
+        return "redirect:/admin/books";
+    }
+
+    @PostMapping("/books/reindex/category")
+    public String reindexCategory(@RequestParam Long categoryId, RedirectAttributes redirectAttributes) {
+        try {
+            bookReindexClient.manualReindexCategory(categoryId);
+            redirectAttributes.addFlashAttribute("reindexMessage", "카테고리 " + categoryId + " 재인덱싱을 요청했습니다.");
+        } catch (Exception e) {
+            log.error("카테고리 재인덱싱 요청 실패: {}", categoryId, e);
+            redirectAttributes.addFlashAttribute("reindexError", "카테고리 재인덱싱 요청에 실패했습니다.");
+        }
+        return "redirect:/admin/books";
+    }
+
+    @PostMapping("/books/reindex/tag")
+    public String reindexTag(@RequestParam Long tagId, RedirectAttributes redirectAttributes) {
+        try {
+            bookReindexClient.manualReindexTag(tagId);
+            redirectAttributes.addFlashAttribute("reindexMessage", "태그 " + tagId + " 재인덱싱을 요청했습니다.");
+        } catch (Exception e) {
+            log.error("태그 재인덱싱 요청 실패: {}", tagId, e);
+            redirectAttributes.addFlashAttribute("reindexError", "태그 재인덱싱 요청에 실패했습니다.");
+        }
+        return "redirect:/admin/books";
     }
 
     /// 도서 수정 페이지
