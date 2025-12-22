@@ -17,9 +17,9 @@
 
             <form class="global-search" method="get" th:action="@{/books/search}">
                 <div class="group">
-                    <button type="submit" aria-label="검색"
-                            style="background:none; border:none; padding:0; display:flex; align-items:center; cursor:pointer;">
-                        <svg aria-hidden="true" class="icon" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                    <button aria-label="검색" style="background:none; border:none; padding:0; display:flex; align-items:center; cursor:pointer;"
+                            type="submit">
+                        <svg aria-hidden="true" class="icon" style="width: 20px; height: 20px;" viewBox="0 0 24 24">
                             <g>
                                 <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
                             </g>
@@ -35,14 +35,16 @@
                            th:value="${condition?.keyword}"
                            type="text">
 
-                    <button aria-label="검색어 삭제" class="btn-clear" type="button"
-                            onclick="this.previousElementSibling.value = ''; this.previousElementSibling.focus();"></button>
+                    <button aria-label="검색어 삭제" class="btn-clear" onclick="this.previousElementSibling.value = ''; this.previousElementSibling.focus();"
+                            type="button"></button>
                     <button aria-label="검색어 삭제" class="btn-clear"
                             onclick="document.querySelector('.global-search .input').value = ''"
                             type="button"></button>
                 </div>
+
                 <label class="ai-toggle">
-                    <input type="checkbox" name="ai" value="true" id="aiSearchToggle">
+                    <input id="aiSearchToggle" name="useAiSearch" th:checked="${condition.useAiSearch}" type="checkbox"
+                           value="true">
                     <span class="slider"></span>
                     <span class="label">AI 검색</span>
                 </label>
@@ -252,7 +254,7 @@
                     }
                     if (resolvedLikeCount !== null) {
                         if (!likedMap[id]) {
-                            likedMap[id] = { id: bookId, likeCount: resolvedLikeCount };
+                            likedMap[id] = {id: bookId, likeCount: resolvedLikeCount};
                         } else {
                             likedMap[id].likeCount = resolvedLikeCount;
                         }
@@ -276,7 +278,7 @@
             const token = getCookie('accessToken');
             if (!token) return;
             try {
-                const res = await fetch('/users/me/likes/ids?page=0&size=100', { credentials: 'include' });
+                const res = await fetch('/users/me/likes/ids?page=0&size=100', {credentials: 'include'});
                 if (!res.ok) return;
                 const ids = await res.json();
                 if (!Array.isArray(ids)) return;
@@ -349,12 +351,12 @@
         </div>
         <p class="copyright">© 2025 Book2OnAndOn. All rights reserved. <br> 도서 DB 제공 : 알라딘 인터넷서점(www.aladin.co.kr)</p>
     </footer>
-    <div class="recent-floating" id="recentFloating" aria-label="최근 본 도서">
-        <button class="recent-toggle" type="button" onclick="toggleRecentFloating()">최근 본 도서</button>
+    <div aria-label="최근 본 도서" class="recent-floating" id="recentFloating">
+        <button class="recent-toggle" onclick="toggleRecentFloating()" type="button">최근 본 도서</button>
         <div class="recent-body">
             <div class="recent-head">
                 <span>최근 본 도서</span>
-                <button class="close-btn" type="button" onclick="toggleRecentFloating()">×</button>
+                <button class="close-btn" onclick="toggleRecentFloating()" type="button">×</button>
             </div>
             <div class="recent-list" id="recentList">
                 <p class="muted">불러오는 중...</p>

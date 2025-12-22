@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -117,13 +118,13 @@ public interface BookClient {
     /// 좋아요 토글 요청
     @PostMapping("/api/books/{bookId}/likes")
     BookLikeToggleResponse toggleLike(@RequestHeader("Authorization") String accessToken,
-                                      @RequestHeader("X-USER-ID") Long userId,
+                                      @RequestHeader("X-User-Id") Long userId,
                                       @PathVariable("bookId") Long bookId);
 
     /// --------------- elastic search ----------------- 북 검색엔진
     @PostMapping("/api/books/search")
     Page<BookDto> searchBooks(@RequestHeader(value = "Authorization", required = false) String accessToken,
-                              @SpringQueryMap BookSearchCondition condition,//필드들을 뜯어서 검색조건으로 만듦 즉, 쿼리 파라미터로 만들수 있음
+                              @ModelAttribute BookSearchCondition condition,//필드들을 뜯어서 검색조건으로 만듦 즉, 쿼리 파라미터로 만들수 있음
                               @SpringQueryMap Pageable pageable);
 
 

@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html th:replace="~{layout/mypage-layout :: layout(~{::title}, 'coupons', ~{::section}, ~{::extraHead})}"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/mypage-layout}"
+      th:with="sidebarActive='coupons'">
 <head>
-    <title>내 쿠폰함</title>
-    <th:block th:fragment="extraHead">
+    <title layout:fragment="title">내 쿠폰함</title>
+    <th:block layout:fragment="extraHead">
         <link rel="stylesheet" th:href="@{/css/memberCoupon.css}">
     </th:block>
 </head>
 <body>
 
-<section class="coupon-container">
+<section class="coupon-container" layout:fragment="content">
     <div class="page-header">
         <div class="page-title">쿠폰함</div>
         <p class="muted">사용 가능한 쿠폰 및 사용한 쿠폰들을 확인하세요.</p>
@@ -84,9 +87,11 @@
         </div>
     </div>
 
-    <div style="text-align: center; padding: 5rem; color: #999;" th:if="${#lists.isEmpty(myCoupons)}">
-        <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
-        <p>보유하신 쿠폰이 없습니다.</p>
+    <div class="coupon-empty empty-state" th:if="${#lists.isEmpty(myCoupons)}">
+        <div>
+            <p class="empty-title">보유하신 쿠폰이 없습니다.</p>
+            <p class="empty-desc">이벤트와 프로모션을 통해 다양한 쿠폰을 받아보세요.</p>
+        </div>
     </div>
 
     <div class="pagination" th:if="${totalPages > 0}">
