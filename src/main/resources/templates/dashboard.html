@@ -275,25 +275,38 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     function addToCart(bookId) {
-        fetch('/api/cart/add', {
+        // BFF 장바구니 API에 맞춰 요청
+        fetch('/cart/user/items', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({bookId: bookId})
+            credentials: 'include',
+            body: JSON.stringify({bookId: bookId, quantity: 1})
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const badge = document.querySelector('[data-cart-count]');
-                    if (badge) {
-                        badge.textContent = parseInt(badge.textContent || '0', 10) + 1;
-                        badge.style.display = 'inline-flex';
-                    }
-                    if (confirm('장바구니에 담겼습니다. 이동하시겠습니까?')) location.href = '/cart';
-                } else {
-                    alert('실패: ' + (data.message || '오류'));
+            .then(response => {
+                if (response.status === 401) {
+                    // 비회원: 게스트 장바구니로 담기
+                    return fetch('/cart/guest/items', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        credentials: 'include',
+                        body: JSON.stringify({bookId: bookId, quantity: 1})
+                    });
                 }
+                return response;
             })
-            .catch(e => console.error(e));
+            .then(response => {
+                if (!response.ok) throw new Error('장바구니 담기에 실패했습니다.');
+                const badge = document.querySelector('[data-cart-count]');
+                if (badge) {
+                    badge.textContent = parseInt(badge.textContent || '0', 10) + 1;
+                    badge.style.display = 'inline-flex';
+                }
+                if (confirm('장바구니에 담겼습니다. 이동하시겠습니까?')) location.href = '/cart';
+            })
+            .catch(e => {
+                console.error(e);
+                alert(e.message || '장바구니 담기 실패');
+            });
     }
 
     const toggleLike = window.toggleLike;
