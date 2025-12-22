@@ -1,17 +1,19 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>로그인 - Book2OnAndOn</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <title layout:fragment="title">로그인 - Book2OnAndOn</title>
+    <th:block layout:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/auth.css}">
+    </th:block>
 </head>
 <body class="auth-page">
 
-<th:block th:replace="~{fragments/layout :: commonHeader(${user}, ${cartCount}, null, null, false)}"></th:block>
-
-<main>
+<main layout:fragment="content">
     <section class="hero auth-hero">
         <div class="container hero-inner">
             <div class="hero-text">
@@ -120,8 +122,6 @@
         </div> <!-- container -->
     </section>
 </main>
-
-<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 
 </body>
 </html>

@@ -3,6 +3,7 @@
     max-width: 1100px;
     /* width: 100%; 컨테이너가 좁아지지 않게 명시 */
     margin: 0 auto 2.5rem;
+    min-height: 60vh;
 }
 
 .page-header {
@@ -155,6 +156,20 @@
     overflow: hidden;
     text-overflow: ellipsis;
     word-break: keep-all; /* 단어 중간에 끊기지 않도록 */
+}
+
+/* 빈 상태 */
+.coupon-empty {
+    min-height: 360px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #667768;
+    background: linear-gradient(180deg, #f8fbf8 0%, #f1f5f2 100%);
+    border: 1px dashed #cdd8d0;
+    border-radius: 18px;
+    box-shadow: 0 16px 34px rgba(7, 28, 15, 0.08);
 }
 
 .coupon-condition {

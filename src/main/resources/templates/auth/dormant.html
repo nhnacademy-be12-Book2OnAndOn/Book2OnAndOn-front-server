@@ -1,12 +1,18 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
 <head>
     <meta charset="UTF-8">
-    <title>휴면 계정 해제</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <title layout:fragment="title">휴면 계정 해제</title>
+    <th:block layout:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/auth.css}">
+    </th:block>
 </head>
 <body>
+
+<main layout:fragment="content">
 
 <div class="auth-container">
     <div class="auth-card">
@@ -42,6 +48,8 @@
 
     </div>
 </div>
+
+</main>
 
 <script>
     function showMessage(msg, isError = false) {
@@ -90,8 +98,8 @@
         const email = document.getElementById('email').value;
         const code = document.getElementById('code').value;
 
-        if (!code) {
-            alert('인증번호를 입력해주세요.');
+        if (!email || !code) {
+            alert('이메일과 인증번호를 모두 입력해주세요.');
             return;
         }
 
@@ -103,8 +111,8 @@
             .then(async response => {
                 const text = await response.text();
                 if (response.ok) {
-                    alert(text); // "휴면 상태가 해제되었습니다..."
-                    location.href = '/login';
+                    showMessage(text);
+                    document.getElementById('btn-unlock').disabled = true;
                 } else {
                     throw new Error(text);
                 }
