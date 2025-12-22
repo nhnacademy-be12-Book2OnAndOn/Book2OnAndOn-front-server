@@ -41,8 +41,10 @@
                             onclick="document.querySelector('.global-search .input').value = ''"
                             type="button"></button>
                 </div>
+
                 <label class="ai-toggle">
-                    <input id="aiSearchToggle" name="useAiSearch" type="checkbox" value="true" th:checked="${condition.useAiSearch} >
+                    <input id="aiSearchToggle" name="useAiSearch" th:checked="${condition.useAiSearch}" type="checkbox"
+                           value="true">
                     <span class="slider"></span>
                     <span class="label">AI 검색</span>
                 </label>
