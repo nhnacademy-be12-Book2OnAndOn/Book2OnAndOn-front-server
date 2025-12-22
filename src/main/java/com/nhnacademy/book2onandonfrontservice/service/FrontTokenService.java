@@ -95,22 +95,22 @@ public class FrontTokenService {
 
     // 쿠키 생성 헬퍼
     private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        ResponseCookie cookie = ResponseCookie.from(name, value)
-                .path("/")
-                .httpOnly(true)
-                .secure(true)     // HTTPS 환경 필수
-                .maxAge(maxAge)
-                .sameSite("None") // Cross-Site 요청 허용 (Secure=true와 짝꿍)
-                .build();
-//
-        // 로컬용
 //        ResponseCookie cookie = ResponseCookie.from(name, value)
 //                .path("/")
 //                .httpOnly(true)
-//                .secure(false)
+//                .secure(true)     // HTTPS 환경 필수
 //                .maxAge(maxAge)
-//                .sameSite("Lax")
+//                .sameSite("None") // Cross-Site 요청 허용 (Secure=true와 짝꿍)
 //                .build();
+//
+        // 로컬용
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .path("/")
+                .httpOnly(true)
+                .secure(false)
+                .maxAge(maxAge)
+                .sameSite("Lax")
+                .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }

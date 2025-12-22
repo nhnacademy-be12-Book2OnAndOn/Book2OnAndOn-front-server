@@ -46,12 +46,17 @@ public class BookViewController {
         commonData(model);
         String accessToken = CookieUtils.getCookieValue(request, "accessToken");
         String bearer = toBearer(accessToken);
-        Page<BookDto> newBooks = bookClient.getNewArrivals(bearer, null, page, 0);
+        Page<BookDto> newBooks = Page.empty();
+        try {
+            newBooks = bookClient.getNewArrivals(bearer, null, page, DASHBOARD_SECTION_SIZE);
+        } catch (Exception e) {
+            log.error("신간 도서 조회 실패", e);
+        }
         List<BookDto> bestsellerDaily = Collections.emptyList();
         List<BookDto> bestsellerWeek = Collections.emptyList();
         Page<BookDto> likeBest = Page.empty();
         try {
-            likeBest = bookClient.getPopularBooks(bearer, page, 0);
+            likeBest = bookClient.getPopularBooks(bearer, page, DASHBOARD_SECTION_SIZE);
 //            log.info("인기도서 갯수: {}", likeBest.getSize());
         } catch (Exception e) {
             log.error("인기 도서 조회 실패", e);
