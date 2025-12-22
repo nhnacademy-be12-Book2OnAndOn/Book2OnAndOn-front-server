@@ -12,6 +12,18 @@ const DUMMY_POLICIES = [
 let policies = [];
 let currentEditingPolicy = null;
 
+const POLICY_LABELS = {
+    SIGNUP: '회원가입',
+    ORDER: '구매 적립',
+    REVIEW: '리뷰',
+    REVIEW_PHOTO: '포토리뷰'
+};
+
+function getPolicyLabel(policyName) {
+    if (!policyName) return '정책명 없음';
+    return POLICY_LABELS[policyName] || policyName;
+}
+
 // 페이지 로드 시 정책 목록 불러오기
 async function loadPolicies() {
     if (USE_DUMMY) {
@@ -56,7 +68,8 @@ function renderPolicies() {
     tbody.innerHTML = policies.map(policy => {
         const id = policy.pointPolicyId ?? policy.policyId ?? '';
         const idStr = id === null || id === undefined ? '' : String(id);
-        const name = policy.pointPolicyName ?? policy.policyName ?? '정책명 없음';
+        const rawName = policy.pointPolicyName ?? policy.policyName;
+        const name = getPolicyLabel(rawName);
         const fixedPoint = policy.pointAddPoint ?? policy.accrualPoint ?? null;
         const isActive = policy.pointIsActive ?? policy.isActive ?? false;
         const accrualRateText = '-'; // 현재 DTO에 비율 필드 없음
@@ -86,6 +99,10 @@ function renderPolicies() {
                 </tr>
             `;
     }).join('');
+
+    if (typeof window.applyAdminTableSearch === 'function') {
+        window.applyAdminTableSearch();
+    }
 }
 
 // 빈 상태 렌더링
@@ -113,7 +130,8 @@ function openEditModal(policyId) {
     currentEditingPolicy = policy;
 
     document.getElementById('editPolicyId').value = policy.pointPolicyId ?? policy.policyId ?? '';
-    document.getElementById('editPolicyName').value = policy.pointPolicyName ?? policy.policyName ?? '';
+    document.getElementById('editPolicyName').value =
+        getPolicyLabel(policy.pointPolicyName ?? policy.policyName);
     document.getElementById('editAccrualRate').value = 0; // 비율 필드 없음
     document.getElementById('editAccrualPoint').value = policy.pointAddPoint ?? policy.accrualPoint ?? 0;
 
@@ -190,7 +208,8 @@ function openActiveModal(policyId) {
 
     currentEditingPolicy = policy;
 
-    document.getElementById('activePolicyName').textContent = policy.pointPolicyName ?? policy.policyName ?? '';
+    document.getElementById('activePolicyName').textContent =
+        getPolicyLabel(policy.pointPolicyName ?? policy.policyName);
     document.getElementById('activeToggle').checked = policy.pointIsActive ?? policy.isActive ?? false;
     syncActiveLabel();
 

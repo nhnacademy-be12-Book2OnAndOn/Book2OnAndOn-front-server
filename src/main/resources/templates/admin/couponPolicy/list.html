@@ -50,6 +50,17 @@
             <a class="btn-ghost" href="/admin/policies">↺ 초기화</a>
         </form>
 
+        <div class="admin-toolbar">
+            <div class="admin-search">
+                <label for="couponPolicySearch">검색</label>
+                <input class="form-control"
+                       data-search-target="#policyTable"
+                       id="couponPolicySearch"
+                       placeholder="정책명, 타입, 상태"
+                       type="text">
+            </div>
+        </div>
+
         <div class="table-card">
             <table class="admin-table" id="policyTable">
                 <thead>
@@ -160,6 +171,7 @@
 </div>
 
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script src="/js/admin-table-search.js"></script>
 
 </body>
 </html>

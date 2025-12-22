@@ -7,7 +7,8 @@
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
-<th:block th:replace="~{fragments/layout :: commonHeader(${user ?: session.user}, ${cartCount}, null, null, false)}"></th:block>
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user ?: session.user}, ${cartCount}, null, null, false)}"></th:block>
 
 <main th:with="currentUser=${user ?: session.user}">
     <section class="hero">
@@ -26,8 +27,8 @@
             <div class="hero-visual">
                 <div class="hero-card">
                     <div class="hero-image">
-                        <img alt="추천 도서" th:if="${promotion?.imageUrl != null}" th:src="${promotion.imageUrl}"
-                             onerror="this.onerror=null; this.src='/images/no-image.png';">
+                        <img alt="추천 도서" onerror="this.onerror=null; this.src='/images/no-image.png';" th:if="${promotion?.imageUrl != null}"
+                             th:src="${promotion.imageUrl}">
                         <img alt="기본 이미지"
                              src="https://images.unsplash.com/photo-1473755504818-b72b6dfdc226?auto=format&fit=crop&w=820&q=80"
                              th:if="${promotion?.imageUrl == null}">
@@ -42,7 +43,8 @@
                         </div>
                         <p class="discount" th:if="${promotion.discountRate != null}"
                            th:text="${promotion.discountRate} + '% 할인'">20% 할인</p>
-                        <button class="btn ghost" th:onclick="'addToCart(' + ${promotion.id} + ')'"><span>장바구니 담기</span></button>
+                        <button class="btn ghost" th:onclick="'addToCart(' + ${promotion.id} + ')'"><span>장바구니 담기</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -60,22 +62,25 @@
                             <p class="section-eyebrow" th:text="${block.subtitle} ?: '큐레이션'">큐레이션 소제목</p>
                             <h2 th:text="${block.title} ?: '추천 도서'">추천 도서</h2>
                         </div>
-                        <a class="view-all" th:href="${block.viewAllLink}" th:if="${block.viewAllLink != null}">전체보기 →</a>
+                        <a class="view-all" th:href="${block.viewAllLink}" th:if="${block.viewAllLink != null}">전체보기
+                            →</a>
                     </div>
                     <div class="linked-grid" th:if="${block.books != null and !block.books.isEmpty()}">
                         <article class="linked-card" th:each="book : ${block.books}">
                             <a class="linked-thumb" th:href="@{/books/{id}(id=${book.id})}">
                                 <span class="linked-badge" th:if="${book.tagNames != null and !book.tagNames.isEmpty()}"
                                       th:text="${book.tagNames[0]}">태그</span>
-                                <img th:alt="${book.title}" th:if="${book.thumbnail != null}" th:src="${book.thumbnail}">
+                                <img th:alt="${book.title}" th:if="${book.thumbnail != null}"
+                                     th:src="${book.thumbnail}">
                                 <div class="thumb-fallback" th:unless="${book.thumbnail != null}">표지 준비중</div>
                             </a>
                             <div class="linked-info">
-                                <a th:href="@{/books/{id}(id=${book.id})}" class="no-deco">
+                                <a class="no-deco" th:href="@{/books/{id}(id=${book.id})}">
                                     <p class="linked-title" th:text="${book.title} ?: '제목 없음'">도서 제목</p>
                                 </a>
                                 <p class="linked-author"
-                                   th:text="${book.contributorNames != null and !book.contributorNames.isEmpty()} ? ${book.contributorNames[0]} : '저자 정보 없음'">저자명</p>
+                                   th:text="${book.contributorNames != null and !book.contributorNames.isEmpty()} ? ${book.contributorNames[0]} : '저자 정보 없음'">
+                                    저자명</p>
                                 <div class="linked-meta">
                                     <span class="linked-rating" th:if="${book.rating != null}">
                                         ★ <span th:text="${book.rating}">0.0</span>
@@ -88,6 +93,7 @@
                                 <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
                                     <button class="like-btn"
                                             th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
+                                            th:attr="data-book-id=${book.id}, data-book-title=${book.title}, data-book-authors=${book.contributorNames != null ? #strings.listJoin(book.contributorNames, ', ') : ''}, data-book-thumb=${book.thumbnail}, data-book-price-sales=${book.priceSales}, data-book-price-standard=${book.priceStandard}"
                                             th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
                                             type="button">
                                         <span class="heart-icon"></span>
@@ -145,7 +151,8 @@
                 <div class="promo-copy">
                     <p class="cta-eyebrow">오늘의 추천</p>
                     <h3 th:text="${promotion?.title} ?: '새로운 책을 만나보세요'">새로운 책을 만나보세요</h3>
-                    <p class="muted" th:text="${promotion?.subtitle} ?: '지금 가장 인기 있는 도서를 추천합니다.'">지금 가장 인기 있는 도서를 추천합니다.</p>
+                    <p class="muted" th:text="${promotion?.subtitle} ?: '지금 가장 인기 있는 도서를 추천합니다.'">지금 가장 인기 있는 도서를
+                        추천합니다.</p>
                     <div class="price-row" th:if="${promotion != null}">
                         <span class="sale-price"
                               th:text="${promotion.salePrice} != null ? '₩' + ${#numbers.formatInteger(promotion.salePrice, 0, 'COMMA')} : ''">₩19,800</span>
@@ -155,12 +162,12 @@
                               th:text="${promotion.discountRate} + '% 할인'">10% 할인</span>
                     </div>
                     <div class="promo-actions" th:if="${promotion != null}">
-                        <button class="btn primary" type="button" onclick="goToPromoBook()">자세히 보기</button>
+                        <button class="btn primary" onclick="goToPromoBook()" type="button">자세히 보기</button>
                         <button class="btn secondary" th:onclick="'addToCart(' + ${promotion.id} + ')'">장바구니</button>
                     </div>
                 </div>
                 <div class="promo-visual">
-                    <div class="promo-image" role="button" onclick="goToPromoBook()">
+                    <div class="promo-image" onclick="goToPromoBook()" role="button">
                         <img alt="프로모션 도서" th:if="${promotion?.imageUrl != null}" th:src="${promotion.imageUrl}">
                         <img alt="기본 도서 이미지"
                              src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=760&q=80"
@@ -187,6 +194,7 @@
                 }
                 window.location.href = '/books';
             }
+
             /*]]>*/
         </script>
     </th:block>
@@ -280,7 +288,7 @@
                         badge.textContent = parseInt(badge.textContent || '0', 10) + 1;
                         badge.style.display = 'inline-flex';
                     }
-                    if(confirm('장바구니에 담겼습니다. 이동하시겠습니까?')) location.href = '/cart';
+                    if (confirm('장바구니에 담겼습니다. 이동하시겠습니까?')) location.href = '/cart';
                 } else {
                     alert('실패: ' + (data.message || '오류'));
                 }
@@ -299,9 +307,13 @@
             const slides = Array.from(slider.querySelectorAll('.book-slide'));
             const prevBtn = slider.querySelector('.slider-prev');
             const nextBtn = slider.querySelector('.slider-next');
+            const viewport = slider.querySelector('.slider-viewport');
             let index = 0;
+            let startX = 0;
+            let isDragging = false;
+            let dragDelta = 0;
 
-            if (!track || slides.length === 0 || !prevBtn || !nextBtn) return;
+            if (!track || slides.length === 0 || !prevBtn || !nextBtn || !viewport) return;
 
             const update = () => {
                 track.style.transform = `translateX(-${index * 100}%)`;
@@ -309,22 +321,107 @@
                 nextBtn.disabled = index >= slides.length - 1;
             };
 
-            prevBtn.addEventListener('click', () => {
+            const movePrev = () => {
                 if (index > 0) {
                     index -= 1;
                     update();
                 }
-            });
+            };
 
-            nextBtn.addEventListener('click', () => {
+            const moveNext = () => {
                 if (index < slides.length - 1) {
                     index += 1;
                     update();
                 }
+            };
+
+            let wheelCooldown = false;
+            const wheelThreshold = 40;
+            const wheelCooldownMs = 220;
+
+            prevBtn.addEventListener('click', () => {
+                movePrev();
             });
+
+            nextBtn.addEventListener('click', () => {
+                moveNext();
+            });
+
+            viewport.addEventListener('pointerdown', (event) => {
+                if (event.button !== 0) return;
+                if (event.target.closest('a, button, input, textarea, select, label')) return;
+                isDragging = true;
+                dragDelta = 0;
+                startX = event.clientX;
+                viewport.setPointerCapture(event.pointerId);
+            });
+
+            viewport.addEventListener('pointermove', (event) => {
+                if (!isDragging) return;
+                dragDelta = event.clientX - startX;
+            });
+
+            viewport.addEventListener('pointerup', (event) => {
+                if (!isDragging) return;
+                isDragging = false;
+                viewport.releasePointerCapture(event.pointerId);
+                const threshold = Math.min(80, viewport.clientWidth * 0.15);
+                if (dragDelta > threshold) {
+                    movePrev();
+                } else if (dragDelta < -threshold) {
+                    moveNext();
+                }
+            });
+
+            viewport.addEventListener('pointerleave', () => {
+                isDragging = false;
+            });
+
+            viewport.addEventListener('wheel', (event) => {
+                if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+                event.preventDefault();
+                if (wheelCooldown) return;
+                if (Math.abs(event.deltaX) < wheelThreshold) return;
+                if (event.deltaX > 0) {
+                    moveNext();
+                } else {
+                    movePrev();
+                }
+                wheelCooldown = true;
+                setTimeout(() => {
+                    wheelCooldown = false;
+                }, wheelCooldownMs);
+            }, {passive: false});
 
             update();
         });
+    });
+
+    // 인기 도서 좋아요 카운트 주기 갱신
+    document.addEventListener('DOMContentLoaded', () => {
+        const refreshLikeCounts = async () => {
+            const likeButtons = document.querySelectorAll('#popularSlider .like-btn[data-book-id]');
+            if (likeButtons.length === 0) return;
+            try {
+                const res = await fetch('/front/books/popular?page=0&size=20', { credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const list = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+                const map = new Map(list.map(item => [String(item.id), item.likeCount]));
+                likeButtons.forEach(btn => {
+                    const count = map.get(btn.dataset.bookId);
+                    const countSpan = btn.querySelector('.like-count');
+                    if (countSpan && typeof count === 'number') {
+                        countSpan.textContent = count;
+                    }
+                });
+            } catch (e) {
+                // ignore polling errors
+            }
+        };
+
+        refreshLikeCounts();
+        setInterval(refreshLikeCounts, 20000);
     });
 
     // 메인 페이지에서 사이드바 토글이 확실히 동작하도록 재바인딩

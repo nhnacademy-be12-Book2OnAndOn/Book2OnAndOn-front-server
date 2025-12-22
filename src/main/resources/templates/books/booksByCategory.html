@@ -5,94 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${categoryName} + ' - 도서 목록'">카테고리 도서 목록</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <style>
-        .book-section {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .book-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 24px;
-            width: 100%;
-        }
-
-        .book-card {
-            background: white;
-            border: 1px solid #eee;
-            border-radius: 12px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-        }
-
-        .book-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        .book-cover {
-            height: 300px;
-            background-color: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-bottom: 1px solid #eee;
-        }
-
-        .book-cover img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .book-details {
-            padding: 1.2rem;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        .book-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* 상단 헤더 (카테고리 이름 표시) */
-        .category-header {
-            background: #fff;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #eee;
-        }
-
-        /* 페이지네이션 버튼 */
-        .pagination a {
-            padding: 8px 16px;
-            margin: 0 4px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            color: #333;
-            text-decoration: none;
-        }
-        .pagination a.active {
-            background-color: #2d5f3f;
-            color: white;
-            border-color: #2d5f3f;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/books-search.css}">
 </head>
 <body>
 
@@ -100,81 +13,127 @@
 
 <main class="book-section">
 
-    <div class="category-header">
+    <div class="search-summary">
         <div>
-            <h2 style="margin:0; color:#2d5f3f; display:inline-block;" th:text="${categoryName}">카테고리명</h2>
-            <span style="color:#666; font-size:0.9rem; margin-left:10px;">
+            <span class="search-keyword" th:text="${categoryName}">카테고리명</span>
+            <span class="search-count">
                 (총 <span th:text="${books.totalElements}">0</span>권)
             </span>
         </div>
 
         <div>
-            <select style="padding: 8px; border-radius:4px; border:1px solid #ddd;"
-                    onchange="location.href=this.value">
-                <option th:value="@{/books/categories/{id}(id=${currentCategoryId}, sort='publishDate,desc')}"
+            <select class="search-sort" onchange="location.href=this.value">
+                <option th:value="@{/books/categories/{id}(id=${currentCategoryId}, sort='publishDate,desc', priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}"
                         th:selected="${param.sort == null or param.sort.toString().contains('publishDate')}">최신순</option>
-                <option th:value="@{/books/categories/{id}(id=${currentCategoryId}, sort='priceSales,asc')}"
+                <option th:value="@{/books/categories/{id}(id=${currentCategoryId}, sort='priceSales,asc', priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}"
                         th:selected="${param.sort != null and param.sort.toString().contains('priceSales,asc')}">낮은가격순</option>
-                <option th:value="@{/books/categories/{id}(id=${currentCategoryId}, sort='priceSales,desc')}"
+                <option th:value="@{/books/categories/{id}(id=${currentCategoryId}, sort='priceSales,desc', priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}"
                         th:selected="${param.sort != null and param.sort.toString().contains('priceSales,desc')}">높은가격순</option>
             </select>
         </div>
     </div>
 
-    <div th:if="${books.isEmpty()}" style="text-align:center; padding: 50px;">
+    <div th:if="${books.isEmpty()}" class="search-empty">
         <h3>해당 카테고리에 등록된 도서가 없습니다.</h3>
-        <a href="/" style="display:inline-block; margin-top:20px; padding:10px 20px; background:#2d5f3f; color:white; border-radius:5px; text-decoration:none;">홈으로 가기</a>
+        <a class="btn-green" href="/">홈으로 가기</a>
     </div>
 
-    <div th:unless="${books.isEmpty()}" class="book-grid">
-        <div th:each="book : ${books}" class="book-card">
-
-            <a th:href="@{/books/{id}(id=${book.id})}" style="position:absolute; inset:0; z-index:1;"></a>
-
-            <div class="book-cover">
-                <img th:src="${book.thumbnail != null and book.thumbnail != '' ? book.thumbnail : '/images/no-image.png'}"
-                     alt="책 표지"
-                     onerror="this.src='https://via.placeholder.com/240x300?text=No+Image'"/>
-            </div>
-
-            <div class="book-details">
-                <div class="book-title" th:text="${book.title}">책 제목</div>
-                <div style="color:#666; font-size:0.9rem;"
-                     th:text="${book.contributorNames != null ? #strings.listJoin(book.contributorNames, ', ') : ''}">저자</div>
-
-                <div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-weight:bold; color:#2d5f3f;"
-                          th:text="${#numbers.formatInteger(book.priceSales, 0, 'COMMA') + '원'}">15,000원</span>
-                    <span style="color:#f59e0b;">★ <span th:text="${book.rating}">0.0</span></span>
+    <div th:unless="${books.isEmpty()}" class="search-layout">
+        <aside class="search-filters">
+            <div class="filter-card">
+                <h4>필터</h4>
+                <div class="filter-group">
+                    <p class="filter-title">가격대</p>
+                    <label class="filter-option">
+                        <input type="radio" name="priceRange" value="all" checked>
+                        <span>전체</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="priceRange" value="under-15000">
+                        <span>15,000원 이하</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="priceRange" value="15000-25000">
+                        <span>15,000 - 25,000원</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="priceRange" value="over-25000">
+                        <span>25,000원 이상</span>
+                    </label>
                 </div>
+                <div class="filter-divider"></div>
+                <div class="filter-group">
+                    <p class="filter-title">평점</p>
+                    <label class="filter-option">
+                        <input type="radio" name="ratingRange" value="4.5">
+                        <span>★ 4.5점 이상</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="ratingRange" value="4.0">
+                        <span>★ 4점 이상</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="ratingRange" value="3.5">
+                        <span>★ 3.5점 이상</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="ratingRange" value="all" checked>
+                        <span>★ 전체</span>
+                    </label>
+                </div>
+                <button type="button" class="filter-reset">필터 초기화</button>
             </div>
+        </aside>
 
-            <button type="button"
-                    style="z-index:2; margin:10px; padding:8px; background:white; border:1px solid #2d5f3f; color:#2d5f3f; border-radius:4px; cursor:pointer;"
-                    onclick="alert('장바구니 기능 구현 필요')">
-                장바구니
-            </button>
+        <div class="book-grid">
+            <div th:each="book : ${books}" class="book-card"
+                 th:attr="data-price=${book.priceSales}, data-rating=${book.rating != null ? book.rating : 0}">
+                <a class="card-overlay-link" th:href="@{/books/{id}(id=${book.id})}"></a>
+
+                <div class="book-cover">
+                    <img th:src="${book.thumbnail != null and book.thumbnail != '' ? book.thumbnail : '/images/no-image.png'}"
+                         alt="책 표지"
+                         onerror="this.src='https://via.placeholder.com/240x300?text=No+Image'"/>
+                </div>
+
+                <div class="book-details">
+                    <div class="book-title" th:text="${book.title}">책 제목</div>
+                    <div class="book-author"
+                         th:text="${book.contributorNames != null ? #strings.listJoin(book.contributorNames, ', ') : ''}">저자</div>
+
+                    <div class="price-row">
+                        <span class="book-price"
+                              th:text="${#numbers.formatInteger(book.priceSales, 0, 'COMMA') + '원'}">15,000원</span>
+                        <span class="book-rating">★ <span th:text="${book.rating}">0.0</span></span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-outline-green" onclick="alert('장바구니 기능 구현 필요')">
+                    장바구니
+                </button>
+            </div>
         </div>
     </div>
 
-    <div th:if="${!books.isEmpty()}" class="pagination" style="text-align:center; margin-top:3rem;">
+    <div th:if="${!books.isEmpty()}" class="pagination">
         <a th:if="${books.hasPrevious()}"
-           th:href="@{/books/categories/{id}(id=${currentCategoryId}, page=${books.number - 1}, sort=${param.sort})}">&lt;</a>
+           th:href="@{/books/categories/{id}(id=${currentCategoryId}, page=${books.number - 1}, sort=${param.sort}, priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}">&lt;</a>
 
         <th:block th:each="i : ${#numbers.sequence(0, books.totalPages - 1)}">
             <a th:if="${i >= books.number - 2 and i <= books.number + 2}"
                th:classappend="${i == books.number} ? 'active'"
                th:text="${i + 1}"
-               th:href="@{/books/categories/{id}(id=${currentCategoryId}, page=${i}, sort=${param.sort})}">1</a>
+               th:href="@{/books/categories/{id}(id=${currentCategoryId}, page=${i}, sort=${param.sort}, priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}">1</a>
         </th:block>
 
         <a th:if="${books.hasNext()}"
-           th:href="@{/books/categories/{id}(id=${currentCategoryId}, page=${books.number + 1}, sort=${param.sort})}">&gt;</a>
+           th:href="@{/books/categories/{id}(id=${currentCategoryId}, page=${books.number + 1}, sort=${param.sort}, priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}">&gt;</a>
     </div>
 
 </main>
 
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script th:src="@{/js/book-filters.js}"></script>
 
 </body>
 </html>

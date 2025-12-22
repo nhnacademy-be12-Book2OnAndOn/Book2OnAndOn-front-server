@@ -9,6 +9,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LocalSignUpRe
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LoginRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PasswordChangeRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PaycoLoginRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.ReissueRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressCreateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserAddressUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserUpdateRequest;
@@ -62,6 +63,11 @@ public interface UserClient {
     @PostMapping("/api/auth/find-password")
     void findPassword(@RequestBody FindPasswordRequest request);
 
+    // [Auth] 토큰 재발급
+    @PostMapping("/api/auth/reissue")
+    TokenResponseDto reissue(@RequestBody ReissueRequestDto request);
+
+
     /*
      * [User] 내 정보 조회 (마이페이지용)
      * Gateway가 헤더를 넣어주지만, 프론트->Gateway 호출 시에는
@@ -96,7 +102,7 @@ public interface UserClient {
     @DeleteMapping("/api/users/me")
     void withdrawUser(
             @RequestHeader("Authorization") String accessToken,
-            @RequestBody(required = false) String reason
+            @RequestParam("reason") String reason
     );
 
     //[Admin] 전체 회원 목록 조회
@@ -167,6 +173,7 @@ public interface UserClient {
     @GetMapping("/api/users/me/likes")
     Page<MyLikedBookResponseDto> getMyLikedBooks(
             @RequestHeader("Authorization") String accessToken,
+            @RequestHeader(value = "X-USER-ID", required = false) Long userId,
             @RequestParam("page") int page,
             @RequestParam("size") int size
     );

@@ -1,6 +1,12 @@
 const API_BASE = '/orders';
-const USER_ID = 10;
-const IS_MEMBER_LOGGED_IN = true;
+const IS_MEMBER_LOGGED_IN =
+    (typeof window !== 'undefined' && window.IS_MEMBER_LOGGED_IN !== undefined)
+        ? Boolean(window.IS_MEMBER_LOGGED_IN)
+        : false;
+const USER_ID =
+    (typeof window !== 'undefined' && window.USER_ID !== undefined)
+        ? window.USER_ID
+        : null;
 
 // 백엔드 Enum 및 UI 표시용 상태명
 const ORDER_STATUS = {
@@ -20,8 +26,8 @@ const RETURN_REASON = {
     OTHER: "기타"
 };
 
-let currentOrderDetail = null;
-let memberOrders = [];
+let currentOrderDetail = null; // 현재 보고 있는 주문 상세 정보를 저장
+let memberOrders = []; // Mock 주문 목록을 저장할 변수 (정렬/필터링 기능용)
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeView();
@@ -48,7 +54,10 @@ function initializeView() {
 }
 
 function setupEventListeners() {
+    // 1. 비회원 조회 폼 제출 이벤트
     document.getElementById('guestLookupForm')?.addEventListener('submit', handleGuestLookup);
+
+    // 2. 목록으로 돌아가기 버튼
     document.getElementById('backToHistory')?.addEventListener('click', () => {
         IS_MEMBER_LOGGED_IN ? showMemberHistory() : showGuestLookupForm();
     });
@@ -56,15 +65,22 @@ function setupEventListeners() {
     // 주문 목록 클릭 시 상세 보기
     document.getElementById('orderList')?.addEventListener('click', (e) => {
         const orderItem = e.target.closest('.order-item');
-        if (orderItem) fetchOrderDetail(orderItem.dataset.orderId, 'MEMBER_MODE');
+        if (orderItem) {
+            const orderId = orderItem.dataset.orderId;
+            fetchOrderDetail(orderId, 'MEMBER_MODE');
+        }
     });
 
+    // 4. 정렬 옵션 변경 이벤트 리스너
     document.getElementById('sortOrderSelect')?.addEventListener('change', (e) => {
         const filtered = filterMockOrders(memberOrders, getCurrentFilters());
         sortOrdersAndRender(e.target.value, filtered);
     });
 
+    // 5. 필터 폼 제출 이벤트
     document.getElementById('orderFilterForm')?.addEventListener('submit', handleOrderFiltering);
+
+    // 6. 필터 폼 초기화 버튼 이벤트
     document.getElementById('filterResetButton')?.addEventListener('click', initializeFilterForm);
 
     // 상세페이지 체크박스 금액 실시간 업데이트
@@ -289,6 +305,7 @@ function hideModal() {
 }
 function setupModalListeners() {
     document.querySelector('#actionModal .close-button')?.addEventListener('click', hideModal);
+
 }
 
 /*
@@ -329,7 +346,6 @@ function showMemberHistory() {
 function showOrderDetail() {
     hideAllSections();
     document.getElementById('orderDetailSection').classList.remove('hidden');
-
 }
 
 /*
@@ -340,86 +356,123 @@ function initializeFilterForm() {
     const filterYear = document.getElementById('filterYear');
     const filterMonth = document.getElementById('filterMonth');
     const filterStatus = document.getElementById('filterStatus');
-    if(!filterYear || !filterMonth) return;
+    if (!filterYear || !filterMonth) return;
     filterYear.innerHTML = '<option value="all">전체보기</option>';
     for (let y = currentYear; y >= currentYear - 3; y--) filterYear.innerHTML += `<option value="${y}">${y}년</option>`;
     filterMonth.innerHTML = '<option value="all">전체보기</option>';
-    for (let m = 1; m <= 12; m++) filterMonth.innerHTML += `<option value="${String(m).padStart(2, '0')}">${m}월</option>`;
+    for (let m = 1; m <= 12; m++) {
+        const monthStr = String(m).padStart(2, '0');
+        filterMonth.innerHTML += `<option value="${monthStr}">${m}월</option>`;
+    }
+
+    // 3. 배송 상태 초기화
     filterStatus.innerHTML = '<option value="all">전체보기</option>';
-    Object.values(ORDER_STATUS).forEach(v => filterStatus.innerHTML += `<option value="${v}">${v}</option>`);
-}
+    // ORDER_STATUS 객체의 모든 값을 드롭다운에 추가
+    Object.values(ORDER_STATUS).forEach(statusValue => {
+        filterStatus.innerHTML += `<option value="${statusValue}">${statusValue}</option>`;
+    });
 
-async function fetchMemberOrders(userId) {
-    memberOrders = [
-        { orderId: 'M1001', date: '2025-12-10', total: 45000, status: ORDER_STATUS.PENDING, items: [{name: '클린 코드'}] },
-        { orderId: 'M1002', date: '2025-11-20', total: 72000, status: ORDER_STATUS.DELIVERED, items: [{name: '객체지향 설계'}] },
-        { orderId: 'M1003', date: '2025-11-01', total: 30000, status: ORDER_STATUS.SHIPPING, items: [{name: '알고리즘'}] },
-        { orderId: 'M1004', date: '2025-10-25', total: 50000, status: ORDER_STATUS.RETURN_REQUESTED, items: [{name: '자바의 정석'}] },
-        { orderId: 'M1005', date: '2025-10-20', total: 20000, status: ORDER_STATUS.CANCELED, items: [{name: '웹 개발'}] }
-    ];
-    sortOrdersAndRender('latest', memberOrders);
-}
+    async function fetchMemberOrders(userId) {
+        memberOrders = [
+            {
+                orderId: 'M1001',
+                date: '2025-12-10',
+                total: 45000,
+                status: ORDER_STATUS.PENDING,
+                items: [{name: '클린 코드'}]
+            },
+            {
+                orderId: 'M1002',
+                date: '2025-11-20',
+                total: 72000,
+                status: ORDER_STATUS.DELIVERED,
+                items: [{name: '객체지향 설계'}]
+            },
+            {
+                orderId: 'M1003',
+                date: '2025-11-01',
+                total: 30000,
+                status: ORDER_STATUS.SHIPPING,
+                items: [{name: '알고리즘'}]
+            },
+            {
+                orderId: 'M1004',
+                date: '2025-10-25',
+                total: 50000,
+                status: ORDER_STATUS.RETURN_REQUESTED,
+                items: [{name: '자바의 정석'}]
+            },
+            {orderId: 'M1005', date: '2025-10-20', total: 20000, status: ORDER_STATUS.CANCELED, items: [{name: '웹 개발'}]}
+        ];
+        sortOrdersAndRender('latest', memberOrders);
+    }
 
-function sortOrdersAndRender(sortType, orders) {
-    const sorted = [...(orders || memberOrders)].sort((a, b) =>
-        sortType === 'latest' ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date));
-    renderOrderList(sorted);
-}
+    function sortOrdersAndRender(sortType, orders) {
+        const sorted = [...(orders || memberOrders)].sort((a, b) =>
+            sortType === 'latest' ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date));
+        renderOrderList(sorted);
+    }
 
 // 필터 폼 제출 시 실행
-function handleOrderFiltering(e) {
-    e.preventDefault(); // 페이지 새로고침 방지
-    sortOrdersAndRender('latest', filterMockOrders(memberOrders, getCurrentFilters()));
-}
+    function handleOrderFiltering(e) {
+        e.preventDefault(); // 페이지 새로고침 방지
+        sortOrdersAndRender('latest', filterMockOrders(memberOrders, getCurrentFilters()));
+    }
 
 // 화면의 (년도, 월, 상태, 키워드) <- 현재 사용자가 선택하거나 입력한 값들 수집하여 하나 객체로 반환
-function getCurrentFilters() {
-    return {
-        year: document.getElementById('filterYear').value,
-        month: document.getElementById('filterMonth').value,
-        status: document.getElementById('filterStatus').value,
-        searchType: document.getElementById('searchType').value,
-        keyword: document.getElementById('searchKeyword').value
-            .trim()
-    };
-}
+    function getCurrentFilters() {
+        return {
+            year: document.getElementById('filterYear').value,
+            month: document.getElementById('filterMonth').value,
+            status: document.getElementById('filterStatus').value,
+            searchType: document.getElementById('searchType').value,
+            keyword: document.getElementById('searchKeyword').value
+                .trim()
+        };
+    }
 
 // 실제 데이터 필터링 로직 ( 주문 날짜와 선택된 기간이 일치하는지 확인 , 사용자가 특정 상태를 선택했다면 해당 주문들만 남김)
-function filterMockOrders(orders, f) {
-    return orders.filter(o => {
-        const d = new Date(o.date);
-        if (f.year !== 'all' && f.year !== String(d.getFullYear())) {
-            return false;
-        }
-        if (f.month !== 'all' && f.month !== String(d.getMonth() + 1).padStart(2, '0')) {
-            return false;
-        }
-        if (f.status !== 'all' && f.status !== o.status) {
-            return false;
-        }
-        if (f.keyword) {
-            if (f.searchType === 'orderItemName') {
-                // 주문 상품명 검색 (여러 상품일 수 있으므로 join하여 검색)
-                const productNames = o.items.map(item => item.name).join(' ').toLowerCase();
-                if (!productNames.includes(f.keyword)) return false;
+    function filterMockOrders(orders, f) {
+        return orders.filter(o => {
+            const d = new Date(o.date);
+            if (f.year !== 'all' && f.year !== String(d.getFullYear())) {
+                return false;
             }
-            else if (f.searchType === 'orderNumber') {
-                // 주문 번호 검색
-                if (!o.orderId.toLowerCase().includes(f.keyword)) return false;
+            if (f.month !== 'all' && f.month !== String(d.getMonth() + 1).padStart(2, '0')) {
+                return false;
             }
-            else if (f.searchType === 'recipientName') {
-                // 임시 수령인 검색
-                const mockRecipients = { 'M1001': '홍길동', 'M1002': '김철수', 'M1003': '이영희', 'M1004': '박민준', 'M1005': '최현우' };
-                const recipient = mockRecipients[o.orderId] || "";
-                if (!recipient.toLowerCase().includes(f.keyword)) return false;
+            if (f.status !== 'all' && f.status !== o.status) {
+                return false;
             }
-        }
+            if (f.keyword) {
+                if (f.searchType === 'orderItemName') {
+                    // 주문 상품명 검색 (여러 상품일 수 있으므로 join하여 검색)
+                    const productNames = o.items.map(item => item.name).join(' ').toLowerCase();
+                    if (!productNames.includes(f.keyword)) return false;
+                } else if (f.searchType === 'orderNumber') {
+                    // 주문 번호 검색
+                    if (!o.orderId.toLowerCase().includes(f.keyword)) return false;
+                } else if (f.searchType === 'recipientName') {
+                    // 임시 수령인 검색
+                    const mockRecipients = {
+                        'M1001': '홍길동',
+                        'M1002': '김철수',
+                        'M1003': '이영희',
+                        'M1004': '박민준',
+                        'M1005': '최현우'
+                    };
+                    const recipient = mockRecipients[o.orderId] || "";
+                    if (!recipient.toLowerCase().includes(f.keyword)) return false;
+                }
+            }
 
-        return true;
-    });
-}
+            return true;
+        });
+    }
+
 // 비회원이 주문 정보를 입력하고 조회 버튼 눌렀을때 실행
-function handleGuestLookup(e) {
-    e.preventDefault();
-    fetchOrderDetail('G1001', 'GUEST_MODE');
+    function handleGuestLookup(e) {
+        e.preventDefault();
+        fetchOrderDetail('G1001', 'GUEST_MODE');
+    }
 }

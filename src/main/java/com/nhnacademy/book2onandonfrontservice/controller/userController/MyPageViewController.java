@@ -6,6 +6,7 @@ import com.nhnacademy.book2onandonfrontservice.client.MemberCouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.PointUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.MyLikedBookResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponStatus;
@@ -33,9 +34,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,6 +48,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
@@ -250,7 +255,8 @@ public class MyPageViewController {
             UserResponseDto myInfo = userClient.getMyInfo("Bearer " + accessToken);
             model.addAttribute("user", myInfo);
 
-            Page<MyLikedBookResponseDto> rest = userClient.getMyLikedBooks("Bearer " + accessToken, page, 12);
+            Long userId = JwtUtils.getUserId(accessToken);
+            Page<MyLikedBookResponseDto> rest = userClient.getMyLikedBooks("Bearer " + accessToken, userId, page, 12);
 
             model.addAttribute("books", rest.getContent());
             model.addAttribute("currentPage", page);
@@ -266,6 +272,42 @@ public class MyPageViewController {
         }
 
         return "user/mypage/likes";
+    }
+
+    // 좋아요한 도서 ID 목록 (프론트 동기화용)
+    @GetMapping("/likes/ids")
+    @ResponseBody
+    public ResponseEntity<List<Long>> myLikedBookIds(HttpServletRequest request,
+                                                     @RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "50") int size) {
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        if (accessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            Long userId = JwtUtils.getUserId(accessToken);
+            Page<MyLikedBookResponseDto> rest = userClient.getMyLikedBooks("Bearer " + accessToken, userId, page, size);
+            List<Long> ids = rest.getContent().stream()
+                    .map(MyLikedBookResponseDto::getBookInfo)
+                    .filter(Objects::nonNull)
+                    .map(BookDto::getId)
+                    .filter(Objects::nonNull)
+                    .toList();
+            return ResponseEntity.ok(ids);
+        } catch (Exception e) {
+            log.error("좋아요 ID 목록 조회 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
+        }
+    }
+
+    // 주문 내역 페이지 (/users/me/orders)
+    @GetMapping("/orders")
+    public String myOrders(HttpServletRequest request) {
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+        return "orderpayment/OrderHistory";
     }
 
     //내 정보 수정 페이지

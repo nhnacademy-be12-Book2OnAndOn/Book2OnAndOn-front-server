@@ -35,29 +35,33 @@ import org.springframework.web.multipart.MultipartFile;
 public interface BookClient {
 
     /// 카테고리 전체 목록 가져오기 (카테고리 이름들만)
-    @GetMapping("/api/books/categories")
+    @GetMapping("/api/categories")
     List<CategoryDto> getCategories();
 
     /// 카테고리별 도서 목록
-    @GetMapping("/api/books/categories/{categoryId}")
-    Page<BookDto> getBooksByCategories(@PathVariable Long categoryId);
+    @GetMapping("/api/categories/{categoryId}")
+    Page<BookDto> getBooksByCategories(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                                       @PathVariable Long categoryId);
 
     /// 카테고리 이름 반환
-    @GetMapping("/api/books/categories/{categoryId}/info")
+    @GetMapping("/api/categories/{categoryId}/info")
     CategoryDto getCategoryInfo(@PathVariable("categoryId") Long categoryId);
 
     /// 신간도서목록
     @GetMapping("/api/books/new-arrivals")
-    Page<BookDto> getNewArrivals(@RequestParam(value = "categoryId", required = false) Long categoryId,
+    Page<BookDto> getNewArrivals(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                                 @RequestParam(value = "categoryId", required = false) Long categoryId,
                                  @RequestParam("page") int page, @RequestParam("size") int size);
 
     /// 베스트셀러
     @GetMapping("/api/books/bestsellers")
-    List<BookDto> getBestsellers(@RequestParam(value = "period", required = false) String period);
+    List<BookDto> getBestsellers(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                                 @RequestParam(value = "period", required = false) String period);
 
     /// 인기도서 조회
     @GetMapping("/api/books/popular")
-    Page<BookDto> getPopularBooks(@RequestParam("page") int page, @RequestParam("size") int size);
+    Page<BookDto> getPopularBooks(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                                  @RequestParam("page") int page, @RequestParam("size") int size);
 
     /// 도서 등록 GoogleBooksApi
     @GetMapping("/api/admin/books/lookup")
@@ -106,19 +110,20 @@ public interface BookClient {
             @RequestHeader(value = "X-Guest-Id", required = false) String guestId);
 
     /// 최근 본 상품 로그인시 병합
-    @GetMapping("/api/books/recent-views/merge")
+    @PostMapping("/api/books/recent-views/merge")
     void mergeRecentViews(@RequestHeader("Authorization") String accessToken,
                           @RequestHeader("X-Guest-Id") String guestId);
 
     /// 좋아요 토글 요청
     @PostMapping("/api/books/{bookId}/likes")
     BookLikeToggleResponse toggleLike(@RequestHeader("Authorization") String accessToken,
-                                      @RequestHeader("X-User-Id") Long userId,
+                                      @RequestHeader("X-USER-ID") Long userId,
                                       @PathVariable("bookId") Long bookId);
 
     /// --------------- elastic search ----------------- 북 검색엔진
     @PostMapping("/api/books/search")
-    Page<BookDto> searchBooks(@SpringQueryMap BookSearchCondition condition,//필드들을 뜯어서 검색조건으로 만듦 즉, 쿼리 파라미터로 만들수 있음
+    Page<BookDto> searchBooks(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                              @SpringQueryMap BookSearchCondition condition,//필드들을 뜯어서 검색조건으로 만듦 즉, 쿼리 파라미터로 만들수 있음
                               @SpringQueryMap Pageable pageable);
 
 

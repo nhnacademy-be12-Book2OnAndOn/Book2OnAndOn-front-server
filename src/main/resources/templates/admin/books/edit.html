@@ -117,7 +117,7 @@
                             <select class="form-control" id="statusSelect" name="status" required>
                                 <option th:each="status : ${statuses}"
                                         th:selected="${book != null && book.status != null ? book.status.name() == status.name() : status.name() == 'ON_SALE'}"
-                                        th:text="${status}"
+                                        th:text="${status.name() == 'ON_SALE' ? '판매중' : (status.name() == 'SOLD_OUT' ? '일시 품절' : (status.name() == 'OUT_OF_STOCK' ? '품절' : '삭제/노출중단'))}"
                                         th:value="${status}">ON_SALE
                                 </option>
                             </select>

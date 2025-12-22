@@ -1,35 +1,64 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" th:replace="~{layout/mypage-layout :: layout(
+        title = ~{::title},
+        sidebarActive = 'orders',
+        content = ~{::content},
+        extraHead = ~{::extraHead}
+      )}"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주문 내역 확인</title>
-
-    <link rel="stylesheet" href="/css/OrderHistory.css">
+    <title>마이페이지 - 주문 내역</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/OrderHistory.css}">
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            window.IS_MEMBER_LOGGED_IN = /*[[${(user != null) or (session.user != null)}]]*/ false;
+            window.USER_ID = /*[[${user != null ? user.userId : (session.user != null ? session.user.userId : null)}]]*/ null;
+            /*]]>*/
+        </script>
+    </th:block>
 </head>
-<body>
-<div class="container">
-    <h1>주문 내역 확인</h1>
 
-    <section id="guestLookupSection" class="guest-form-container">
-        <h2>비회원 주문 조회</h2>
-        <p>주문 시 입력했던 정보로 조회할 수 있습니다.</p>
-        <form id="guestLookupForm">
+<body>
+<div class="mypage-content order-history-page" th:fragment="content">
+    <div class="dashboard-header">
+        <div>
+            <h2>주문 내역</h2>
+            <p class="muted">
+                <span th:text="${(user != null && user.nickname != null) ? user.nickname : '회원'}"></span>님의 주문을 확인하고 관리하세요.
+            </p>
+        </div>
+    </div>
+
+    <section id="guestLookupSection" class="order-card guest-form-container">
+        <div class="card-heading">
+            <p class="eyebrow">비회원</p>
+            <h3>비회원 주문 조회</h3>
+            <p class="muted">주문 시 입력했던 정보로 조회할 수 있습니다.</p>
+        </div>
+        <form id="guestLookupForm" class="stacked-form">
             <input type="text" id="guestOrderId" placeholder="주문 번호" required>
             <input type="text" id="guestOrderer" placeholder="주문자 이름" required>
             <input type="password" id="guestPassword" placeholder="주문 비밀번호 (또는 연락처 끝 4자리)" required>
-            <button type="submit" class="btn-primary">주문 조회</button>
+            <button type="submit" class="btn-primary full">주문 조회</button>
         </form>
-        <p style="margin-top: 20px;">
+        <p class="muted helper-text">
             혹은 <a href="#" id="memberLoginLink">로그인</a>하여 전체 주문 내역을 확인하세요.
         </p>
     </section>
 
-    <section id="memberHistorySection" class="order-list-container hidden">
+    <section id="memberHistorySection" class="order-card order-list-container hidden">
         <div class="history-header-wrapper">
-            <h2>전체 주문 내역 (<span id="userNameDisplay">회원</span>님)</h2>
+            <div>
+                <p class="eyebrow">회원</p>
+                <h3>전체 주문 내역</h3>
+                <p class="muted"><span id="userNameDisplay">회원</span>님의 주문 기록입니다.</p>
+            </div>
 
-            <select id="sortOrderSelect">
+            <select id="sortOrderSelect" class="select-compact">
                 <option value="latest">최신순 (기본)</option>
                 <option value="oldest">과거순</option>
             </select>
@@ -38,33 +67,40 @@
         <div class="order-filter-box">
             <form id="orderFilterForm">
                 <div class="filter-group">
-                    <label>주문 기간 조회:</label>
-                    <select id="filterYear"></select> 년
-                    <select id="filterMonth"></select> 월
+                    <label>주문 기간</label>
+                    <div class="filter-inline">
+                        <select id="filterYear"></select>
+                        <span class="divider">년</span>
+                        <select id="filterMonth"></select>
+                        <span class="divider">월</span>
+                    </div>
                 </div>
 
                 <div class="filter-group">
-                    <label>주문 검색:</label>
-                    <select id="searchType">
-                        <option value="orderItemName">주문 상품</option>
-                        <option value="orderNumber">주문 번호</option>
-                        <option value="recipientName">수령인</option>
-                    </select>
-                    <input type="text" id="searchKeyword" placeholder="검색어 입력" style="width: 150px;">
+                    <label>주문 검색</label>
+                    <div class="filter-inline">
+                        <select id="searchType">
+                            <option value="orderItemName">주문 상품</option>
+                            <option value="orderNumber">주문 번호</option>
+                            <option value="recipientName">수령인</option>
+                        </select>
+                        <input type="text" id="searchKeyword" placeholder="검색어 입력">
+                    </div>
                 </div>
 
                 <div class="filter-group">
-                    <label>배송 상태별 조회:</label>
+                    <label>배송 상태</label>
                     <select id="filterStatus"></select>
                 </div>
 
-                <button type="submit" class="btn-primary" id="filterSearchButton" style="width: 100px; margin-top: 10px;">찾기</button>
-                <button type="button" class="btn-secondary" id="filterResetButton" style="width: 100px; margin-top: 10px;">초기화</button>
+                <div class="filter-actions">
+                    <button type="submit" class="btn-primary" id="filterSearchButton">찾기</button>
+                    <button type="button" class="btn-secondary" id="filterResetButton">초기화</button>
+                </div>
             </form>
         </div>
 
-        <div id="orderList">
-        </div>
+        <div id="orderList"></div>
         <p id="noOrdersMessage" class="hidden">주문 내역이 없습니다.</p>
     </section>
 
@@ -106,39 +142,39 @@
         </div>
     </div>
 
-    <section id="orderDetailSection" class="order-list-container hidden">
-        <h2>주문 상세 정보</h2>
-
-        <div id="actionButtons" class="action-buttons-wrapper">
+    <section id="orderDetailSection" class="order-card order-list-container hidden">
+        <div class="card-heading">
+            <p class="eyebrow">상세</p>
+            <h3>주문 상세 정보</h3>
         </div>
 
-        <div id="orderDetailContent">
-        </div>
-        <button id="backToHistory" class="btn-secondary" style="margin-top: 20px;">목록으로 돌아가기</button>
+        <div id="actionButtons" class="action-buttons-wrapper"></div>
+
+        <div id="orderDetailContent"></div>
+
+        <button id="backToHistory" class="btn-secondary ghost" style="margin-top: 20px;">목록으로 돌아가기</button>
     </section>
 
+    <div id="actionModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3 id="modalTitle"></h3>
 
-</div>
+            <div id="modalContent">
+                <p><strong>주문 번호:</strong> <span id="modalOrderId"></span></p>
+                <p><strong>취소/반품 금액:</strong> <span id="modalAmount"></span>원</p>
 
-<div id="actionModal" class="modal hidden">
-    <div class="modal-content">
-        <span class="close-button">&times;</span>
-        <h3 id="modalTitle"></h3>
+                <div class="form-group" id="reasonGroup">
+                </div>
+            </div>
 
-        <div id="modalContent">
-            <p><strong>주문 번호:</strong> <span id="modalOrderId"></span></p>
-            <p><strong>취소/반품 금액:</strong> <span id="modalAmount"></span>원</p>
-
-            <div class="form-group" id="reasonGroup">
+            <div class="modal-footer">
+                <button id="confirmActionButton" class="btn-primary">확인 및 요청</button>
             </div>
         </div>
-
-        <div class="modal-footer">
-            <button id="confirmActionButton" class="btn-primary">확인 및 요청</button>
-        </div>
     </div>
-</div>
 
-<script src="/js/OrderHistory.js"></script>
+    <script src="/js/OrderHistory.js"></script>
+</div>
 </body>
 </html>

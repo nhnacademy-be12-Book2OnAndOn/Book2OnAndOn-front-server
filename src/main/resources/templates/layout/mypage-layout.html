@@ -3,6 +3,7 @@
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
     <th:block th:if="${extraHead != null}" th:replace="${extraHead}"></th:block>
@@ -29,7 +30,7 @@
 
                         <li>
                             <a th:classappend="${sidebarActive=='orders'} ? 'active'"
-                               th:href="@{/orders/me}">주문 내역</a>
+                               th:href="@{/users/me/orders}">주문 내역</a>
                         </li>
 
                         <li>

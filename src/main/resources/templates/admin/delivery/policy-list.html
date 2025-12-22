@@ -29,7 +29,18 @@
         </div>
 
         <div class="table-card">
-            <table class="admin-table" id="policyTable">
+            <div class="admin-toolbar" style="margin-bottom: 16px;">
+                <div class="admin-search">
+                    <label for="deliveryPolicySearch">검색</label>
+                    <input class="form-control"
+                           data-search-target="#deliveryPolicyTable"
+                           id="deliveryPolicySearch"
+                           placeholder="정책명, 배송비, 기준금액"
+                           type="text">
+                </div>
+            </div>
+
+            <table class="admin-table" id="deliveryPolicyTable">
                 <thead>
                 <tr>
                     <th style="width: 10%;">ID</th>
@@ -60,7 +71,11 @@
 
                     <td class="table-actions">
                         <a class="btn-small"
+                           th:if="${policy.deliveryPolicyId != null}"
                            th:href="@{/admin/delivery-policies/update/{id}(id=${policy.deliveryPolicyId})}">수정</a>
+                        <a class="btn-small"
+                           th:if="${policy.deliveryPolicyId == null}"
+                           th:href="@{/admin/delivery-policies/create}">수정</a>
 
                     </td>
                 </tr>
@@ -94,6 +109,7 @@
 </div>
 
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script src="/js/admin-table-search.js"></script>
 
 </body>
 </html>

@@ -234,7 +234,7 @@ public class CouponPolicyViewController {
         BookSearchCondition condition = BookSearchCondition.builder()
                 .keyword(keyword)
                 .build();
-        Page<BookDto> result = bookClient.searchBooks(condition, pageable);
+        Page<BookDto> result = bookClient.searchBooks(null, condition, pageable);
         return ResponseEntity.ok(result);
     }
 

@@ -6,6 +6,9 @@ body {
     margin: 0;
     padding: 0;
     color: #123423;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .admin-container {
@@ -17,6 +20,7 @@ body {
     height: auto;
     min-height: 890px;
     padding: 2.4rem 1.2rem;
+    flex: 1;
 }
 
 
@@ -711,6 +715,68 @@ body {
     color: #234132;
 }
 
+/* 반응형 */
+@media (max-width: 1200px) {
+    .admin-container {
+        flex-direction: column;
+        padding: 1.8rem 1rem;
+    }
+
+    .admin-sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .admin-menu {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.5rem;
+    }
+
+    .admin-menu a {
+        text-align: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-content {
+        padding: 1.2rem;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .admin-header h2 {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-container {
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 18px;
+    }
+
+    .admin-table-wrap,
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+}
+
 /* 태그 전용 해시태그 스타일 */
 .tag-chip {
     background: #e9f0ec;
@@ -837,11 +903,35 @@ body {
     font-size: 0.95rem;
 }
 
+.admin-search {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+.admin-search .form-control {
+    max-width: 360px;
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 14px 16px;
     align-items: flex-start;
+    min-width: 0;
+}
+
+.form-field {
+    min-width: 0;
+}
+
+.form-field textarea,
+.form-field input,
+.form-field select {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .toggle-group {
@@ -1195,15 +1285,16 @@ body {
 }
 
 .wrap-option {
-    width: 360px;
-    min-width: 320px;
-    max-width: 460px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     min-height: 56px;
     padding: 10px 12px;
     gap: 10px;
     justify-content: flex-start;
     align-items: center;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    box-sizing: border-box;
 }
 
 .wrap-option input[type="checkbox"] {
@@ -1221,19 +1312,54 @@ body {
 }
 
 .wrap-option--is-wrapped {
-    width: auto;
+    width: 100%;
 }
 
 .editor-box {
     border: 1px solid #d5ddd6;
     border-radius: 12px;
-    overflow: hidden;
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    position: relative;
     /* margin-bottom: 10px; */
 }
 
 .editor-box .toastui-editor-defaultUI {
     border: none;
     min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    border-radius: 12px;
+    overflow: visible;
+}
+
+.editor-box .toastui-editor-main,
+.editor-box .toastui-editor-contents,
+.editor-box .toastui-editor-ww-container,
+.editor-box .toastui-editor-md-container {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.editor-box .toastui-editor-popup {
+    z-index: 1000;
+    max-width: min(560px, 90vw);
+    overflow: visible;
+}
+
+.editor-box .toastui-editor-context-menu,
+.editor-box .toastui-editor-dropdown {
+    z-index: 1000;
+}
+
+.editor-box .toastui-editor-popup-body {
+    max-height: min(60vh, 420px);
+    overflow: auto;
 }
 
 .toastui-editor-defaultUI .toastui-editor-mode-switch {
@@ -1287,6 +1413,32 @@ body {
     background: #eef3ef;
     border-color: #d5ddd6;
     color: #234132;
+}
+
+.toastui-editor-tabs {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    font-size: 12px;
+}
+
+.toastui-editor-tabs .tab-item {
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.toastui-editor-popup .toastui-editor-tabs {
+    flex-wrap: nowrap;
+    gap: 24px;
+}
+
+.toastui-editor-popup .toastui-editor-tabs .tab-item {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 0 8px;
+    line-height: 1.1;
+    justify-content: center;
 }
 
 .pill-option:hover {
