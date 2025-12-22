@@ -5,6 +5,40 @@ let currentUserId = null;
 let currentPage = 0;
 let totalPages = 0;
 
+const POINT_REASON_LABELS = {
+    SIGNUP: '회원가입 적립',
+    REVIEW: '리뷰 적립',
+    ORDER: '주문 적립',
+    USE: '포인트 사용',
+    REFUND: '포인트 반환',
+    EXPIRE: '포인트 만료',
+    FAILED: '결제 실패',
+    WITHDRAW: '회원 탈퇴',
+    ADMIN_ADJUST: '관리자 조정'
+};
+
+function getPointReasonLabel(reason) {
+    if (!reason) return '-';
+    return POINT_REASON_LABELS[reason] || reason;
+}
+
+function showSearchStatus(message, type = 'error') {
+    const statusEl = document.getElementById('searchStatus');
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.toggle('success', type === 'success');
+    statusEl.classList.toggle('error', type !== 'success');
+    statusEl.style.display = 'block';
+}
+
+function clearSearchStatus() {
+    const statusEl = document.getElementById('searchStatus');
+    if (!statusEl) return;
+    statusEl.textContent = '';
+    statusEl.style.display = 'none';
+    statusEl.classList.remove('success', 'error');
+}
+
 // 더미 데이터
 const DUMMY_CURRENT_POINT = 15000;
 const DUMMY_HISTORY = [
@@ -61,15 +95,25 @@ async function searchUser(event) {
     const userId = parseInt(document.getElementById('userIdInput').value);
 
     if (!userId || userId < 1) {
-        alert('올바른 사용자 ID를 입력하세요.');
+        showSearchStatus('올바른 사용자 ID를 입력하세요.', 'error');
         return;
     }
 
     currentUserId = userId;
     currentPage = 0;
 
-    await loadCurrentPoint();
-    await loadHistory(0);
+    clearSearchStatus();
+    const pointOk = await loadCurrentPoint();
+    if (!pointOk) {
+        document.getElementById('pointInfoSection').style.display = 'none';
+        return;
+    }
+
+    const historyOk = await loadHistory(0);
+    if (!historyOk) {
+        document.getElementById('pointInfoSection').style.display = 'none';
+        return;
+    }
 
     document.getElementById('pointInfoSection').style.display = 'block';
 }
@@ -79,7 +123,7 @@ async function loadCurrentPoint() {
     if (USE_DUMMY) {
         document.getElementById('currentUserId').textContent = currentUserId;
         document.getElementById('currentPoint').textContent = DUMMY_CURRENT_POINT.toLocaleString() + ' P';
-        return;
+        return true;
     }
 
     try {
@@ -89,7 +133,11 @@ async function loadCurrentPoint() {
         if (response.status === 401) {
             alert('로그인이 필요합니다.');
             location.href = '/login';
-            return;
+            return false;
+        }
+        if (response.status === 404) {
+            showSearchStatus('해당 사용자를 찾을 수 없습니다.', 'error');
+            return false;
         }
         if (!response.ok) {
             const msg = await safeText(response);
@@ -99,9 +147,11 @@ async function loadCurrentPoint() {
         const data = await response.json();
         document.getElementById('currentUserId').textContent = currentUserId;
         document.getElementById('currentPoint').textContent = data.currentPoint.toLocaleString() + ' P';
+        return true;
     } catch (error) {
         console.error('Error:', error);
-        alert('포인트 조회에 실패했습니다.');
+        showSearchStatus('사용자 조회에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+        return false;
     }
 }
 
@@ -110,7 +160,7 @@ async function loadHistory(page) {
     if (USE_DUMMY) {
         renderHistory(DUMMY_HISTORY);
         renderPagination(1, 5);
-        return;
+        return true;
     }
 
     try {
@@ -120,7 +170,11 @@ async function loadHistory(page) {
         if (response.status === 401) {
             alert('로그인이 필요합니다.');
             location.href = '/login';
-            return;
+            return false;
+        }
+        if (response.status === 404) {
+            showSearchStatus('해당 사용자를 찾을 수 없습니다.', 'error');
+            return false;
         }
         if (!response.ok) {
             const msg = await safeText(response);
@@ -130,9 +184,11 @@ async function loadHistory(page) {
         const data = await response.json();
         renderHistory(data.content);
         renderPagination(data.totalPages, data.totalElements);
+        return true;
     } catch (error) {
         console.error('Error:', error);
-        alert('이력 조회에 실패했습니다.');
+        showSearchStatus('사용자 포인트 이력 조회에 실패했습니다.', 'error');
+        return false;
     }
 }
 
@@ -157,7 +213,7 @@ function renderHistory(history) {
         const balance = typeof item.totalPoints === 'number' ? item.totalPoints : 0;
         const changeType = delta >= 0 ? 'EARN' : 'USE';
         const changeDate = item.pointCreatedDate || '';
-        const description = item.pointReason || '';
+        const description = getPointReasonLabel(item.pointReason);
         const expiry = item.pointExpiredDate || '-';
 
         return `

@@ -10,6 +10,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.LoginRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.request.PaycoLoginRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.FindIdResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.TokenResponseDto;
+import com.nhnacademy.book2onandonfrontservice.service.FrontTokenService;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import feign.FeignException;
 import jakarta.servlet.http.Cookie;
@@ -38,6 +39,7 @@ public class AuthViewController {
 
     private final UserClient userClient;
     private final BookClient bookClient;
+    private final FrontTokenService frontTokenService;
 
     @Value("${payco.client-id}")
     private String paycoClientId;
@@ -283,14 +285,15 @@ public class AuthViewController {
     //로그아웃(쿠키 삭제)
     @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
-        // 쿠키에서 Access Token 꺼내기
-        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+
+        // 서비스에서 올바른 이름과 디코딩된 토큰 가져오기
+        String rawAccessToken = frontTokenService.getAccessToken();
 
         // Redis 블랙리스트 등록
-        if (accessToken != null) {
+        if (rawAccessToken != null) {
             try {
-                // Bearer를 붙여서 보내야 Gateway/BE에서 인식
-                userClient.logout("Bearer " + accessToken);
+                // Bearer  붙여서 백엔드 전송
+                userClient.logout("Bearer " + rawAccessToken);
             } catch (Exception e) {
                 // 백엔드 호출이 실패하더라도(이미 만료됨 등),
                 // 프론트엔드에서는 무조건 로그아웃 처리를 진행해야 함.
@@ -298,9 +301,12 @@ public class AuthViewController {
             }
         }
 
-        // 클라이언트 쿠키 강제 삭제
-        deleteCookie(response, "accessToken");
-        deleteCookie(response, "refreshToken");
+        // 서비스의 clearTokens() 사용하여 안전하게 삭제
+        frontTokenService.clearTokens();
+
+        // 나머지 기타 쿠키 삭제 (Guest 등)
+        deleteCookie(response, "guestId");
+        deleteCookie(response, "GUEST_ID");
 
         return "redirect:/login?logout";
     }

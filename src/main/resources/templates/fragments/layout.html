@@ -41,6 +41,11 @@
                             onclick="document.querySelector('.global-search .input').value = ''"
                             type="button"></button>
                 </div>
+                <label class="ai-toggle">
+                    <input type="checkbox" name="ai" value="true" id="aiSearchToggle">
+                    <span class="slider"></span>
+                    <span class="label">AI 검색</span>
+                </label>
             </form>
 
             <div class="header-actions">
@@ -150,6 +155,47 @@
             });
         }
 
+        const LIKE_STORAGE_KEY = 'likedBooks';
+
+        const clearLikedStorage = () => {
+            try {
+                localStorage.removeItem(LIKE_STORAGE_KEY);
+            } catch (e) {
+                // ignore storage errors
+            }
+        };
+
+        const readLikedBooks = () => {
+            try {
+                const raw = localStorage.getItem(LIKE_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
+        };
+
+        const writeLikedBooks = (data) => {
+            try {
+                localStorage.setItem(LIKE_STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                // ignore storage errors
+            }
+        };
+
+        const updateLikeButtonFromStorage = () => {
+            const likedMap = readLikedBooks();
+            document.querySelectorAll('.like-btn[data-book-id]').forEach(btn => {
+                const id = btn.dataset.bookId;
+                const entry = likedMap[id];
+                if (!entry) return;
+                btn.classList.toggle('active', true);
+                const countSpan = btn.querySelector('.like-count');
+                if (countSpan && typeof entry.likeCount === 'number') {
+                    countSpan.textContent = entry.likeCount;
+                }
+            });
+        };
+
         // 전역 좋아요 토글 (어디서든 재사용)
         window.toggleLike = window.toggleLike || async function (btn, bookId) {
             if (!bookId) return;
@@ -177,14 +223,77 @@
                 const data = await res.json();
                 const countSpan = btn?.querySelector('.like-count');
                 if (btn) btn.classList.toggle('active', !!data.liked);
-                if (countSpan && typeof data.likeCount === 'number') {
-                    countSpan.textContent = data.likeCount;
+                let resolvedLikeCount = null;
+                if (typeof data.likeCount === 'number') {
+                    resolvedLikeCount = data.likeCount;
+                } else if (countSpan) {
+                    const currentCount = Number((countSpan.textContent || '0').replace(/[^0-9]/g, '')) || 0;
+                    resolvedLikeCount = data.liked ? currentCount + 1 : Math.max(0, currentCount - 1);
+                }
+                if (countSpan && resolvedLikeCount !== null) {
+                    countSpan.textContent = resolvedLikeCount;
+                }
+                if (btn) {
+                    const likedMap = readLikedBooks();
+                    const id = String(bookId);
+                    if (data.liked) {
+                        likedMap[id] = {
+                            id: bookId,
+                            title: btn.dataset.bookTitle || '',
+                            authors: btn.dataset.bookAuthors || '',
+                            thumbnail: btn.dataset.bookThumb || '',
+                            priceSales: Number(btn.dataset.bookPriceSales) || 0,
+                            priceStandard: Number(btn.dataset.bookPriceStandard) || 0,
+                            likedAt: new Date().toISOString(),
+                            likeCount: typeof data.likeCount === 'number' ? data.likeCount : (likedMap[id]?.likeCount || 0)
+                        };
+                    } else {
+                        delete likedMap[id];
+                    }
+                    if (resolvedLikeCount !== null) {
+                        if (!likedMap[id]) {
+                            likedMap[id] = { id: bookId, likeCount: resolvedLikeCount };
+                        } else {
+                            likedMap[id].likeCount = resolvedLikeCount;
+                        }
+                    }
+                    writeLikedBooks(likedMap);
                 }
             } catch (e) {
                 alert('좋아요 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
                 console.error(e);
             }
         };
+
+        document.addEventListener('click', (event) => {
+            const logoutTarget = event.target.closest('.logout-link, .text-link.logout');
+            if (logoutTarget) {
+                clearLikedStorage();
+            }
+        });
+
+        const syncLikedButtonsFromServer = async () => {
+            const token = getCookie('accessToken');
+            if (!token) return;
+            try {
+                const res = await fetch('/users/me/likes/ids?page=0&size=100', { credentials: 'include' });
+                if (!res.ok) return;
+                const ids = await res.json();
+                if (!Array.isArray(ids)) return;
+                const idSet = new Set(ids.map(id => String(id)));
+                document.querySelectorAll('.like-btn[data-book-id]').forEach(btn => {
+                    const isLiked = idSet.has(btn.dataset.bookId);
+                    btn.classList.toggle('active', isLiked);
+                });
+            } catch (e) {
+                // ignore sync errors
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLikeButtonFromStorage();
+            syncLikedButtonsFromServer();
+        });
     </script>
 </th:block>
 

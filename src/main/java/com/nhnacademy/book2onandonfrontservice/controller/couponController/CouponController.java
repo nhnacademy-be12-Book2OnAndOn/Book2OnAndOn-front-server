@@ -20,7 +20,7 @@ public class CouponController {
 
     private final CouponClient couponClient;
 
-    @GetMapping("/appliable")
+    @GetMapping("/issuable")
     public ResponseEntity<List<CouponDto>> getAppliableCoupons(
             @RequestParam("bookId") Long bookId,
             @RequestParam(value = "categoryIds", required = false) List<Long> categoryIds) {
@@ -42,9 +42,9 @@ public class CouponController {
      * [기능 2] 쿠폰 발급 요청
      * - CookieUtils를 사용하여 토큰 추출 후 백엔드 호출
      */
-    @PostMapping("/{couponId}/issue")
+    @PostMapping("/{coupon-id}/issue")
     public ResponseEntity<String> issueCoupon(
-            @PathVariable("couponId") Long couponId,
+            @PathVariable("coupon-id") Long couponId,
             HttpServletRequest request) {
 
         // 1. 쿠키에서 accessToken 값 꺼내기

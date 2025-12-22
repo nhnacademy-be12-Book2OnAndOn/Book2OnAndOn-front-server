@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비회원 주문/배송 조회</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/OrderHistory.css}">
+    <link rel="stylesheet" th:href="@{/css/OrderHistoryGuest.css}">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.IS_MEMBER_LOGGED_IN = false;
+        window.USER_ID = null;
+        /*]]>*/
+    </script>
+</head>
+<body class="guest-order-page">
+<th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
+
+<main class="order-guest-shell">
+    <div class="container">
+        <div class="order-guest-card">
+            <header class="order-guest-header">
+                <h1>비회원 주문 조회</h1>
+                <p class="muted">주문 시 입력했던 정보로 배송 상태를 확인하세요.</p>
+            </header>
+
+            <section id="guestLookupSection" class="order-card guest-form-container">
+                <div class="card-heading">
+                    <p class="eyebrow">비회원</p>
+                    <h3>비회원 주문 조회</h3>
+                    <p class="muted">주문 시 입력했던 정보로 조회할 수 있습니다.</p>
+                </div>
+                <form id="guestLookupForm" class="stacked-form">
+                    <input type="text" id="guestOrderId" placeholder="주문 번호" required>
+                    <input type="text" id="guestOrderer" placeholder="주문자 이름" required>
+                    <input type="password" id="guestPassword" placeholder="주문 비밀번호 (또는 연락처 끝 4자리)" required>
+                    <button type="submit" class="btn-primary full">주문 조회</button>
+                </form>
+                <p class="muted helper-text">
+                    이미 회원이신가요? <a th:href="@{/login}">로그인</a>하고 전체 주문 내역을 확인하세요.
+                </p>
+            </section>
+
+            <section id="memberHistorySection" class="order-card order-list-container hidden">
+                <p class="muted">회원 전용 영역입니다.</p>
+            </section>
+
+            <section id="orderDetailSection" class="order-card order-list-container hidden">
+                <div class="card-heading">
+                    <p class="eyebrow">상세</p>
+                    <h3>주문 상세 정보</h3>
+                </div>
+
+                <div id="actionButtons" class="action-buttons-wrapper"></div>
+
+                <div id="orderDetailContent"></div>
+                <button id="backToHistory" class="btn-secondary ghost">목록으로 돌아가기</button>
+            </section>
+        </div>
+    </div>
+</main>
+
+<div id="actionModal" class="modal hidden">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h3 id="modalTitle"></h3>
+
+        <div id="modalContent">
+            <p><strong>주문 번호:</strong> <span id="modalOrderId"></span></p>
+            <p><strong>취소/반품 금액:</strong> <span id="modalAmount"></span>원</p>
+
+            <div class="form-group" id="reasonGroup">
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button id="confirmActionButton" class="btn-primary">확인 및 요청</button>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+<script src="/js/OrderHistory.js"></script>
+</body>
+</html>
