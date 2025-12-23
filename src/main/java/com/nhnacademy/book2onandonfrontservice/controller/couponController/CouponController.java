@@ -22,15 +22,23 @@ public class CouponController {
 
     @GetMapping("/issuable")
     public ResponseEntity<List<CouponDto>> getAppliableCoupons(
+            HttpServletRequest request,
             @RequestParam("bookId") Long bookId,
             @RequestParam(value = "categoryIds", required = false) List<Long> categoryIds) {
+
+        String cookieValue = CookieUtils.getCookieValue(request, "accessToken");
+        String token = null;
+
+        if(cookieValue != null) {
+            token = "Bearer " + cookieValue;
+        }
 
         if (categoryIds == null) {
             categoryIds = List.of();
         }
 
         try {
-            List<CouponDto> coupons = couponClient.getAppliableCoupons(bookId, categoryIds);
+            List<CouponDto> coupons = couponClient.getAppliableCoupons(token,bookId, categoryIds);
             return ResponseEntity.ok(coupons);
         } catch (Exception e) {
             log.error("쿠폰 조회 실패", e);

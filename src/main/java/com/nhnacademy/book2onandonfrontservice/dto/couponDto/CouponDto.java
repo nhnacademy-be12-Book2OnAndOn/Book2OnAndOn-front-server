@@ -24,5 +24,5 @@ public class CouponDto {
     private LocalDate endDate;
     private CouponPolicyStatus status;
     private Integer couponRemainingQuantity;
-    
+    private Boolean isIssued;
 }
