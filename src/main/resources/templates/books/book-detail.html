@@ -57,6 +57,10 @@
                         <span class="publisher" th:each="pub : ${bookDetail.publishers}" th:text="${pub.name} + ' '">출판사</span>
                         <span class="divider">|</span>
                         <span class="date" th:text="${#temporals.format(bookDetail.publishDate, 'yyyy년 MM월 dd일')}">2024-01-01</span>
+                        <span class="divider" th:if="${bookDetail.categories != null and !bookDetail.categories.isEmpty()}">|</span>
+                        <span class="category-chip"
+                              th:if="${bookDetail.categories != null and !bookDetail.categories.isEmpty()}"
+                              th:text="${#strings.listJoin(bookDetail.categories.![name], ' > ')}">카테고리 경로</span>
                     </div>
 
                     <div class="rating-summary">
@@ -133,7 +137,8 @@
                         <span class="heart-icon"></span>
                         <span class="like-count" th:text="${bookDetail.likeCount}">0</span>
                     </button>
-                    <button type="button" class="btn ghost" th:onclick="'addToCart(' + ${bookDetail.id} + ')'">장바구니</button>
+                    <button type="button" class="btn ghost"
+                            th:onclick="|addToCart(${bookDetail.id}, parseInt(document.getElementById('quantity')?.value || '1'))|">장바구니</button>
                     <button type="button" class="btn primary fill">바로구매</button>
                 </div>
 
@@ -291,13 +296,9 @@
     }
 
     // 비로그인 시에도 guest id를 남겨두어 로그인 시 병합될 수 있게 함
-    (function ensureGuestId() {
-        const COOKIE_NAME = 'GUEST_ID';
-        if (!getCookie(COOKIE_NAME)) {
-            const gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-            setCookie(COOKIE_NAME, gid, 30);
-        }
-    })();
+    if (window.ensureGuestId) {
+        window.ensureGuestId();
+    }
 
     function changeMainImage(src) {
         document.getElementById('mainImg').src = src;

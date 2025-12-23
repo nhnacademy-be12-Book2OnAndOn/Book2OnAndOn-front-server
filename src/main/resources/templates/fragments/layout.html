@@ -108,6 +108,22 @@
             return null;
         }
 
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${date.toUTCString()}`;
+        }
+
+        window.ensureGuestId = window.ensureGuestId || function ensureGuestId() {
+            const COOKIE_NAME = 'GUEST_ID';
+            let gid = getCookie(COOKIE_NAME);
+            if (!gid) {
+                gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                setCookie(COOKIE_NAME, gid, 30);
+            }
+            return gid;
+        };
+
         window.toggleSidebar = window.toggleSidebar || function () {
             const sidebar = document.getElementById('categorySidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -296,6 +312,60 @@
             updateLikeButtonFromStorage();
             syncLikedButtonsFromServer();
         });
+
+        // 공용 장바구니 담기 로직 (회원/비회원 분기 + 바로 이동)
+        window.addToCart = window.addToCart || async function (bookId, qty) {
+            if (!bookId) return;
+            const quantity = Number(qty) > 0 ? Number(qty) : 1;
+            const payload = JSON.stringify({bookId: bookId, quantity});
+            const commonOpts = {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: payload
+            };
+            try {
+                const guestId = window.ensureGuestId ? window.ensureGuestId() : null;
+                const accessToken = getCookie('accessToken');
+                let res;
+
+                // 로그인 상태면 우선 회원 장바구니 시도
+                if (accessToken) {
+                    res = await fetch('/cart/user/items', commonOpts);
+                }
+
+                // 비로그인 이거나 회원 장바구니 실패(401/5xx) 시 게스트 장바구니 시도
+                if (!accessToken || (res && (res.status === 401 || res.status >= 500))) {
+                    const guestHeaders = guestId
+                        ? {...commonOpts.headers, 'X-Guest-Id': guestId}
+                        : commonOpts.headers;
+                    res = await fetch('/cart/guest/items', {
+                        ...commonOpts,
+                        headers: guestHeaders
+                    });
+                }
+
+                if (!res || !res.ok) {
+                    const fallbackMsg = res?.status === 503
+                        ? '장바구니 서비스가 잠시 불안정합니다. 잠시 후 다시 시도해주세요.'
+                        : null;
+                    throw new Error(fallbackMsg || '장바구니 담기에 실패했습니다.');
+                }
+
+                const badge = document.querySelector('[data-cart-count]');
+                if (badge) {
+                    const current = parseInt(badge.textContent || '0', 10) || 0;
+                    badge.textContent = current + quantity;
+                    badge.style.display = 'inline-flex';
+                }
+                if (confirm('장바구니에 담겼습니다. 장바구니로 이동할까요?')) {
+                    location.href = '/cartpage';
+                }
+            } catch (e) {
+                console.error(e);
+                alert(e.message || '장바구니 담기 실패');
+            }
+        };
     </script>
 </th:block>
 
