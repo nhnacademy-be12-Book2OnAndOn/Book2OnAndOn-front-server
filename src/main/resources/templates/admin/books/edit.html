@@ -41,8 +41,13 @@
                     <span class="muted">필수 항목을 모두 입력 후 저장해주세요.</span>
                     <div class="spacer"></div>
                     <button class="btn-ghost" onclick="history.back()" type="button">취소</button>
+                    <button class="btn-danger" type="button" onclick="confirmDeleteBook()">도서 삭제</button>
                     <button class="btn-primary" type="submit">저장</button>
                 </div>
+
+                <form id="bookDeleteForm" th:action="@{/admin/books/{id}(id=${book.id})}" method="post" style="display:none;">
+                    <input type="hidden" name="_method" value="delete">
+                </form>
 
                 <section class="form-section">
                     <h4>기본 정보</h4>
@@ -649,6 +654,13 @@
             }
         })();
     });
+</script>
+<script>
+    function confirmDeleteBook() {
+        if (confirm('해당 도서를 정말 삭제하시겠습니까?')) {
+            document.getElementById('bookDeleteForm')?.submit();
+        }
+    }
 </script>
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 </body>

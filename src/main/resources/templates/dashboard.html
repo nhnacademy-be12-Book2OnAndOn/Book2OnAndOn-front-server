@@ -1,16 +1,13 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
 <head>
-    <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Book2OnAndOn - 온라인 서점</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <title layout:fragment="title">Book2OnAndOn - 온라인 서점</title>
 </head>
 <body>
-<th:block
-        th:replace="~{fragments/layout :: commonHeader(${user ?: session.user}, ${cartCount}, null, null, false)}"></th:block>
-
-<main th:with="currentUser=${user ?: session.user}">
+<main layout:fragment="content" th:with="currentUser=${user ?: session.user}">
     <section class="hero">
         <div class="container hero-inner">
             <div class="hero-text">
@@ -270,32 +267,9 @@
 
 </main>
 
-<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
-
 <script th:inline="javascript">
     /*<![CDATA[*/
-    function addToCart(bookId) {
-        fetch('/api/cart/add', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({bookId: bookId})
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const badge = document.querySelector('[data-cart-count]');
-                    if (badge) {
-                        badge.textContent = parseInt(badge.textContent || '0', 10) + 1;
-                        badge.style.display = 'inline-flex';
-                    }
-                    if (confirm('장바구니에 담겼습니다. 이동하시겠습니까?')) location.href = '/cart';
-                } else {
-                    alert('실패: ' + (data.message || '오류'));
-                }
-            })
-            .catch(e => console.error(e));
-    }
-
+    const addToCart = window.addToCart;
     const toggleLike = window.toggleLike;
 
     // 슬라이더 초기화 (인기, 신간, 주간/일간 베스트 공용)

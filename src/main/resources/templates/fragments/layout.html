@@ -17,9 +17,9 @@
 
             <form class="global-search" method="get" th:action="@{/books/search}">
                 <div class="group">
-                    <button type="submit" aria-label="검색"
-                            style="background:none; border:none; padding:0; display:flex; align-items:center; cursor:pointer;">
-                        <svg aria-hidden="true" class="icon" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                    <button aria-label="검색" style="background:none; border:none; padding:0; display:flex; align-items:center; cursor:pointer;"
+                            type="submit">
+                        <svg aria-hidden="true" class="icon" style="width: 20px; height: 20px;" viewBox="0 0 24 24">
                             <g>
                                 <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
                             </g>
@@ -35,12 +35,19 @@
                            th:value="${condition?.keyword}"
                            type="text">
 
-                    <button aria-label="검색어 삭제" class="btn-clear" type="button"
-                            onclick="this.previousElementSibling.value = ''; this.previousElementSibling.focus();"></button>
+                    <button aria-label="검색어 삭제" class="btn-clear" onclick="this.previousElementSibling.value = ''; this.previousElementSibling.focus();"
+                            type="button"></button>
                     <button aria-label="검색어 삭제" class="btn-clear"
                             onclick="document.querySelector('.global-search .input').value = ''"
                             type="button"></button>
                 </div>
+
+                <label class="ai-toggle">
+                    <input id="aiSearchToggle" name="useAiSearch" th:checked="${condition.useAiSearch}" type="checkbox"
+                           value="true">
+                    <span class="slider"></span>
+                    <span class="label">AI 검색</span>
+                </label>
             </form>
 
             <div class="header-actions">
@@ -100,6 +107,24 @@
             if (parts.length === 2) return parts.pop().split(';').shift();
             return null;
         }
+
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${date.toUTCString()}`;
+        }
+
+        window.ensureGuestId = window.ensureGuestId || function ensureGuestId() {
+            const COOKIE_NAME = 'GUEST_ID';
+            let gid = getCookie(COOKIE_NAME);
+            if (!gid) {
+                gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                // 게이트웨이/서버가 대소문자 모두 참조할 가능성 대비해 두 가지 쿠키를 모두 심어둠
+                setCookie(COOKIE_NAME, gid, 30);
+                setCookie('guestId', gid, 30);
+            }
+            return gid;
+        };
 
         window.toggleSidebar = window.toggleSidebar || function () {
             const sidebar = document.getElementById('categorySidebar');
@@ -247,7 +272,7 @@
                     }
                     if (resolvedLikeCount !== null) {
                         if (!likedMap[id]) {
-                            likedMap[id] = { id: bookId, likeCount: resolvedLikeCount };
+                            likedMap[id] = {id: bookId, likeCount: resolvedLikeCount};
                         } else {
                             likedMap[id].likeCount = resolvedLikeCount;
                         }
@@ -271,7 +296,7 @@
             const token = getCookie('accessToken');
             if (!token) return;
             try {
-                const res = await fetch('/users/me/likes/ids?page=0&size=100', { credentials: 'include' });
+                const res = await fetch('/users/me/likes/ids?page=0&size=100', {credentials: 'include'});
                 if (!res.ok) return;
                 const ids = await res.json();
                 if (!Array.isArray(ids)) return;
@@ -289,6 +314,65 @@
             updateLikeButtonFromStorage();
             syncLikedButtonsFromServer();
         });
+
+        // 공용 장바구니 담기 로직 (회원/비회원 분기 + 바로 이동)
+        window.addToCart = window.addToCart || async function (bookId, qty) {
+            if (!bookId) return;
+            const quantity = Number(qty) > 0 ? Number(qty) : 1;
+            const payload = JSON.stringify({bookId: bookId, quantity});
+            const guestId = window.ensureGuestId ? window.ensureGuestId() : null;
+            const headers = guestId
+                ? {'Content-Type': 'application/json', 'X-Guest-Id': guestId}
+                : {'Content-Type': 'application/json'};
+
+            const commonOpts = {
+                method: 'POST',
+                headers,
+                credentials: 'include',
+                body: payload
+            };
+            try {
+                const accessToken = getCookie('accessToken');
+                let res;
+
+                // 로그인 상태면 우선 회원 장바구니 시도
+                if (accessToken) {
+                    res = await fetch('/cart/user/items', commonOpts);
+                }
+
+                // 비로그인 이거나 회원 장바구니 실패(401/5xx) 시 게스트 장바구니 시도
+                if (!accessToken || (res && (res.status === 401 || res.status >= 500))) {
+                    const resolvedGuestId = guestId || (window.ensureGuestId ? window.ensureGuestId() : null);
+                    const guestHeaders = resolvedGuestId
+                        ? {...commonOpts.headers, 'X-Guest-Id': resolvedGuestId}
+                        : commonOpts.headers;
+                    res = await fetch('/cart/guest/items', {
+                        ...commonOpts,
+                        headers: guestHeaders
+                    });
+                }
+
+                if (!res || !res.ok) {
+                    const fallbackMsg = res?.status === 503
+                        ? '장바구니 서비스가 잠시 불안정합니다. 잠시 후 다시 시도해주세요.'
+                        : null;
+                    throw new Error(fallbackMsg || '장바구니 담기에 실패했습니다.');
+                }
+
+                const badge = document.querySelector('[data-cart-count]');
+                if (badge) {
+                    const current = parseInt(badge.textContent || '0', 10) || 0;
+                    badge.textContent = current + quantity;
+                    badge.style.display = 'inline-flex';
+                }
+                if (confirm('장바구니에 담겼습니다. 장바구니로 이동할까요?')) {
+                    location.href = '/cartpage';
+                }
+            } catch (e) {
+                console.error(e);
+                alert(e.message || '장바구니 담기 실패');
+            }
+        };
     </script>
 </th:block>
 
@@ -344,12 +428,12 @@
         </div>
         <p class="copyright">© 2025 Book2OnAndOn. All rights reserved. <br> 도서 DB 제공 : 알라딘 인터넷서점(www.aladin.co.kr)</p>
     </footer>
-    <div class="recent-floating" id="recentFloating" aria-label="최근 본 도서">
-        <button class="recent-toggle" type="button" onclick="toggleRecentFloating()">최근 본 도서</button>
+    <div aria-label="최근 본 도서" class="recent-floating" id="recentFloating">
+        <button class="recent-toggle" onclick="toggleRecentFloating()" type="button">최근 본 도서</button>
         <div class="recent-body">
             <div class="recent-head">
                 <span>최근 본 도서</span>
-                <button class="close-btn" type="button" onclick="toggleRecentFloating()">×</button>
+                <button class="close-btn" onclick="toggleRecentFloating()" type="button">×</button>
             </div>
             <div class="recent-list" id="recentList">
                 <p class="muted">불러오는 중...</p>

@@ -1,109 +1,114 @@
 <!DOCTYPE html>
-<html th:replace="~{layout/mypage-layout :: layout(~{::title}, 'coupons', ~{::section}, ~{::extraHead})}"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/mypage-layout}"
+      th:with="sidebarActive='coupons'">
 <head>
-    <title>내 쿠폰함</title>
-    <th:block th:fragment="extraHead">
+    <title layout:fragment="title">내 쿠폰함</title>
+    <th:block layout:fragment="extraHead">
         <link rel="stylesheet" th:href="@{/css/memberCoupon.css}">
     </th:block>
 </head>
 <body>
 
-<section class="coupon-container">
-    <div class="page-header">
-        <div class="page-title">쿠폰함</div>
-        <p class="muted">사용 가능한 쿠폰 및 사용한 쿠폰들을 확인하세요.</p>
-    </div>
+<section class="coupon-container" layout:fragment="content">
+    <div class="dashboard-card page-card coupons-card">
+        <div class="dashboard-header">
+            <h2>쿠폰함</h2>
+            <p class="muted">사용 가능한 쿠폰 및 사용한 쿠폰들을 확인하세요.</p>
+        </div>
 
-    <div class="status-tabs">
-        <a class="tab-item"
-           th:classappend="${currentStatus == null} ? 'active'"
-           th:href="@{/users/me/coupons}">전체</a>
+        <div class="filter-tabs status-tabs">
+            <a class="filter-tab"
+               th:classappend="${currentStatus == null} ? 'active'"
+               th:href="@{/users/me/coupons}">전체</a>
 
-        <a class="tab-item"
-           th:classappend="${currentStatus?.name() == 'NOT_USED'} ? 'active'"
-           th:href="@{/users/me/coupons(status='NOT_USED')}">사용 가능</a>
+            <a class="filter-tab"
+               th:classappend="${currentStatus?.name() == 'NOT_USED'} ? 'active'"
+               th:href="@{/users/me/coupons(status='NOT_USED')}">사용 가능</a>
 
-        <a class="tab-item"
-           th:classappend="${currentStatus?.name() == 'USED'} ? 'active'"
-           th:href="@{/users/me/coupons(status='USED')}">사용 완료</a>
+            <a class="filter-tab"
+               th:classappend="${currentStatus?.name() == 'USED'} ? 'active'"
+               th:href="@{/users/me/coupons(status='USED')}">사용 완료</a>
 
-        <a class="tab-item"
-           th:classappend="${currentStatus?.name() == 'EXPIRED'} ? 'active'"
-           th:href="@{/users/me/coupons(status='EXPIRED')}">만료됨</a>
-    </div>
+            <a class="filter-tab"
+               th:classappend="${currentStatus?.name() == 'EXPIRED'} ? 'active'"
+               th:href="@{/users/me/coupons(status='EXPIRED')}">만료됨</a>
+        </div>
 
-    <div class="coupon-grid">
+        <div class="coupon-grid" th:if="${!#lists.isEmpty(myCoupons)}">
+            <div class="coupon-card" th:classappend="${coupon.memberCouponStatus.name() != 'NOT_USED'} ? 'deactive'"
+                 th:each="coupon : ${myCoupons}">
 
-        <div class="coupon-card" th:classappend="${coupon.memberCouponStatus.name() != 'NOT_USED'} ? 'deactive'"
-             th:each="coupon : ${myCoupons}">
-
-            <div class="card-body">
-                <div class="discount-display">
-                    <th:block th:if="${coupon.discountType?.name() == 'PERCENT'}">
-                        <span class="discount-val" th:text="${coupon.discountValue}"></span>
-                        <span class="discount-unit">%</span>
-                    </th:block>
-                    <th:block th:if="${coupon.discountType?.name() == 'FIXED'}">
-                        <span class="discount-val" style="font-size: 1.8rem;"
-                              th:text="${#numbers.formatInteger(coupon.discountValue/1000, 0, 'COMMA')}"></span>
-                        <span class="discount-unit">천원</span>
-                    </th:block>
-                </div>
-
-                <div class="coupon-info">
-                    <div class="coupon-name" th:text="${coupon.couponName}">쿠폰명</div>
-
-                    <div class="coupon-condition">
-                        <span th:text="${#numbers.formatInteger(coupon.minPrice, 0, 'COMMA')} + '원 이상 구매'"></span>
-                        <span th:if="${coupon.maxPrice != null}"
-                              th:text="'(최대 ' + ${#numbers.formatInteger(coupon.maxPrice, 0, 'COMMA')} + '원 할인)'"></span>
+                <div class="card-body">
+                    <div class="discount-display">
+                        <th:block th:if="${coupon.discountType?.name() == 'PERCENT'}">
+                            <span class="discount-val" th:text="${coupon.discountValue}"></span>
+                            <span class="discount-unit">%</span>
+                        </th:block>
+                        <th:block th:if="${coupon.discountType?.name() == 'FIXED'}">
+                            <span class="discount-val" style="font-size: 1.8rem;"
+                                  th:text="${#numbers.formatInteger(coupon.discountValue/1000, 0, 'COMMA')}"></span>
+                            <span class="discount-unit">천원</span>
+                        </th:block>
                     </div>
-                    <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">
-                        <span th:text="${coupon.discountDescription}"></span>
+
+                    <div class="coupon-info">
+                        <div class="coupon-name" th:text="${coupon.couponName}">쿠폰명</div>
+
+                        <div class="coupon-condition">
+                            <span th:text="${#numbers.formatInteger(coupon.minPrice, 0, 'COMMA')} + '원 이상 구매'"></span>
+                            <span th:if="${coupon.maxPrice != null}"
+                                  th:text="'(최대 ' + ${#numbers.formatInteger(coupon.maxPrice, 0, 'COMMA')} + '원 할인)'"></span>
+                        </div>
+                        <div class="coupon-detail">
+                            <span th:text="${coupon.discountDescription}"></span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="card-footer">
-                <div class="date-info">
-                    <span th:if="${coupon.memberCouponStatus.name() == 'USED'}">
-                        사용일: <span th:text="${#temporals.format(coupon.memberCouponUseDate, 'yyyy-MM-dd')}"></span>
-                    </span>
-                    <span th:unless="${coupon.memberCouponStatus.name() == 'USED'}">
-                        만료일: <span th:text="${#temporals.format(coupon.memberCouponEndDate, 'yyyy-MM-dd')}"></span>
+                <div class="card-footer">
+                    <div class="date-info">
+                        <span th:if="${coupon.memberCouponStatus.name() == 'USED'}">
+                            사용일: <span th:text="${#temporals.format(coupon.memberCouponUseDate, 'yyyy-MM-dd')}"></span>
+                        </span>
+                        <span th:unless="${coupon.memberCouponStatus.name() == 'USED'}">
+                            만료일: <span th:text="${#temporals.format(coupon.memberCouponEndDate, 'yyyy-MM-dd')}"></span>
+                        </span>
+                    </div>
+
+                    <span class="badge"
+                          th:classappend="|status-${coupon.memberCouponStatus}|"
+                          th:text="${coupon.memberCouponStatus.name() == 'NOT_USED' ? '사용 가능' :
+                                   (coupon.memberCouponStatus.name() == 'USED' ? '사용 완료' : '만료됨')}">
                     </span>
                 </div>
-
-                <span class="badge"
-                      th:classappend="|status-${coupon.memberCouponStatus}|"
-                      th:text="${coupon.memberCouponStatus.name() == 'NOT_USED' ? '사용 가능' :
-                               (coupon.memberCouponStatus.name() == 'USED' ? '사용 완료' : '만료됨')}">
-                </span>
             </div>
         </div>
-    </div>
 
-    <div style="text-align: center; padding: 5rem; color: #999;" th:if="${#lists.isEmpty(myCoupons)}">
-        <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
-        <p>보유하신 쿠폰이 없습니다.</p>
-    </div>
+        <div class="coupon-empty empty-state" th:if="${#lists.isEmpty(myCoupons)}">
+            <div>
+                <p class="empty-title">보유하신 쿠폰이 없습니다.</p>
+                <p class="empty-desc">이벤트와 프로모션을 통해 다양한 쿠폰을 받아보세요.</p>
+            </div>
+        </div>
 
-    <div class="pagination" th:if="${totalPages > 0}">
-        <a class="page-link"
-           th:href="@{/users/me/coupons(page=${currentPage - 1}, status=${currentStatus})}"
-           th:if="${currentPage > 0}">&lt;</a>
+        <div class="page-nav" th:if="${totalPages > 0}">
+            <a aria-label="이전" class="page-btn" th:classappend="${currentPage == 0} ? 'disabled'"
+               th:href="@{/users/me/coupons(page=${currentPage - 1}, status=${currentStatus})}">이전</a>
 
-        <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
-            <a class="page-link"
-               th:classappend="${i == currentPage} ? 'active'"
-               th:href="@{/users/me/coupons(page=${i}, status=${currentStatus})}"
-               th:text="${i + 1}">1</a>
-        </th:block>
+            <div class="page-numbers">
+                <a class="page-btn"
+                   th:classappend="${i == currentPage} ? 'active'"
+                   th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                   th:href="@{/users/me/coupons(page=${i}, status=${currentStatus})}"
+                   th:text="${i + 1}">1</a>
+            </div>
 
-        <a class="page-link"
-           th:href="@{/users/me/coupons(page=${currentPage + 1}, status=${currentStatus})}"
-           th:if="${currentPage < totalPages - 1}">&gt;</a>
+            <a aria-label="다음" class="page-btn" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'"
+               th:href="@{/users/me/coupons(page=${currentPage + 1}, status=${currentStatus})}">다음</a>
+        </div>
     </div>
 
 </section>

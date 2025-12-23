@@ -17,6 +17,13 @@ body {
     flex-direction: column;
 }
 
+.auth-page .hamburger,
+.auth-page #categorySidebar,
+.auth-page #sidebarOverlay,
+.auth-page .category-nav {
+    display: none !important;
+}
+
 .auth-page main {
     flex: 1;
     display: flex;

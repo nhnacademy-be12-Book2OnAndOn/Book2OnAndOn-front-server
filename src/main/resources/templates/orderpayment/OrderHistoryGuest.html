@@ -1,23 +1,26 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>비회원 주문/배송 조회</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <link rel="stylesheet" th:href="@{/css/OrderHistory.css}">
-    <link rel="stylesheet" th:href="@{/css/OrderHistoryGuest.css}">
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        window.IS_MEMBER_LOGGED_IN = false;
-        window.USER_ID = null;
-        /*]]>*/
-    </script>
+    <title layout:fragment="title">비회원 주문/배송 조회</title>
+    <th:block layout:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/OrderHistory.css}">
+        <link rel="stylesheet" th:href="@{/css/OrderHistoryGuest.css}">
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            window.IS_MEMBER_LOGGED_IN = false;
+            window.USER_ID = null;
+            /*]]>*/
+        </script>
+    </th:block>
 </head>
 <body class="guest-order-page">
-<th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 
-<main class="order-guest-shell">
+<main class="order-guest-shell" layout:fragment="content">
     <div class="container">
         <div class="order-guest-card">
             <header class="order-guest-header">
@@ -80,7 +83,6 @@
     </div>
 </div>
 
-<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
 <script src="/js/OrderHistory.js"></script>
 </body>
 </html>

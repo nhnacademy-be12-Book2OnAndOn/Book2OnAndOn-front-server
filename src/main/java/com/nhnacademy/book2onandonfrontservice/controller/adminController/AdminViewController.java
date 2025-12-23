@@ -1,6 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.controller.adminController;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
+import com.nhnacademy.book2onandonfrontservice.client.BookReindexClient;
 import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.DeliveryClient;
 import com.nhnacademy.book2onandonfrontservice.client.DeliveryPolicyClient;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
 @Controller
@@ -51,6 +53,7 @@ public class AdminViewController {
     private final UserClient userClient;
     private final CouponClient couponClient;
     private final BookClient bookClient;
+    private final BookReindexClient bookReindexClient;
     private final UserGradeClient userGradeClient;
     private final DeliveryClient deliveryClient;
     private final DeliveryPolicyClient deliveryPolicyClient;

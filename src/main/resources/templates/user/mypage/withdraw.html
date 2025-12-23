@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/mypage-layout :: layout(~{::title}, 'withdraw', ~{::content}, ~{::extraHead})}">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/mypage-layout}"
+      th:with="sidebarActive='withdraw'">
 <head>
-    <title>회원 탈퇴</title>
-    <th:block th:fragment="extraHead"></th:block>
+    <title layout:fragment="title">회원 탈퇴</title>
+    <th:block layout:fragment="extraHead"></th:block>
 </head>
 <body>
-<div th:fragment="content">
+<div layout:fragment="content">
         <div class="address-form-container withdraw-form no-card">
         <h2>회원 탈퇴</h2>
         <div class="withdraw-warning">

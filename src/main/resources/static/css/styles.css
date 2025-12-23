@@ -65,7 +65,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1.5rem;
+    gap: 1rem;
     padding: 1rem 0;
 }
 
@@ -194,6 +194,10 @@ img {
 
 .global-search {
     flex: 1;
+    max-width: 560px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .global-search .group {
@@ -206,9 +210,9 @@ img {
 .global-search .input {
     width: 100%;
     height: 50px;
-    padding: 0 1.2rem;
-    padding-left: 3rem;
-    padding-right: 3.6rem;
+    padding: 0 1rem;
+    padding-left: 2.6rem;
+    padding-right: 3rem;
     border: 2px solid transparent;
     border-radius: 12px;
     outline: none;
@@ -239,6 +243,61 @@ img {
     opacity: 1;
 }
 
+.ai-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid rgba(31, 43, 28, 0.15);
+    border-radius: 999px;
+    background: #fff;
+    cursor: pointer;
+    user-select: none;
+    height: 44px;
+}
+
+.ai-toggle input {
+    display: none;
+}
+
+.ai-toggle .slider {
+    width: 36px;
+    height: 20px;
+    border-radius: 999px;
+    background: #d5ddd6;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.ai-toggle .slider::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
+}
+
+.ai-toggle input:checked + .slider {
+    background: linear-gradient(135deg, #2f6242, #2d5f3f);
+}
+
+.ai-toggle input:checked + .slider::after {
+    transform: translateX(16px);
+}
+
+.ai-toggle .label {
+    font-weight: 700;
+    color: #234132;
+    font-size: 0.95rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 .global-search .input::placeholder {
     color: rgba(31, 43, 28, 0.55);
 }
@@ -261,12 +320,12 @@ img {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
 }
 
 .icon-buttons {
     display: flex;
-    gap: 18px;
+    gap: 12px;
 }
 
 .icon-btn {
@@ -1969,5 +2028,22 @@ img {
 
     .price-box {
         align-items: flex-start;
+    }
+
+    .btn-download:disabled,
+    .btn-download.completed {
+        background-color: #cccccc !important; /* 회색 */
+        color: #666666 !important;
+        cursor: not-allowed;
+        border: 1px solid #bbbbbb;
+    }
+
+    .btn-download {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
     }
 }
