@@ -2029,4 +2029,21 @@ img {
     .price-box {
         align-items: flex-start;
     }
+
+    .btn-download:disabled,
+    .btn-download.completed {
+        background-color: #cccccc !important; /* 회색 */
+        color: #666666 !important;
+        cursor: not-allowed;
+        border: 1px solid #bbbbbb;
+    }
+
+    .btn-download {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
 }

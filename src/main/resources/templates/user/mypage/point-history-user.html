@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/mypage-layout}"
-      th:with="sidebarActive='points'">
+      th:with="sidebarActive='points'"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title layout:fragment="title">포인트 내역</title>
@@ -11,23 +11,24 @@
 </head>
 
 <body>
-<div class="mypage-content points-page" layout:fragment="content">
-    <div class="dashboard-header">
-        <h2>포인트 내역</h2>
-        <p class="muted">적립/사용 기록과 잔액을 한 번에 확인하세요.</p>
-    </div>
-
-    <div class="point-summary-grid">
-        <div class="dashboard-card point-balance-card">
-            <div class="card-head">
-                <span class="card-label">보유 포인트</span>
-            </div>
-            <div class="point-amount stat-value" id="currentPoint"
-                 th:text="${currentPoint != null ? #numbers.formatInteger(currentPoint.currentPoint, 0, 'COMMA') : 0} + ' P'">
-                0 P
-            </div>
-            <p class="subtext">구매와 활동으로 모은 포인트</p>
+<section class="dashboard-main mypage-content points-page" layout:fragment="content">
+    <div class="dashboard-card page-card point-history-card">
+        <div class="dashboard-header">
+            <h2>포인트 내역</h2>
+            <p class="muted">적립/사용 기록과 잔액을 한 번에 확인하세요.</p>
         </div>
+
+        <div class="point-summary-row">
+            <div class="point-balance-card">
+                <div class="card-head">
+                    <span class="card-label">보유 포인트</span>
+                </div>
+                <div class="point-amount stat-value" id="currentPoint"
+                     th:text="${currentPoint != null ? #numbers.formatInteger(currentPoint.currentPoint, 0, 'COMMA') : 0} + ' P'">
+                    0 P
+                </div>
+                <p class="subtext">구매와 활동으로 모은 포인트</p>
+            </div>
             <div class="point-metrics">
                 <div class="point-metric-card">
                     <span class="metric-label">이번 달 적립</span>
@@ -47,8 +48,7 @@
             </div>
         </div>
 
-    <div class="dashboard-card point-history-card">
-        <div class="card-head">
+        <div class="history-header card-head">
             <span class="card-label">포인트 내역</span>
             <div class="filter-tabs">
                 <button class="filter-tab active" onclick="filterHistory(event, 'ALL')">전체</button>
@@ -84,7 +84,8 @@
                             <span th:text="${item.pointHistoryChange > 0 ? '+' : '-'} + ${#numbers.formatInteger(T(Math).abs(item.pointHistoryChange), 0, 'COMMA')} + ' P'">+0 P</span>
                         </td>
                         <td>
-                            <strong th:text="${#numbers.formatInteger(item.totalPoints != null ? item.totalPoints : (item.remainingPoint != null ? item.remainingPoint : 0), 0, 'COMMA')} + ' P'">0 P</strong>
+                            <strong th:text="${#numbers.formatInteger(item.totalPoints != null ? item.totalPoints : (item.remainingPoint != null ? item.remainingPoint : 0), 0, 'COMMA')} + ' P'">0
+                                P</strong>
                         </td>
                         <td th:text="${item.pointExpiredDate != null ? item.pointExpiredDate : '-'}">-</td>
                     </tr>
@@ -102,7 +103,7 @@
 
         <div class="page-nav point-pagination" id="pagination"></div>
     </div>
-</div>
+</section>
 
 <script th:inline="javascript">
     window.initialPointHistory = /*[[${histories}]]*/ [];

@@ -108,7 +108,8 @@
                     </div>
                 </div>
 
-                <button type="button" class="btn-outline-green" onclick="alert('장바구니 기능 구현 필요')">
+                <button type="button" class="btn-outline-green"
+                        th:onclick="'addToCart(' + ${book.id} + ')'">
                     장바구니
                 </button>
             </div>
