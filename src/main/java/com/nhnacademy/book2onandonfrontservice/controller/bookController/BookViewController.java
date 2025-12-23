@@ -106,12 +106,30 @@ public class BookViewController {
     public String getBooksByCategoryId(@PathVariable Long categoryId,
                                        HttpServletRequest request,
                                        Model model) {
+        commonData(model);
         String accessToken = CookieUtils.getCookieValue(request, "accessToken");
-        Page<BookDto> booksByCategory = bookClient.getBooksByCategories(toBearer(accessToken), categoryId);
-        CategoryDto category = bookClient.getCategoryInfo(categoryId);
+        Page<BookDto> booksByCategory = Page.empty();
+        String categoryName = "카테고리";
+
+        try {
+            booksByCategory = bookClient.getBooksByCategories(toBearer(accessToken), categoryId);
+        } catch (Exception e) {
+            log.error("카테고리 도서 조회 실패: {}", categoryId, e);
+            model.addAttribute("categoryError", "카테고리 도서를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+        }
+
+        try {
+            CategoryDto category = bookClient.getCategoryInfo(categoryId);
+            if (category != null && category.getName() != null) {
+                categoryName = category.getName();
+            }
+        } catch (Exception e) {
+            log.warn("카테고리 정보 조회 실패: {}", categoryId, e);
+        }
+
         model.addAttribute("books", booksByCategory);
         model.addAttribute("currentCategoryId", categoryId);
-        model.addAttribute("categoryName", category.getName());
+        model.addAttribute("categoryName", categoryName);
         return "books/booksByCategory";
     }
 
