@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko"
-      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/main-layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/main-layout}">
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title layout:fragment="title">비회원 주문/배송 조회</title>
     <th:block layout:fragment="extraHead">
         <link rel="stylesheet" th:href="@{/css/OrderHistory.css}">
@@ -28,43 +28,62 @@
                 <p class="muted">주문 시 입력했던 정보로 배송 상태를 확인하세요.</p>
             </header>
 
-            <section id="guestLookupSection" class="order-card guest-form-container">
+            <section class="order-card guest-form-container" id="guestLookupSection">
                 <div class="card-heading">
                     <p class="eyebrow">비회원</p>
                     <h3>비회원 주문 조회</h3>
                     <p class="muted">주문 시 입력했던 정보로 조회할 수 있습니다.</p>
                 </div>
-                <form id="guestLookupForm" class="stacked-form">
-                    <input type="text" id="guestOrderId" placeholder="주문 번호" required>
-                    <input type="text" id="guestOrderer" placeholder="주문자 이름" required>
-                    <input type="password" id="guestPassword" placeholder="주문 비밀번호 (또는 연락처 끝 4자리)" required>
-                    <button type="submit" class="btn-primary full">주문 조회</button>
+                <form class="stacked-form" id="guestLookupForm">
+                    <input id="guestOrderId" placeholder="주문 번호" required type="text">
+                    <input id="guestOrderer" placeholder="주문자 이름" required type="text">
+                    <input id="guestPassword" placeholder="주문 비밀번호 (또는 연락처 끝 4자리)" required type="password">
+                    <button class="btn-primary full" type="submit">주문 조회</button>
                 </form>
                 <p class="muted helper-text">
-                    이미 회원이신가요? <a th:href="@{/login}">로그인</a>하고 전체 주문 내역을 확인하세요.
+                    이미 회원이신가요? <a class="link-cta accent" th:href="@{/login}">로그인</a> 하고 전체 주문 내역을 확인하세요.
                 </p>
             </section>
 
-            <section id="memberHistorySection" class="order-card order-list-container hidden">
+            <section class="order-card lookup-tips">
+                <div class="tips-header">
+                    <div>
+                        <p class="eyebrow">안내</p>
+                        <h4>조회가 잘 안 될 때</h4>
+                    </div>
+                    <span class="pill">TIP</span>
+                </div>
+                <ul class="tips-list">
+                    <li>주문 번호는 결제 완료 메일 또는 문자에서 확인할 수 있어요.</li>
+                    <li>주문 비밀번호 대신 연락처 끝 4자리로도 조회할 수 있습니다.</li>
+                    <li>최근 주문 직후라면 1~2분 후 다시 시도해 주세요.</li>
+                </ul>
+                <div class="support-row">
+                    <span class="muted">그래도 어렵다면 고객센터로 문의해 주세요.</span>
+                    <a class="btn ghost sm" th:href="@{/support}">고객센터 바로가기</a>
+                </div>
+            </section>
+
+            <section class="order-card order-list-container hidden" id="memberHistorySection">
                 <p class="muted">회원 전용 영역입니다.</p>
             </section>
 
-            <section id="orderDetailSection" class="order-card order-list-container hidden">
+            <section class="order-card order-list-container hidden" id="orderDetailSection">
                 <div class="card-heading">
                     <p class="eyebrow">상세</p>
                     <h3>주문 상세 정보</h3>
                 </div>
 
-                <div id="actionButtons" class="action-buttons-wrapper"></div>
+                <div class="action-buttons-wrapper" id="actionButtons"></div>
 
                 <div id="orderDetailContent"></div>
-                <button id="backToHistory" class="btn-secondary ghost">목록으로 돌아가기</button>
+                <button class="btn-secondary ghost" id="backToHistory">목록으로 돌아가기</button>
             </section>
         </div>
     </div>
 </main>
 
-<div id="actionModal" class="modal hidden">
+<div class="modal hidden" id="actionModal">
     <div class="modal-content">
         <span class="close-button">&times;</span>
         <h3 id="modalTitle"></h3>
@@ -78,7 +97,7 @@
         </div>
 
         <div class="modal-footer">
-            <button id="confirmActionButton" class="btn-primary">확인 및 요청</button>
+            <button class="btn-primary" id="confirmActionButton">확인 및 요청</button>
         </div>
     </div>
 </div>

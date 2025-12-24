@@ -1,328 +1,261 @@
-/* ================================================================= */
-/*  Global Reset & Container Styles */
-/* ================================================================= */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+.order-hero {
+    background: linear-gradient(135deg, #f5faf6, #e7f1e8);
+    border-bottom: 1px solid #dbe6dc;
+    padding: 2.5rem 0;
 }
 
-html, body {
-    min-height: 100%;
-    background-color: #f5f5f5;
-    color: #333;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
-    background-color: #f5f5f5;
-    color: #333;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    text-align: left;
-}
-
-header {
-    background-color: #4A7C59;
-    color: white;
-    padding: 20px 0;
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-header h1 {
-    text-align: center;
-    font-size: 28px;
-}
-
-/* ------------------------------------------- */
-/*  1. ORDER & PAYMENT COMMON LAYOUT */
-/* (두 페이지 모두에 적용되는 2단 레이아웃 및 섹션 기본 스타일) */
-/* ------------------------------------------- */
-
-/* 2단 레이아웃 정의 */
-.order-layout {
+.order-hero-inner {
     display: flex;
-    gap: 30px;
-    min-height: 70vh;
-    margin-bottom: 50px;
+    justify-content: space-between;
+    gap: 1.5rem;
+    align-items: center;
 }
 
-/* 좌측 메인 폼 영역 (2/3) */
-.main-form-area {
-    flex: 2;
+.order-steps {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: #2f6242;
+}
+
+.order-steps .step {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(47, 98, 66, 0.1);
+}
+
+.order-steps .divider {
+    width: 32px;
+    height: 2px;
+    background: #c7d7c8;
+}
+
+.order-shell {
+    padding: 2rem 0 3rem;
+}
+
+.order-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.order-section.card {
+    background: #fff;
+    border: 1px solid #e4ebe2;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(12, 30, 18, 0.06);
+    padding: 1.25rem 1.4rem 1.5rem;
+}
+
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.section-head h2 {
+    margin: 0.1rem 0 0;
+    color: #1f4a30;
+}
+
+.eyebrow {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #46664b;
+    margin: 0;
+}
+
+.form-grid.two-col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+}
+
+.form-group {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-}
-
-/* 우측 결제 요약 영역 (1/3) */
-.payment-summary-area {
-    flex: 1;
-}
-
-/* 섹션 공통 스타일 */
-.order-section {
-    background-color: white;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.order-section h2 {
-    font-size: 20px;
-    color: #4A7C59;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-/* 폼 그룹 공통 스타일 */
-.form-group {
-    margin-bottom: 20px;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
 .form-group label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #555;
+    font-weight: 700;
+    color: #1f3a2c;
 }
 
-.form-group input:not([type="checkbox"]),
+.form-group input,
 .form-group select {
-    width: 100%;
+    border: 1px solid #d7e2d5;
+    border-radius: 10px;
     padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    transition: border-color 0.3s;
+    font-size: 0.95rem;
+    background: #fdfdfb;
 }
+
 .form-group input:focus,
 .form-group select:focus {
-    border-color: #4A7C59;
     outline: none;
+    border-color: #2f6242;
+    box-shadow: 0 0 0 3px rgba(47, 98, 66, 0.16);
 }
 
-/* ------------------------------------------- */
-/* 🛒 2. ORDER SPECIFIC STYLES (상품, 배송, 포장) */
-/* ------------------------------------------- */
-
-/* 주문 상품 목록 */
-.order-item-detail {
-    border: 1px solid #eee;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    background-color: #fafafa;
-}
-
-.item-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.item-title {
-    font-weight: 600;
-    font-size: 16px;
-}
-
-.item-price {
-    font-weight: bold;
-    color: #2c8a40;
-}
-
-/* 포장 옵션 영역 */
-.item-wrap-option {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding-top: 10px;
-    border-top: 1px dashed #e0e0e0;
-}
-
-.item-wrap-option .wrap-toggle {
-    width: 18px;
-    height: 18px;
-}
-
-.item-wrap-option label {
-    font-weight: normal;
-    margin-bottom: 0;
-    color: #666;
-}
-
-.btn-select-wrap {
-    padding: 8px 15px;
-    background-color: #f0f0f0;
-    color: #333;
-    border: 1px solid #ccc;
-    font-size: 14px;
-}
-
-.btn-select-wrap:disabled {
-    background-color: #eee;
-    color: #aaa;
-    cursor: not-allowed;
-    border-color: #ddd;
-}
-
-/* 배송 주소 입력 */
 .address-inputs {
     display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
 }
 
-.address-inputs input {
-    flex: 1;
+.btn-search-address {
+    padding: 10px 12px;
 }
 
-/* ------------------------------------------- */
-/* 배송 희망 날짜 버튼 스타일 */
-/* ------------------------------------------- */
 .date-options-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
-.date-option-button {
-    padding: 15px 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fff;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s ease;
-    font-size: 14px;
-    line-height: 1.2;
+.discount-field .current-point {
+    color: #456549;
+    font-weight: 600;
 }
 
-.date-option-button:hover {
-    border-color: #4A7C59;
-    background-color: #f7fcf7;
+.payment-method-options {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
-.date-option-button.selected {
-    background-color: #4A7C59;
-    color: white;
-    border-color: #4A7C59;
-    font-weight: bold;
-}
-
-.date-option-button .day-of-week {
-    display: block;
-    font-size: 16px;
-    margin-bottom: 4px;
-}
-
-.date-option-button .date-text {
-    display: block;
-    font-size: 12px;
-}
-
-/* ------------------------------------------- */
-/*  3. PAYMENT SPECIFIC STYLES (할인, 요약, 결제) */
-/* ------------------------------------------- */
-
-/* 주문 요약 공통 (Sticky) */
-.sticky-summary {
+.payment-summary-area .card {
     position: sticky;
-    top: 20px;
+    top: 90px;
 }
 
-/* 할인 섹션 내 포인트 보유량 */
-.point-usage-section .current-point {
-    display: block;
-    font-size: 14px;
-    color: #777;
-    margin-top: 5px;
-}
-
-/* 결제 수단 라디오 버튼 */
-.payment-method-options label {
-    display: block;
-    margin-bottom: 10px;
-}
-
-/* 요약 가격 세부 내역 */
 .price-breakdown {
-    margin-bottom: 15px;
+    border-top: 1px solid #e2e9e2;
+    padding-top: 10px;
+    margin-top: 6px;
 }
 
-.price-breakdown .discount {
-    color: #e74c3c; /* 할인 금액 빨간색 */
-}
-.price-breakdown .fee {
-    color: #f39c12; /* 배송/포장비 주황색 */
-}
-
-/* 요약 라인 (공통) */
 .summary-line {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
-    padding: 5px 0;
-    font-size: 15px;
+    padding: 6px 0;
+    color: #2c3a2f;
 }
 
-.summary-line span:first-child {
-    color: #666;
+.summary-line .discount {
+    color: #c0392b;
+}
+
+.summary-line .fee {
+    color: #4a5a4a;
 }
 
 .final-total-row {
     display: flex;
     justify-content: space-between;
-    padding-top: 15px;
-    margin-top: 15px;
-    border-top: 2px solid #ddd;
-    font-size: 18px;
-    font-weight: bold;
-    color: #4A7C59;
-}
-
-/* 버튼 공통 스타일 (결제 버튼 포함) */
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s;
-    font-weight: 500;
-}
-
-.btn-primary, .btn-checkout-final {
-    background-color: #4A7C59;
-    color: white;
-}
-
-.btn-primary:hover, .btn-checkout-final:hover {
-    background-color: #3d6649;
-}
-
-.btn-secondary, .btn-search-address {
-    background-color: #95a5a6;
-    color: white;
-    padding: 10px 15px;
-}
-
-.btn-secondary:hover, .btn-search-address:hover {
-    background-color: #7f8c8d;
+    align-items: center;
+    border-top: 1px solid #dfe7df;
+    padding-top: 12px;
+    margin-top: 8px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1f4a30;
 }
 
 .btn-checkout-final {
     width: 100%;
-    padding: 15px;
-    font-size: 18px;
+    margin-top: 12px;
+    padding: 12px;
+    background: #2f6242;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-checkout-final:hover {
+    background: #2a583b;
+}
+
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: none;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #e3e7e3;
+    width: 80%;
+    max-width: 900px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.wrap-card {
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+    transition: all 0.3s;
+    background: #f7fbf7;
+}
+
+.wrap-card:hover {
+    border-color: #ccc;
+}
+
+.wrap-card.selected {
+    border-color: #4A7C59;
+    background-color: #f0f8f0;
+}
+
+.wrap-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.close-button {
+    float: right;
+    font-size: 28px;
     font-weight: bold;
-    margin-top: 20px;
+    cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    .order-layout {
+        grid-template-columns: 1fr;
+    }
+    .payment-summary-area .card {
+        position: static;
+    }
 }
