@@ -25,7 +25,7 @@ public class SecurityConfig {
                         )
                         // [수정된 부분] Cloudflare 도메인 추가
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                "script-src 'self' 'unsafe-inline' https://t1.daumcdn.net https://uicdn.toast.com https://static.cloudflareinsights.com; "
+                                "script-src 'self' 'unsafe-inline' https://t1.daumcdn.net https://uicdn.toast.com https://static.cloudflareinsights.com https://js.tosspayments.com; "
                                         + "style-src 'self' 'unsafe-inline' https://uicdn.toast.com; "
                                         + "object-src 'none'; base-uri 'self';"))
                 )

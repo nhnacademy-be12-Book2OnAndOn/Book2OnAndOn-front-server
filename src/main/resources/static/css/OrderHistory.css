@@ -6,12 +6,54 @@
     gap: 1.5rem;
 }
 
+.page-hero-card {
+    background: #f7fbf8;
+    border: 1px solid #e0e7e2;
+    border-radius: 18px;
+    padding: 1.2rem 1.6rem 1.4rem;
+    box-shadow: 0 14px 36px rgba(7, 28, 15, 0.05);
+}
+
+.page-hero-card h2 {
+    margin: 0 0 0.35rem;
+    color: #1f4a30;
+    position: relative;
+    display: inline-block;
+}
+
+.page-hero-card h2::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -10px;
+    width: 120px;
+    height: 2px;
+    background: #1f4a30;
+}
+
+.card-shell {
+    background: linear-gradient(145deg, #f6faf7, #edf3ee);
+    border: 1px solid #e0e7e2;
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.65), 0 18px 44px rgba(7, 28, 15, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
 .order-card {
     background: #fff;
     border: 1px solid #e0e7e2;
     border-radius: 18px;
     padding: 1.6rem 1.8rem;
     box-shadow: 0 18px 44px rgba(7, 28, 15, 0.08);
+}
+
+.guest-form-container {
+    border: 1px solid #e0e7e2;
+    background: #fbfdf9;
+    box-shadow: 0 18px 44px rgba(7, 28, 15, 0.07);
 }
 
 .card-heading h3 {
@@ -34,6 +76,33 @@
 
 .helper-text {
     margin-top: 0.75rem;
+}
+
+.helper-text .link-cta {
+    display: inline-block;
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+    background: rgba(47, 98, 66, 0.12);
+    color: #2f6242;
+    font-weight: 700;
+    text-decoration: none;
+    transition: 0.15s ease;
+}
+
+.helper-text .link-cta:hover {
+    background: rgba(47, 98, 66, 0.2);
+    color: #234c32;
+}
+
+.helper-text .link-cta.accent {
+    background: linear-gradient(135deg, #2f6242, #1f4a30);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(16, 52, 33, 0.18);
+}
+
+.helper-text .link-cta.accent:hover {
+    background: linear-gradient(135deg, #2a573b, #1b422b);
+    color: #f7fbf8;
 }
 
 .stacked-form input {
@@ -107,16 +176,16 @@
 
 .order-filter-box {
     border: 1px dashed #d9e2da;
-    border-radius: 14px;
-    padding: 1.1rem 1.2rem;
+    border-radius: 16px;
+    padding: 1.2rem 1.3rem;
     margin-bottom: 1.4rem;
-    background-color: #f8faf8;
+    background-color: #f9fbf8;
 }
 
 #orderFilterForm {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 0.9rem 1.1rem;
+    gap: 0.8rem 1rem;
     align-items: center;
 }
 
@@ -155,8 +224,9 @@
 
 .filter-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 0.6rem;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    align-self: flex-end;
 }
 
 .order-item {
@@ -270,26 +340,36 @@
 
 /* 주문 안내 가이드 섹션 */
 .order-guide-section {
-    margin: 40px 0 20px 0;
-    padding: 20px;
-    background-color: #fcfcfc;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    font-size: 13px;
-    color: #555;
+    margin: 1.4rem 0 0.4rem;
+    padding: 1.3rem 1.1rem 1.5rem;
+    background: linear-gradient(135deg, #f6faf7, #eef4ef);
+    border: 1px solid #dfe7e0;
+    border-radius: 16px;
+    font-size: 14px;
+    color: #2f3d2f;
+    box-shadow: 0 16px 40px rgba(7, 28, 15, 0.05);
 }
 
-.guide-header { margin-bottom: 20px; line-height: 1.8; color: #666; }
-.guide-header strong { color: #1a73e8; }
+.guide-header {
+    margin-bottom: 14px;
+    line-height: 1.6;
+    color: #406048;
+}
+
+.guide-header strong {
+    color: #1f4a30;
+}
 
 .process-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: #fff;
-    padding: 25px 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
+    padding: 20px 14px;
+    border: 1px solid #e3eae3;
+    border-radius: 12px;
+    box-shadow: 0 10px 26px rgba(12, 46, 24, 0.06);
+    gap: 0.6rem;
 }
 
 .process-step { text-align: center; flex: 1; }
@@ -301,23 +381,24 @@
 .guide-footer-bar {
     display: flex;
     margin-top: 8px;
-    height: 32px;
-    line-height: 32px;
+    height: 34px;
+    line-height: 34px;
     text-align: center;
-    font-weight: bold;
-    font-size: 12px;
+    font-weight: 700;
+    font-size: 13px;
+    border: 1px solid #dfe7e0;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .cancel-zone {
     flex: 3;
-    background-color: #e8f0fe;
-    color: #1a73e8;
-    border-radius: 4px 0 0 4px;
+    background-color: #e6f0e7;
+    color: #2f6242;
 }
 
 .return-zone {
     flex: 1;
-    background-color: #f1f1f1;
-    color: #777;
-    border-radius: 0 4px 4px 0;
+    background-color: #f1f3f1;
+    color: #6b7b6c;
 }

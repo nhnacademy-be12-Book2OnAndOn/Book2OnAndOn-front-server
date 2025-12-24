@@ -77,3 +77,93 @@
 .order-guest-shell .modal .modal-content {
     border-radius: 14px;
 }
+
+.lookup-tips {
+    margin-top: 1rem;
+    background: linear-gradient(135deg, #f6fbf7, #eef6f0);
+    border: 1px solid #d7e3d6;
+    box-shadow: 0 14px 28px rgba(15, 36, 23, 0.08);
+    border-radius: 16px;
+}
+
+.tips-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.6rem;
+}
+
+.tips-header h4 {
+    margin: 0.2rem 0 0;
+    color: #1f4a30;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    background: #2f6242;
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.tips-list {
+    margin: 0.4rem 0 0.8rem;
+    padding-left: 1.1rem;
+    color: #355741;
+    line-height: 1.6;
+}
+
+.tips-list li {
+    margin-bottom: 0.2rem;
+}
+
+.support-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+}
+
+.lookup-tips .btn.ghost.sm {
+    background: #2f6242;
+    color: #fff;
+    border-color: #2f6242;
+    width: 180px;
+    padding: 0.45rem 0.85rem;
+}
+
+.lookup-tips .btn.ghost.sm:hover {
+    background: #285637;
+    border-color: #285637;
+}
+
+.helper-text .link-cta {
+    display: inline-block;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
+    background: rgba(47, 98, 66, 0.1);
+    color: #2f6242;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.helper-text .link-cta:hover {
+    background-color: var(--green-500);
+    color: #264f34;
+}
+
+.helper-text .link-cta.accent {
+    background: #2f6242;
+    color: #fff;
+    padding: 0.25rem 0.75rem;
+}
+
+.helper-text .link-cta.accent:hover {
+    background: var(--green-500);
+    color: #f7fbf8;
+}
