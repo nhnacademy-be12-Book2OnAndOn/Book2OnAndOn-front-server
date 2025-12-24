@@ -1,7 +1,3 @@
-// =================================================================
-// checkout.js: 통합 주문/결제 로직 (TOSS V2 FINAL VERSION)
-// =================================================================
-
 // --- 상수 및 전역 변수 영역 (Order & Payment 공통) ---
 const API_BASE = {
     CART: '/cart',
@@ -10,20 +6,27 @@ const API_BASE = {
     TOSS_CONFIRM: '/payment/TOSS/confirm'
 };
 
-const USER_ID = 10;
-const GUEST_ID = 'uuid-test-1234';
-const IS_USER = true;
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+};
+
+const USER_ID = window.USER_ID || null;
+const GUEST_ID = getCookie('GUEST_ID') || 'uuid-test-1234';
+const IS_USER = !!getCookie('accessToken');
+
+
 
 const TOSS_CLIENT_KEY = "test_ck_Z1aOwX7K8m1x1vJ2AgDQ8yQxzvNP";
 const FIXED_DELIVERY_FEE = 3000;
 const FREE_DELIVERY_THRESHOLD = 30000;
-const CURRENT_POINT = 12500;
 
 let cartData = null;
 let wrapOptions = [];
 let selectedWrapData = {};
 let currentBookId = null;
-let isUserOrder = IS_USER;
+let userPointBalance = 0;
 
 // --- 1. 초기화 및 데이터 로드 ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -39,23 +42,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 // =================================================================
 
 async function loadInitialData() {
-    // 테스트용 Mock 데이터 정의 (총 금액 60000원)
-    cartData = {
-        selectedTotalPrice: 60000,
-        items: [
-            { bookId: 101, title: "클린 코드 (Clean Code) 기초편", quantity: 1, price: 30000, isPackable: true },
-            { bookId: 102, title: "객체지향 설계와 원리 심화", quantity: 2, price: 15000, isPackable: true }
-        ]
-    };
-    wrapOptions = [
-        { wrappingPaperId: 5, wrappingPaperName: "🎁 고급 선물 포장", wrappingPaperPrice: 5000, wrappingPaperPath: "https://via.placeholder.com/150/99e699/333333?text=Premium+Wrap" },
-        { wrappingPaperId: 6, wrappingPaperName: "♻️ 친환경 에코 포장", wrappingPaperPrice: 2000, wrappingPaperPath: "https://via.placeholder.com/150/d4f0d4/333333?text=Eco+Wrap" },
-        { wrappingPaperId: 7, wrappingPaperName: "💌 메시지 카드 포함", wrappingPaperPrice: 1000, wrappingPaperPath: "https://via.placeholder.com/150/e0e0e0/333333?text=Message+Card" },
-        { wrappingPaperId: 8, wrappingPaperName: "파손 방지 (무료)", wrappingPaperPrice: 0, wrappingPaperPath: "https://via.placeholder.com/150/f0f0f0/333333?text=Protection+Wrap" }
-    ];
-    console.log("✅ Mock 테스트 데이터 로드 완료.");
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (IS_USER) headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
+        else headers['X-Guest-Id'] = GUEST_ID;
 
-    renderProductList();
+        const [cartRes, wrapRes, pointRes] = await Promise.all([
+            fetch(`${API_BASE.CART}/user/items/selected`, { headers }), //
+            fetch(`${API_BASE.WRAP}`, { headers }),
+            IS_USER ? fetch(`/api/user/me/points/api/current`, { headers }) : Promise.resolve(null)
+        ]);
+        const couponRes = await fetch('/coupons/me', { headers });
+        if (couponRes.ok) {
+            const coupons = await couponRes.json();
+            renderCouponOptions(coupons);
+        }
+
+        if (cartRes.ok) cartData = await cartRes.json();
+        if (wrapRes.ok) wrapOptions = await wrapRes.json();
+        if (pointRes && pointRes.ok) {
+            const pointData = await pointRes.json();
+            userPointBalance = pointData.currentPoint;
+        }
+
+        renderProductList();
+        updatePointUI();
+        calculateFinalAmount();
+    } catch (error) {
+        console.error("데이터 로드 실패:", error);
+    }
+}
+
+function renderCouponOptions(coupons) {
+    const select = document.getElementById('couponSelect');
+    coupons.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.discountAmount;
+        opt.textContent = `${c.couponName} (-${c.discountAmount.toLocaleString()}원)`;
+        select.appendChild(opt);
+    });
+}
+
+function updatePointUI() {
+    const el = document.getElementById('currentPointValue');
+    if (el) el.textContent = `${userPointBalance.toLocaleString()} P`;
 }
 
 function setupEventListeners() {
@@ -109,51 +139,42 @@ function setupEventListeners() {
 
     // 7. 할인 계산 이벤트 리스너 (Payment)
     document.getElementById('couponSelect')?.addEventListener('change', calculateFinalAmount);
-    document.getElementById('pointDiscountAmount')?.addEventListener('input', calculateFinalAmount);
+    document.getElementById('pointDiscountAmount')?.addEventListener('blur', (e) => {
+        let val = Number(e.target.value);
+        if(val > userPointBalance){
+            alert('최대 ${userPointBalance.toLocaleString()}P까지 사용 가능합니다.');
+            e.target.value = userPointBalance;
+        }
+        if(val < 0){
+            e.target.value = 0;
+        }
+        calculateFinalAmount();
+    });
 }
 
 function renderProductList() {
     const listContainer = document.getElementById('selectedProductList');
-    if (!listContainer) return;
-
+    if (!listContainer || !cartData) return;
     listContainer.innerHTML = '';
 
-    if (!cartData || cartData.items.length === 0) {
-        listContainer.innerHTML = '<p>선택된 상품이 없습니다.</p>';
-        return;
-    }
-
     cartData.items.forEach(item => {
-        const isPackable = true;
         const currentWrapId = selectedWrapData[item.bookId];
-        const wrapText = currentWrapId
-            ? `선택됨: ${getWrapNameById(currentWrapId)}`
-            : '포장지 선택/변경';
-        const isDisabled = currentWrapId ? '' : 'disabled';
-        const isChecked = currentWrapId ? 'checked' : '';
+        const wrapText = currentWrapId ? `선택됨: ${getWrapNameById(currentWrapId)}` : '포장지 선택/변경';
         const totalItemPrice = (item.price * item.quantity).toLocaleString();
 
         listContainer.innerHTML += `
             <div class="order-item-detail" data-book-id="${item.bookId}">
                 <div class="item-info">
-                    <span class="item-title">${item.title} (${item.quantity}권)</span>
+                    <span class="item-title">${item.bookTitle || item.title} (${item.quantity}권)</span>
                     <span class="item-price">가격: ${totalItemPrice}원</span>
                 </div>
                 <div class="item-wrap-option">
-                    ${isPackable ? `
-                        <label>
-                            <input type="checkbox" name="isWrapped_${item.bookId}" data-book-id="${item.bookId}" class="wrap-toggle" ${isChecked}> 포장 선택
-                        </label>
-                        <button type="button" 
-                                class="btn-select-wrap" 
-                                data-book-id="${item.bookId}" 
-                                ${isDisabled}> 
-                            ${wrapText}
-                        </button>
-                    ` : '<span class="non-packable">포장 불가 상품</span>'}
+                    ${item.isPackable !== false ? `
+                        <label><input type="checkbox" class="wrap-toggle" data-book-id="${item.bookId}" ${currentWrapId ? 'checked' : ''}> 포장 선택</label>
+                        <button type="button" class="btn-select-wrap" data-book-id="${item.bookId}" ${currentWrapId ? '' : 'disabled'}>${wrapText}</button>
+                    ` : '<span class="non-packable">포장 불가</span>'}
                 </div>
-            </div>
-        `;
+            </div>`;
     });
 }
 
@@ -166,6 +187,7 @@ function getWrapDataById(id) {
     return wrapOptions.find(opt => opt.wrappingPaperId === id);
 }
 
+// 포장지 버튼
 function setupWrapToggleListeners() {
     document.getElementById('selectedProductList')?.addEventListener('change', (e) => {
         if (e.target.classList.contains('wrap-toggle')) {
@@ -191,6 +213,7 @@ function setupWrapToggleListeners() {
     });
 }
 
+// 포장지 옵션
 function openWrappingModal(bookId, bookTitle) {
     currentBookId = bookId;
     const modalElement = document.getElementById('wrappingModal');
@@ -316,6 +339,7 @@ function validateInputs(address, orderItems) {
     return true;
 }
 
+// 배송 희망날짜
 function setDeliveryDateOptions() {
     const container = document.getElementById('deliveryDateOptions');
     if (!container) return;
@@ -380,6 +404,7 @@ function setDeliveryDateOptions() {
     }
 }
 
+// 주소 검색
 function openPostcodeSearch() {
     if (typeof daum === 'undefined' || !daum.Postcode) {
         alert("Daum Postcode SDK가 로드되지 않았습니다. HTML 스크립트 태그를 확인해주세요.");
@@ -401,157 +426,95 @@ function openPostcodeSearch() {
 // II. PAYMENT LOGIC (할인, 금액 계산, 결제 요청)
 // =================================================================
 
+// --- 금액 계산 ---
 function calculateFinalAmount() {
     if (!cartData) return;
-
-    const totalItemPrice = cartData.selectedTotalPrice;
-
+    const totalItemPrice = cartData.selectedTotalPrice || 0;
     const couponDiscount = Number(document.getElementById('couponSelect')?.value) || 0;
     let pointDiscount = Number(document.getElementById('pointDiscountAmount')?.value) || 0;
 
-    pointDiscount = Math.min(pointDiscount, CURRENT_POINT);
-    if (pointDiscount < 0) pointDiscount = 0;
+    pointDiscount = Math.min(pointDiscount, userPointBalance);
+    const orderItems = collectOrderItems();
+    const result = calculateFeesAndDiscounts(totalItemPrice, couponDiscount, pointDiscount, orderItems);
 
-    const orderItemsWithWrapInfo = collectOrderItems();
-    const calculated = calculateFeesAndDiscounts(totalItemPrice, couponDiscount, pointDiscount, orderItemsWithWrapInfo);
+    document.getElementById('summaryTotalItemPrice').textContent = `${totalItemPrice.toLocaleString()}원`;
+    document.getElementById('deliveryFee').textContent = `${result.deliveryFee.toLocaleString()}원`;
+    document.getElementById('wrappingFee').textContent = `${result.wrappingFee.toLocaleString()}원`;
+    document.getElementById('couponDiscount').textContent = `-${couponDiscount.toLocaleString()}원`;
+    document.getElementById('pointDiscount').textContent = `-${pointDiscount.toLocaleString()}원`;
 
-    const finalPaymentAmount = calculated.finalAmount;
+    const finalStr = `${result.finalAmount.toLocaleString()}원`;
+    document.getElementById('finalPaymentAmount').textContent = finalStr;
+    document.getElementById('finalPaymentButtonText').textContent = `${finalStr} 결제하기`;
+}
 
-    document.getElementById('summaryTotalItemPrice').textContent = totalItemPrice.toLocaleString() + '원';
-    document.getElementById('deliveryFee').textContent = calculated.deliveryFee.toLocaleString() + '원';
-    document.getElementById('wrappingFee').textContent = calculated.wrappingFee.toLocaleString() + '원';
-    document.getElementById('couponDiscount').textContent = '-' + couponDiscount.toLocaleString() + '원';
-    document.getElementById('pointDiscount').textContent = '-' + pointDiscount.toLocaleString() + '원';
-
-    const finalAmountText = Math.max(0, finalPaymentAmount).toLocaleString() + '원';
-    document.getElementById('finalPaymentAmount').textContent = finalAmountText;
-    document.getElementById('finalPaymentButtonText').textContent = finalAmountText + ' 결제하기';
+function calculateFeesAndDiscounts(totalItemPrice, coupon, point, items) {
+    const wrappingFee = items.reduce((sum, i) => sum + (i.isWrapped ? (i.wrappingPaperPrice * i.quantity) : 0), 0);
+    const deliveryFee = (totalItemPrice - coupon) >= FREE_DELIVERY_THRESHOLD ? 0 : FIXED_DELIVERY_FEE;
+    return {
+        deliveryFee, wrappingFee,
+        finalAmount: Math.max(0, totalItemPrice + deliveryFee + wrappingFee - coupon - point)
+    };
 }
 
 async function handleTossPaymentRequest() {
-    // 1. Order DTO 수집 및 유효성 검사
     const orderItems = collectOrderItems();
-    const deliveryAddress = collectDeliveryAddress();
-
-    if (!validateInputs(deliveryAddress, orderItems)) {
-        return;
-    }
-
-    // 2. 금액 및 할인 정보 확보
-    const couponDiscount = Number(document.getElementById('couponSelect')?.value) || 0;
-    const pointDiscount = Number(document.getElementById('pointDiscountAmount')?.value) || 0;
-    const totalItemPrice = cartData.selectedTotalPrice;
-
-    // 3. 최종 금액 확인
-    const calculatedFeeAndDiscount = calculateFeesAndDiscounts(totalItemPrice, couponDiscount, pointDiscount, orderItems);
-    const finalAmount = calculatedFeeAndDiscount.finalAmount;
-
-    if (finalAmount <= 0) {
-        alert('결제 금액이 0원 이하입니다. 결제 없이 주문만 진행합니다.');
-        return;
-    }
-
-    // 4. Mock OrderResponse 생성
-    const orderResponse = {
-        orderNumber: `TOSS-MOCK-${Date.now()}`,
-        totalAmount: finalAmount
-    };
-
-    // 5. 주문명 생성
-    let orderName = "주문 상품";
-    if (cartData && cartData.items.length > 0) {
-        const firstItem = cartData.items[0];
-        orderName = cartData.items.length > 1
-            ? `${firstItem.title.substring(0, firstItem.title.lastIndexOf('(')).trim()} 외 ${cartData.items.length - 1}건`
-            : firstItem.title.substring(0, firstItem.title.lastIndexOf('(')).trim();
-    }
-
-    // 6. 결제 수단 확인
-    const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'CARD';
-
-    console.log("✅ Mock 주문 생성 완료. 서버 통신 건너뛰고 토스 V2 결제 요청 시작.");
-
-    // 7. 토스 V2 결제 요청 (Toss SDK) 실행
-    await requestTossPaymentV2(
-        orderResponse.totalAmount,
-        orderResponse.orderNumber,
-        orderName,
-        selectedMethod,
-        deliveryAddress.recipient,
-        'test@example.com' // 임시 이메일
-    );
-}
-
-function calculateFeesAndDiscounts(totalItemPrice, couponDiscount, pointDiscount, orderItems) {
-    let pointDiscountApplied = pointDiscount;
-    if (pointDiscount > CURRENT_POINT) pointDiscountApplied = CURRENT_POINT;
-
-    const wrappingFee = orderItems.reduce((sum, item) => {
-        if (item.isWrapped) {
-            return sum + (item.wrappingPaperPrice * item.quantity);
-        }
-        return sum;
-    }, 0);
-
-    const totalItemPriceAfterCoupon = totalItemPrice - couponDiscount;
-    const deliveryFee = totalItemPriceAfterCoupon >= FREE_DELIVERY_THRESHOLD ? 0 : FIXED_DELIVERY_FEE;
-
-    const totalDiscount = couponDiscount + pointDiscountApplied;
-    const finalPaymentAmount = totalItemPrice + deliveryFee + wrappingFee - totalDiscount;
-
-    return {
-        deliveryFee: deliveryFee,
-        wrappingFee: wrappingFee,
-        finalAmount: Math.max(0, finalPaymentAmount)
-    };
-}
-
-// [Toss Payment V2 Logic] 요청하신 V2 연쇄 호출 구조
-async function requestTossPaymentV2(amount, orderId, orderName, method, customerName, customerEmail) {
-    console.log("🚀 토스 V2 결제 요청 인자:", { amount, orderId, orderName, method, customerName, customerEmail });
-
-    if (typeof window.TossPayments === 'undefined') {
-        console.error("TossPayments SDK가 로드되지 않았습니다.");
-        alert("결제 시스템 로드 실패. 잠시 후 다시 시도해 주세요.");
-        return;
-    }
+    const address = collectDeliveryAddress();
+    if (!validateInputs(address, orderItems)) return;
 
     try {
-        // 1. V2 TossPayments 인스턴스 생성
-        const a = TossPayments(TOSS_CLIENT_KEY);
+        const headers = { 'Content-Type': 'application/json' };
+        if (IS_USER) headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
+        else headers['X-Guest-Id'] = GUEST_ID;
 
-        // 2. payment 객체 생성 (고객키 사용)
-        const customerKey = IS_USER ? String(USER_ID) : TossPayments.ANONYMOUS;
-        const payment = a.payment({ customerKey });
-
-        // 3. 결제 금액 객체 생성
-        const amountObject = {
-            currency: "KRW",
-            value: amount,
-        };
-
-        // 4. requestPayment 호출 (연쇄 호출)
-        await payment.requestPayment({
-            method: method,
-            amount: amountObject,
-            orderId: orderId,
-            orderName: orderName,
-            successUrl: window.location.origin + API_BASE.TOSS_CONFIRM,
-            failUrl: window.location.origin + "/fail.html",
-            customerEmail: customerEmail,
-            customerName: customerName,
-            // 기타 V2 옵션 (필요시 주석 해제)
-            // card: {
-            //     useEscrow: false,
-            //     flowMode: "DEFAULT",
-            //     useCardPoint: false,
-            //     useAppCardOnly: false,
-            // },
+        // 1. 서버에 주문 생성
+        const response = await fetch(API_BASE.ORDER, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                orderItems,
+                ...address,
+                couponDiscount: Number(document.getElementById('couponSelect').value),
+                pointUsage: Number(document.getElementById('pointDiscountAmount').value),
+                wantDeliveryDate: document.getElementById('wantDeliveryDate').value
+            })
         });
 
-    } catch (error) {
-        // 결제 요청 실패 처리
-        console.error('토스 V2 결제 요청 실패:', error);
-        alert('결제 요청 중 오류가 발생했습니다: ' + error.message);
+        if(!response.ok){
+            throw new Error("주문 서버 생성 실패");
+        }
+        const orderResult = await response.json();
+
+        // 토스 결제창에 표시할 주문명 생성
+        const firstItem = cartData.items[0];
+        const firstTitle = (firstItem.bookTitle || firstItem.title).split('(')[0].trim();
+
+        //상품이 2건 이상이면 "제목 외 N건" , 1건이면 "제목"만 표시
+        const orderName = cartData.items.length > 1 ? `${firstTitle} 외 ${cartData.items.length - 1}건` : firstTitle;
+
+        // 2. 토스 결제창 열기
+        await requestTossPaymentV2(
+            orderResult.totalAmount,
+            orderResult.orderNumber,
+            `${cartData.items[0].bookTitle} 외`,
+            document.querySelector('input[name="paymentMethod"]:checked').value,
+            address.recipient,
+            'user@example.com'
+        );
+    } catch (e) {
+        console.error("결제 프로세스 오류:", e);
+        alert("주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
+}
+
+// [Toss Payment V2 Logic] V2 연쇄 호출 구조
+async function requestTossPaymentV2(amount, orderId, orderName, method, customerName, customerEmail) {
+    const toss = TossPayments(TOSS_CLIENT_KEY);
+    const payment = toss.payment({ customerKey: IS_USER ? String(USER_ID) : TossPayments.ANONYMOUS });
+    await payment.requestPayment({
+        method, amount: { currency: "KRW", value: amount },
+        orderId, orderName, customerName, customerEmail,
+        successUrl: window.location.origin + API_BASE.TOSS_CONFIRM,
+        failUrl: window.location.origin + "/fail.html"
+    });
 }

@@ -1,4 +1,11 @@
 const API_BASE = '/orders';
+
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+};
+
 const IS_MEMBER_LOGGED_IN =
     (typeof window !== 'undefined' && window.IS_MEMBER_LOGGED_IN !== undefined)
         ? Boolean(window.IS_MEMBER_LOGGED_IN)
@@ -26,8 +33,8 @@ const RETURN_REASON = {
     OTHER: "기타"
 };
 
-let currentOrderDetail = null; // 현재 보고 있는 주문 상세 정보를 저장
-let memberOrders = []; // Mock 주문 목록을 저장할 변수 (정렬/필터링 기능용)
+let currentOrderDetail = null;
+let memberOrders = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeView();
@@ -47,17 +54,14 @@ function initializeView() {
         fetchOrderDetail(orderId, isLoggedIn ? 'MEMBER_MODE' : 'GUEST_MODE');
     } else if (isLoggedIn) {
         showMemberHistory();
-        fetchMemberOrders(USER_ID);
+        fetchMemberOrders();
     } else {
         showGuestLookupForm();
     }
 }
 
 function setupEventListeners() {
-    // 1. 비회원 조회 폼 제출 이벤트
     document.getElementById('guestLookupForm')?.addEventListener('submit', handleGuestLookup);
-
-    // 2. 목록으로 돌아가기 버튼
     document.getElementById('backToHistory')?.addEventListener('click', () => {
         IS_MEMBER_LOGGED_IN ? showMemberHistory() : showGuestLookupForm();
     });
@@ -65,22 +69,15 @@ function setupEventListeners() {
     // 주문 목록 클릭 시 상세 보기
     document.getElementById('orderList')?.addEventListener('click', (e) => {
         const orderItem = e.target.closest('.order-item');
-        if (orderItem) {
-            const orderId = orderItem.dataset.orderId;
-            fetchOrderDetail(orderId, 'MEMBER_MODE');
-        }
+        if (orderItem) fetchOrderDetail(orderItem.dataset.orderId, 'MEMBER_MODE');
     });
 
-    // 4. 정렬 옵션 변경 이벤트 리스너
     document.getElementById('sortOrderSelect')?.addEventListener('change', (e) => {
         const filtered = filterMockOrders(memberOrders, getCurrentFilters());
         sortOrdersAndRender(e.target.value, filtered);
     });
 
-    // 5. 필터 폼 제출 이벤트
     document.getElementById('orderFilterForm')?.addEventListener('submit', handleOrderFiltering);
-
-    // 6. 필터 폼 초기화 버튼 이벤트
     document.getElementById('filterResetButton')?.addEventListener('click', initializeFilterForm);
 
     // 상세페이지 체크박스 금액 실시간 업데이트
@@ -125,84 +122,64 @@ function renderOrderList(orders) {
  * --- 주문 상세 정보 렌더링 (이미지 내용 복구) ---
  */
 async function fetchOrderDetail(orderId, mode) {
-    const mockDetailMap = {
-        'M1001': {
-            id: 'M1001', date: '2025-12-10', total: 45000,
-            status: ORDER_STATUS.PENDING, // 주문 대기
-            recipient: '홍길동', address: '서울시 강남구',
-            items: [{ id: 101, name: '클린 코드', quantity: 1, price: 45000, isWrapped: false }]
-        },
-        'M1002': {
-            id: 'M1002', date: '2025-11-20', total: 72000,
-            status: ORDER_STATUS.DELIVERED, // 배송 완료
-            recipient: '김철수', address: '경기도 성남시',
-            items: [{ id: 201, name: '객체지향 설계', quantity: 2, price: 36000, isWrapped: true, wrapName: '고급 포장' }]
-        },
-        'M1003': {
-            id: 'M1003', date: '2025-11-01', total: 30000,
-            status: ORDER_STATUS.SHIPPING, // 배송중
-            recipient: '이영희', address: '부산시 해운대구',
-            items: [{ id: 301, name: '알고리즘', quantity: 1, price: 30000, isWrapped: false }]
-        },
-        'M1004': {
-            id: 'M1004', date: '2025-10-25', total: 50000,
-            status: ORDER_STATUS.RETURN_REQUESTED, // 반품 신청
-            recipient: '박민준', address: '대구시 달서구',
-            items: [{ id: 401, name: '자바의 정석', quantity: 1, price: 50000, isWrapped: false }]
-        },
-        'M1005': {
-            id: 'M1005', date: '2025-10-20', total: 20000,
-            status: ORDER_STATUS.CANCELED, // 주문 취소
-            recipient: '최현우', address: '인천시 연수구',
-            items: [{ id: 501, name: '웹 개발', quantity: 1, price: 20000, isWrapped: false }]
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (mode === 'MEMBER_MODE') {
+            headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
         }
-    };
-    currentOrderDetail = mockDetailMap[orderId] || mockDetailMap['M1001'];
 
+        const response = await fetch(`${API_BASE}/${orderId}`, {
+            method: 'GET',
+            headers: headers
+        });
+
+        if (!response.ok) throw new Error("상세 정보 로드 실패");
+
+        currentOrderDetail = await response.json();
+        renderOrderDetailUI(currentOrderDetail, mode);
+    } catch (error) {
+        console.error("❌ Error:", error);
+        alert("주문 정보를 불러올 수 없습니다.");
+    }
+}
+
+// UI 렌더링 로직 분리
+function renderOrderDetailUI(detail, mode) {
     const container = document.getElementById('orderDetailContent');
-
-    //  기존 상단 버튼 영역은 비웁니다.
     const topActionContainer = document.getElementById('actionButtons');
     if (topActionContainer) topActionContainer.innerHTML = '';
 
     let itemsHtml = '';
-    currentOrderDetail.items.forEach(item => {
+    detail.items.forEach(item => {
         for (let i = 0; i < item.quantity; i++) {
             const isCheckable = [ORDER_STATUS.PENDING, ORDER_STATUS.SHIPPING, ORDER_STATUS.DELIVERED]
-                .includes(currentOrderDetail.status);
+                .includes(detail.status);
             itemsHtml += `
                 <div class="order-item-detail" style="display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:10px; background:#fcfcfc; border-left:3px solid #ddd;">
                 ${isCheckable ?
-                `<input type="checkbox" class="item-checkbox" data-id="${item.id}" data-price="${item.price}" data-name="${item.name}">`
-                : '' // 해당 상태가 아니면 빈 문자열로 처리하여 체크박스 제거
-            }
+                `<input type="checkbox" class="item-checkbox" data-id="${item.orderItemId || item.id}" data-price="${item.price}" data-name="${item.name}">`
+                : ''}
                 <span>${item.name} (1권) - ${item.price.toLocaleString()}원 ${item.isWrapped ? `(포장 옵션: ${item.wrapName})` : ''}</span>
             </div>`;
         }
     });
 
     container.innerHTML = `
-        <h3 style="border-left:5px solid #4A7C59; padding-left:10px; color:#4A7C59;">#${currentOrderDetail.id} 주문 상세 내역</h3>
-        <p><strong>주문 일자:</strong> ${currentOrderDetail.date}</p>
-        <p><strong>주문 상태:</strong> <span style="font-weight:bold; color:${getStatusColor(currentOrderDetail.status)};">${currentOrderDetail.status}</span></p>
-        
-        <h4 style="margin-top:20px; border-bottom:1px dashed #eee; padding-bottom:5px;">배송 정보</h4>
-        <p><strong>수령인:</strong> ${currentOrderDetail.recipient}</p>
-        <p><strong>주소:</strong> ${currentOrderDetail.address}</p>
-        
-        <h4 style="margin-top:20px; border-bottom:1px dashed #eee; padding-bottom:5px;">상품 목록</h4>
+        <h3 style="border-left:5px solid #4A7C59; padding-left:10px; color:#4A7C59;">#${detail.orderNumber || detail.id} 주문 상세 내역</h3>
+        <p><strong>주문 일자:</strong> ${detail.orderDate || detail.date}</p>
+        <p><strong>주문 상태:</strong> <span style="font-weight:bold; color:${getStatusColor(detail.status)};">${detail.status}</span></p>
+        <h4 style="margin-top:20px;">배송 정보</h4>
+        <p><strong>수령인:</strong> ${detail.recipient}</p>
+        <p><strong>주소:</strong> ${detail.address} ${detail.addressDetail || ''}</p>
+        <h4 style="margin-top:20px;">상품 목록</h4>
         <div id="itemList">${itemsHtml}</div>
-        
-        <div style="margin-top:15px; padding:10px; background:#f9f9f9; border-radius:5px; text-align:right;">
+        <div style="margin-top:15px; padding:10px; background:#f9f9f9; text-align:right;">
             선택된 취소/반품 금액: <strong id="selectedAmount" style="color:red;">0</strong>원
         </div>
-
-        <h3 style="margin-top:20px; text-align:right;">최종 결제 금액: ${currentOrderDetail.total.toLocaleString()}원</h3>
+        <h3 style="margin-top:20px; text-align:right;">최종 결제 금액: ${detail.totalAmount?.toLocaleString() || detail.total?.toLocaleString()}원</h3>
     `;
 
-    // 하단에 버튼을 생성하는 함수를 호출합니다.
-    renderBottomButtons(currentOrderDetail, mode);
-
+    renderBottomButtons(detail, mode);
     showOrderDetail();
 }
 
@@ -293,10 +270,35 @@ function showModal(actionType, detail) {
 
 // 사용자가 취소 or 반품 클릭했을때 실행
 async function handleActionRequest(type, detail, amount) {
-    alert(`성공적으로 처리되었습니다.\n금액: ${amount.toLocaleString()}원`);
-    hideModal();
-    fetchMemberOrders(USER_ID);
-    showMemberHistory();
+    const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+    const itemIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
+    const reason = document.getElementById('actionReason')?.value || "";
+    const returnReason = document.getElementById('returnReason')?.value || null;
+
+    try {
+        const response = await fetch(`${API_BASE}/${detail.id}/${type}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getCookie('accessToken')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                orderItemIdList: itemIds,
+                reason: reason,
+                returnReasonCode: returnReason,
+                cancelAmount: amount
+            })
+        });
+
+        if (!response.ok) throw new Error("요청 처리 실패");
+
+        alert(`성공적으로 처리되었습니다.\n금액: ${amount.toLocaleString()}원`);
+        hideModal();
+        location.reload(); // 데이터 갱신을 위해 페이지 새로고침
+    } catch (error) {
+        console.error("❌ Error:", error);
+        alert("요청 중 오류가 발생했습니다.");
+    }
 }
 
 // (취소/환불)모달창 숨기기
@@ -305,7 +307,6 @@ function hideModal() {
 }
 function setupModalListeners() {
     document.querySelector('#actionModal .close-button')?.addEventListener('click', hideModal);
-
 }
 
 /*
@@ -346,6 +347,10 @@ function showMemberHistory() {
 function showOrderDetail() {
     hideAllSections();
     document.getElementById('orderDetailSection').classList.remove('hidden');
+
+    // 상세 페이지에서는 가이드를 숨김
+    const guideSection = document.querySelector('.order-guide-section');
+    if (guideSection) guideSection.classList.add('hidden');
 }
 
 /*
@@ -356,123 +361,124 @@ function initializeFilterForm() {
     const filterYear = document.getElementById('filterYear');
     const filterMonth = document.getElementById('filterMonth');
     const filterStatus = document.getElementById('filterStatus');
-    if (!filterYear || !filterMonth) return;
+    if(!filterYear || !filterMonth) return;
     filterYear.innerHTML = '<option value="all">전체보기</option>';
     for (let y = currentYear; y >= currentYear - 3; y--) filterYear.innerHTML += `<option value="${y}">${y}년</option>`;
     filterMonth.innerHTML = '<option value="all">전체보기</option>';
-    for (let m = 1; m <= 12; m++) {
-        const monthStr = String(m).padStart(2, '0');
-        filterMonth.innerHTML += `<option value="${monthStr}">${m}월</option>`;
-    }
-
-    // 3. 배송 상태 초기화
+    for (let m = 1; m <= 12; m++) filterMonth.innerHTML += `<option value="${String(m).padStart(2, '0')}">${m}월</option>`;
     filterStatus.innerHTML = '<option value="all">전체보기</option>';
-    // ORDER_STATUS 객체의 모든 값을 드롭다운에 추가
-    Object.values(ORDER_STATUS).forEach(statusValue => {
-        filterStatus.innerHTML += `<option value="${statusValue}">${statusValue}</option>`;
-    });
+    Object.values(ORDER_STATUS).forEach(v => filterStatus.innerHTML += `<option value="${v}">${v}</option>`);
+}
 
-    async function fetchMemberOrders(userId) {
-        memberOrders = [
-            {
-                orderId: 'M1001',
-                date: '2025-12-10',
-                total: 45000,
-                status: ORDER_STATUS.PENDING,
-                items: [{name: '클린 코드'}]
-            },
-            {
-                orderId: 'M1002',
-                date: '2025-11-20',
-                total: 72000,
-                status: ORDER_STATUS.DELIVERED,
-                items: [{name: '객체지향 설계'}]
-            },
-            {
-                orderId: 'M1003',
-                date: '2025-11-01',
-                total: 30000,
-                status: ORDER_STATUS.SHIPPING,
-                items: [{name: '알고리즘'}]
-            },
-            {
-                orderId: 'M1004',
-                date: '2025-10-25',
-                total: 50000,
-                status: ORDER_STATUS.RETURN_REQUESTED,
-                items: [{name: '자바의 정석'}]
-            },
-            {orderId: 'M1005', date: '2025-10-20', total: 20000, status: ORDER_STATUS.CANCELED, items: [{name: '웹 개발'}]}
-        ];
+async function fetchMemberOrders() {
+    try {
+        const response = await fetch(`${API_BASE}/me`, {
+            headers: { 'Authorization': `Bearer ${getCookie('accessToken')}` }
+        });
+
+        if (!response.ok) throw new Error("주문 내역 로드 실패");
+
+        const data = await response.json();
+        memberOrders = data.orders || data; // 응답 구조에 따라 조정
+
+        // HTML의 닉네임 표시 영역 업데이트
+        const nameDisplay = document.getElementById('userNameDisplay');
+        if (nameDisplay && data.nickname) {
+            nameDisplay.textContent = data.nickname;
+        }
+
         sortOrdersAndRender('latest', memberOrders);
+    } catch (error) {
+        console.error("❌ Error:", error);
+        renderOrderList([]); // 에러 시 빈 화면
     }
+}
 
-    function sortOrdersAndRender(sortType, orders) {
-        const sorted = [...(orders || memberOrders)].sort((a, b) =>
-            sortType === 'latest' ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date));
-        renderOrderList(sorted);
-    }
+function sortOrdersAndRender(sortType, orders) {
+    const sorted = [...(orders || memberOrders)].sort((a, b) =>
+        sortType === 'latest' ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date));
+    renderOrderList(sorted);
+}
 
 // 필터 폼 제출 시 실행
-    function handleOrderFiltering(e) {
-        e.preventDefault(); // 페이지 새로고침 방지
-        sortOrdersAndRender('latest', filterMockOrders(memberOrders, getCurrentFilters()));
+async function handleOrderFiltering(e) {
+    e.preventDefault(); // 페이지 새로고침 방지
+
+    const filters = getCurrentFilters(); // 사용자가 선택한 값 수집 (year, month, status, keyword 등)
+
+    try {
+        // 서버에 필터 조건을 쿼리 파라미터로 전달하여 검색된 결과만 요청
+        const queryString = new URLSearchParams(filters).toString();
+        const response = await fetch(`${API_BASE}/me?${queryString}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${getCookie('accessToken')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) throw new Error("필터링된 주문 내역 로드 실패");
+
+        memberOrders = await response.json(); // 서버에서 준 필터링된 결과 저장
+        sortOrdersAndRender('latest', memberOrders); // 화면 렌더링
+
+    } catch (error) {
+        console.error("❌ 필터링 중 오류:", error);
+        alert("검색 중 오류가 발생했습니다.");
     }
+}
 
 // 화면의 (년도, 월, 상태, 키워드) <- 현재 사용자가 선택하거나 입력한 값들 수집하여 하나 객체로 반환
-    function getCurrentFilters() {
-        return {
-            year: document.getElementById('filterYear').value,
-            month: document.getElementById('filterMonth').value,
-            status: document.getElementById('filterStatus').value,
-            searchType: document.getElementById('searchType').value,
-            keyword: document.getElementById('searchKeyword').value
-                .trim()
-        };
-    }
+function getCurrentFilters() {
+    return {
+        year: document.getElementById('filterYear').value,
+        month: document.getElementById('filterMonth').value,
+        status: document.getElementById('filterStatus').value,
+        searchType: document.getElementById('searchType').value,
+        keyword: document.getElementById('searchKeyword').value
+            .trim()
+    };
+}
 
 // 실제 데이터 필터링 로직 ( 주문 날짜와 선택된 기간이 일치하는지 확인 , 사용자가 특정 상태를 선택했다면 해당 주문들만 남김)
-    function filterMockOrders(orders, f) {
-        return orders.filter(o => {
-            const d = new Date(o.date);
-            if (f.year !== 'all' && f.year !== String(d.getFullYear())) {
-                return false;
+function filterMockOrders(orders, f) {
+    return orders.filter(o => {
+        const d = new Date(o.date);
+        if (f.year !== 'all' && f.year !== String(d.getFullYear())) {
+            return false;
+        }
+        if (f.month !== 'all' && f.month !== String(d.getMonth() + 1).padStart(2, '0')) {
+            return false;
+        }
+        if (f.status !== 'all' && f.status !== o.status) {
+            return false;
+        }
+        if (f.keyword) {
+            if (f.searchType === 'orderItemName') {
+                // 주문 상품명 검색 (여러 상품일 수 있으므로 join하여 검색)
+                const productNames = o.items.map(item => item.name).join(' ').toLowerCase();
+                if (!productNames.includes(f.keyword)) return false;
             }
-            if (f.month !== 'all' && f.month !== String(d.getMonth() + 1).padStart(2, '0')) {
-                return false;
+            else if (f.searchType === 'orderNumber') {
+                // 주문 번호 검색
+                if (!o.orderId.toLowerCase().includes(f.keyword)) return false;
             }
-            if (f.status !== 'all' && f.status !== o.status) {
-                return false;
+            else if (f.searchType === 'recipientName') {
+                const recipient = o.recipient || "";
+                if (!recipient.toLowerCase().includes(f.keyword)) return false;
             }
-            if (f.keyword) {
-                if (f.searchType === 'orderItemName') {
-                    // 주문 상품명 검색 (여러 상품일 수 있으므로 join하여 검색)
-                    const productNames = o.items.map(item => item.name).join(' ').toLowerCase();
-                    if (!productNames.includes(f.keyword)) return false;
-                } else if (f.searchType === 'orderNumber') {
-                    // 주문 번호 검색
-                    if (!o.orderId.toLowerCase().includes(f.keyword)) return false;
-                } else if (f.searchType === 'recipientName') {
-                    // 임시 수령인 검색
-                    const mockRecipients = {
-                        'M1001': '홍길동',
-                        'M1002': '김철수',
-                        'M1003': '이영희',
-                        'M1004': '박민준',
-                        'M1005': '최현우'
-                    };
-                    const recipient = mockRecipients[o.orderId] || "";
-                    if (!recipient.toLowerCase().includes(f.keyword)) return false;
-                }
-            }
+        }
 
-            return true;
-        });
-    }
-
+        return true;
+    });
+}
 // 비회원이 주문 정보를 입력하고 조회 버튼 눌렀을때 실행
-    function handleGuestLookup(e) {
-        e.preventDefault();
-        fetchOrderDetail('G1001', 'GUEST_MODE');
-    }
+async function handleGuestLookup(e) {
+    e.preventDefault();
+    const orderNumber = document.getElementById('guestOrderId').value;
+    const name = document.getElementById('guestOrderer').value;
+    const password = document.getElementById('guestPassword').value;
+
+    // 실제로는 비회원 인증 API를 먼저 호출해야 함
+    fetchOrderDetail(orderNumber, 'GUEST_MODE');
 }
