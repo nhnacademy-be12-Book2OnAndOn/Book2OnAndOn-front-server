@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class OrderRedirectController {
 
-    @GetMapping("/orders/me")
+    @GetMapping("/users/me/orders/view")
     public String redirectLegacyOrders() {
-        return "redirect:/users/me/orders";
+        return "redirect:/orders/history";
     }
 
     @GetMapping("/orders/guest")

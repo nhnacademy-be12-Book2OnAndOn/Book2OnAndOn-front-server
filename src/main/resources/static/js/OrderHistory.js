@@ -138,7 +138,7 @@ async function fetchOrderDetail(orderId, mode) {
         currentOrderDetail = await response.json();
         renderOrderDetailUI(currentOrderDetail, mode);
     } catch (error) {
-        console.error("❌ Error:", error);
+        console.error("Error:", error);
         alert("주문 정보를 불러올 수 없습니다.");
     }
 }
@@ -296,7 +296,7 @@ async function handleActionRequest(type, detail, amount) {
         hideModal();
         location.reload(); // 데이터 갱신을 위해 페이지 새로고침
     } catch (error) {
-        console.error("❌ Error:", error);
+        console.error("Error:", error);
         alert("요청 중 오류가 발생했습니다.");
     }
 }
@@ -389,7 +389,7 @@ async function fetchMemberOrders() {
 
         sortOrdersAndRender('latest', memberOrders);
     } catch (error) {
-        console.error("❌ Error:", error);
+        console.error("Error:", error);
         renderOrderList([]); // 에러 시 빈 화면
     }
 }
@@ -423,7 +423,7 @@ async function handleOrderFiltering(e) {
         sortOrdersAndRender('latest', memberOrders); // 화면 렌더링
 
     } catch (error) {
-        console.error("❌ 필터링 중 오류:", error);
+        console.error("필터링 중 오류:", error);
         alert("검색 중 오류가 발생했습니다.");
     }
 }
@@ -479,6 +479,19 @@ async function handleGuestLookup(e) {
     const name = document.getElementById('guestOrderer').value;
     const password = document.getElementById('guestPassword').value;
 
-    // 실제로는 비회원 인증 API를 먼저 호출해야 함
-    fetchOrderDetail(orderNumber, 'GUEST_MODE');
+    try {
+        const response = await fetch(`${API_BASE}/guest/lookup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderNumber, name, password })
+        });
+
+        if (!response.ok) throw new Error("주문 정보를 찾을 수 없습니다.");
+
+        const orderDetail = await response.json();
+        // 조회 성공하면 상세 UI를 렌더링
+        renderOrderDetailUI(orderDetail, 'GUEST_MODE');
+    } catch (error) {
+        alert(error.message);
+    }
 }
