@@ -17,7 +17,8 @@
 
             <form class="global-search" method="get" th:action="@{/books/search}">
                 <div class="group">
-                    <button aria-label="검색" style="background:none; border:none; padding:0; display:flex; align-items:center; cursor:pointer;"
+                    <button aria-label="검색"
+                            style="background:none; border:none; padding:0; display:flex; align-items:center; cursor:pointer;"
                             type="submit">
                         <svg aria-hidden="true" class="icon" style="width: 20px; height: 20px;" viewBox="0 0 24 24">
                             <g>
@@ -35,7 +36,8 @@
                            th:value="${condition?.keyword}"
                            type="text">
 
-                    <button aria-label="검색어 삭제" class="btn-clear" onclick="this.previousElementSibling.value = ''; this.previousElementSibling.focus();"
+                    <button aria-label="검색어 삭제" class="btn-clear"
+                            onclick="this.previousElementSibling.value = ''; this.previousElementSibling.focus();"
                             type="button"></button>
                     <button aria-label="검색어 삭제" class="btn-clear"
                             onclick="document.querySelector('.global-search .input').value = ''"
@@ -316,7 +318,7 @@
             const payload = JSON.stringify({bookId: bookId, quantity});
             const guestId = window.ensureGuestId ? window.ensureGuestId() : null;
             const headers = guestId
-                ? {'Content-Type': 'application/json', 'X-Guest-Id': guestId}
+                ? {'Content-Type': 'application/json', 'X-Guest-Id': guestId, 'GUEST_ID': guestId}
                 : {'Content-Type': 'application/json'};
 
             const commonOpts = {
@@ -328,6 +330,7 @@
             try {
                 const accessToken = getCookie('accessToken');
                 let res;
+                console.log("장바구니 진입!!!!!" + accessToken)
 
                 // 로그인 상태면 우선 회원 장바구니 시도
                 if (accessToken) {
@@ -336,14 +339,10 @@
 
                 // 비로그인 이거나 회원 장바구니 실패(401/5xx) 시 게스트 장바구니 시도
                 if (!accessToken || (res && (res.status === 401 || res.status >= 500))) {
-                    const resolvedGuestId = guestId || (window.ensureGuestId ? window.ensureGuestId() : null);
-                    const guestHeaders = resolvedGuestId
-                        ? {...commonOpts.headers, 'X-Guest-Id': resolvedGuestId}
-                        : commonOpts.headers;
                     res = await fetch('/cart/guest/items', {
-                        ...commonOpts,
-                        headers: guestHeaders
+                        ...commonOpts
                     });
+                    console.log("비회원 장바구니!!!" + guestId)
                 }
 
                 if (!res || !res.ok) {

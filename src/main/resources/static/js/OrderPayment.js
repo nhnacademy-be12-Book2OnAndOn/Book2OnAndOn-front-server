@@ -13,7 +13,23 @@ const getCookie = (name) => {
 };
 
 const USER_ID = window.USER_ID || null;
-const GUEST_ID = getCookie('GUEST_ID') || 'uuid-test-1234';
+const ensureGuestId = () => {
+    // 공통 ensureGuestId가 있으면 그대로 사용
+    if (typeof window.ensureGuestId === 'function') {
+        return window.ensureGuestId();
+    }
+    // 로컬 저장소/쿠키에서 우선 조회
+    let gid = localStorage.getItem('uuid') || getCookie('GUEST_ID') || getCookie('guestId');
+    if (!gid) {
+        gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+    // 저장 및 쿠키 설정
+    try { localStorage.setItem('uuid', gid); } catch (e) { /* ignore */ }
+    document.cookie = `GUEST_ID=${encodeURIComponent(gid)}; path=/; max-age=${60 * 60 * 24 * 30}`;
+    document.cookie = `guestId=${encodeURIComponent(gid)}; path=/; max-age=${60 * 60 * 24 * 30}`;
+    return gid;
+};
+const GUEST_ID = ensureGuestId();
 const IS_USER = !!getCookie('accessToken');
 
 
@@ -47,13 +63,15 @@ async function loadInitialData() {
         if (IS_USER) headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
         else headers['X-Guest-Id'] = GUEST_ID;
 
+        const cartEndpoint = IS_USER ? `${API_BASE.CART}/user/items/selected` : `${API_BASE.CART}/guest/selected`;
+
         const [cartRes, wrapRes, pointRes] = await Promise.all([
-            fetch(`${API_BASE.CART}/user/items/selected`, { headers }), //
+            fetch(cartEndpoint, { headers }),
             fetch(`${API_BASE.WRAP}`, { headers }),
             IS_USER ? fetch(`/api/user/me/points/api/current`, { headers }) : Promise.resolve(null)
         ]);
-        const couponRes = await fetch('/coupons/me', { headers });
-        if (couponRes.ok) {
+        const couponRes = IS_USER ? await fetch('/coupons/me', { headers }) : null;
+        if (couponRes && couponRes.ok) {
             const coupons = await couponRes.json();
             renderCouponOptions(coupons);
         }

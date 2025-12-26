@@ -3,8 +3,10 @@ package com.nhnacademy.book2onandonfrontservice.dto.orderDto;// [Front Server] c
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class GuestLoginRequestDto {

@@ -3,7 +3,9 @@ package com.nhnacademy.book2onandonfrontservice.controller.orderController;
 import com.nhnacademy.book2onandonfrontservice.client.GuestOrderClient;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.GuestLoginRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.GuestLoginResponseDto;
+import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Slf4j
 @RequiredArgsConstructor
 public class OrderRedirectController {
+
+    private final GuestOrderClient guestOrderClient;
 
     @GetMapping("/users/me/orders/view")
     public String redirectLegacyOrders() {
@@ -61,6 +65,8 @@ public class OrderRedirectController {
         }
 
         return "redirect:/orders/guest/login?error=unknown";
+    }
+
     @GetMapping("/orders/payment")
     public String orderPaymentPage() {
         // 결제/주문 작성 화면

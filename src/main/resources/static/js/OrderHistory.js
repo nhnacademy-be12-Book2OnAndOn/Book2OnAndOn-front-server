@@ -6,10 +6,11 @@ const getCookie = (name) => {
     if (parts.length === 2) return parts.pop().split(';').shift();
 };
 
+const ACCESS_TOKEN = getCookie('accessToken');
 const IS_MEMBER_LOGGED_IN =
     (typeof window !== 'undefined' && window.IS_MEMBER_LOGGED_IN !== undefined)
-        ? Boolean(window.IS_MEMBER_LOGGED_IN)
-        : false;
+        ? Boolean(window.IS_MEMBER_LOGGED_IN) || Boolean(ACCESS_TOKEN)
+        : Boolean(ACCESS_TOKEN);
 const USER_ID =
     (typeof window !== 'undefined' && window.USER_ID !== undefined)
         ? window.USER_ID
@@ -79,6 +80,32 @@ function setupEventListeners() {
 
     document.getElementById('orderFilterForm')?.addEventListener('submit', handleOrderFiltering);
     document.getElementById('filterResetButton')?.addEventListener('click', initializeFilterForm);
+
+    // 빠른 상태 필터
+    document.getElementById('quickFilterButtons')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-status]');
+        if (!btn) return;
+        document.querySelectorAll('#quickFilterButtons button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const status = btn.dataset.status || 'all';
+        const statusSelect = document.getElementById('filterStatus');
+        if (statusSelect) {
+            statusSelect.value = status;
+        }
+        document.getElementById('orderFilterForm')?.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+    });
+
+    // 빠른 검색
+    document.getElementById('quickSearchButton')?.addEventListener('click', () => {
+        const keywordInput = document.getElementById('quickKeyword');
+        if (!keywordInput) return;
+        const keyword = keywordInput.value || '';
+        const searchInput = document.getElementById('searchKeyword');
+        if (searchInput) {
+            searchInput.value = keyword;
+        }
+        document.getElementById('orderFilterForm')?.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+    });
 
     // 상세페이지 체크박스 금액 실시간 업데이트
     document.getElementById('orderDetailContent')?.addEventListener('change', (e) => {

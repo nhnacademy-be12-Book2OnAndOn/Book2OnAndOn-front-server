@@ -12,11 +12,33 @@ function getCookie(name) {
     return null;
 }
 
+function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${date.toUTCString()}`;
+}
+
+function ensureGuestId() {
+    if (typeof window.ensureGuestId === 'function' && window.ensureGuestId !== ensureGuestId) {
+        return window.ensureGuestId();
+    }
+    let gid = localStorage.getItem('uuid') || getCookie('GUEST_ID') || getCookie('guestId');
+    if (!gid) {
+        gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+    try { localStorage.setItem('uuid', gid); } catch (e) { /* ignore storage errors */ }
+    setCookie('GUEST_ID', gid, 30);
+    setCookie('guestId', gid, 30);
+    // 다음 호출에서도 동일 함수가 재사용되도록 글로벌에 바인딩
+    window.ensureGuestId = window.ensureGuestId || ensureGuestId;
+    return gid;
+}
+
 const userId = localStorage.getItem('userId');
 
 // accessToken 기준으로 회원/비회원 판단
 const accessToken = getCookie('accessToken');
-let uuid = localStorage.getItem('uuid');
+let uuid = ensureGuestId();
 
 const isGuest = !accessToken;
 const API_BASE = '/cart';
@@ -53,7 +75,7 @@ function buildAuthHeaders(baseHeaders = {}) {
 
     if (accessToken) {
         headers['Authorization'] = `Bearer ${accessToken}`;
-    } else {
+    } else if (uuid) {
         headers['X-Guest-Id'] = uuid;
     }
     return headers;
@@ -82,7 +104,8 @@ async function loadCartFromServer() {
 
         const response = await fetch(url, {
             method: 'GET',
-            headers
+            headers,
+            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -508,6 +531,10 @@ function checkout() {
 
 async function initCartPage() {
 
+    console.log("[cart] accessToken(document.cookie) =", accessToken);
+    console.log("[cart] document.cookie =", document.cookie);
+    console.log("[cart] API_BASE =", API_BASE);
+
     await loadCartFromServer(); // 기존 장바구니 렌더링
 
     // 로그인 상태 + uuid가 있는 경우에만 merge-status 조회
@@ -516,45 +543,45 @@ async function initCartPage() {
     }
 }
 
-async function checkMergeStatusAndMaybeOpenModal() {
-    try {
-        const baseHeaders = {
-            'Content-Type': 'application/json'
-        };
-        const headers = buildAuthHeaders(baseHeaders);
-
-        const res = await fetch('/cart/user/merge-status', {
-            method: 'GET',
-            headers
-        });
-
-        if (!res.ok) {
-            console.error('merge-status 조회 실패', res.status);
-            return;
-        }
-
-        const data = await res.json(); // CartMergeStatusResponseDto
-
-        // 1) 게스트 카트가 아예 없으면 아무것도 안 함
-        if (!data.hasGuestCart) {
-            return;
-        }
-
-        // 2) 게스트 O + 회원 X → 자동 병합
-        if (data.hasGuestCart && !data.hasUserCart) {
-            // 자동 병합 후 간단 안내만 띄우고 끝
-            await mergeGuestCart(true); // true = autoMergeFlag 정도로
-            return;
-        }
-
-        // 3) 게스트 O + 회원 O → 모달 띄워서 선택형 병합
-        if (data.hasGuestCart && data.hasUserCart) {
-            openMergeModal(data.guestItemCount);
-        }
-    } catch (e) {
-        console.error('merge-status 조회 중 오류', e);
-    }
-}
+// async function checkMergeStatusAndMaybeOpenModal() {
+//     try {
+//         const baseHeaders = {
+//             'Content-Type': 'application/json'
+//         };
+//         const headers = buildAuthHeaders(baseHeaders);
+//
+//         const res = await fetch('/cart/user/merge-status', {
+//             method: 'GET',
+//             headers
+//         });
+//
+//         if (!res.ok) {
+//             console.error('merge-status 조회 실패', res.status);
+//             return;
+//         }
+//
+//         const data = await res.json(); // CartMergeStatusResponseDto
+//
+//         // 1) 게스트 카트가 아예 없으면 아무것도 안 함
+//         if (!data.hasGuestCart) {
+//             return;
+//         }
+//
+//         // 2) 게스트 O + 회원 X → 자동 병합
+//         if (data.hasGuestCart && !data.hasUserCart) {
+//             // 자동 병합 후 간단 안내만 띄우고 끝
+//             await mergeGuestCart(true); // true = autoMergeFlag 정도로
+//             return;
+//         }
+//
+//         // 3) 게스트 O + 회원 O → 모달 띄워서 선택형 병합
+//         if (data.hasGuestCart && data.hasUserCart) {
+//             openMergeModal(data.guestItemCount);
+//         }
+//     } catch (e) {
+//         console.error('merge-status 조회 중 오류', e);
+//     }
+// }
 
 
 function openMergeModal(guestItemCount) {
@@ -632,20 +659,6 @@ async function mergeGuestCart(isAuto = false) {
     } catch (e) {
         console.error('merge 호출 중 오류', e);
         alert('장바구니 병합 중 오류가 발생했습니다.');
-    }
-}
-
-async function initCartPage() {
-    if (USE_DUMMY) {
-        renderCart();
-        return;
-    }
-
-    await loadCartFromServer(); // 기존 장바구니 렌더링
-
-    // 로그인 상태 + uuid가 있는 경우에만 merge-status 조회
-    if (userId && uuid) {
-        await checkMergeStatusAndMaybeOpenModal();
     }
 }
 
