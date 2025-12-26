@@ -1,6 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.dto.orderDto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
