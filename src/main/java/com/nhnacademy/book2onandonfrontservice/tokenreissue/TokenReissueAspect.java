@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -43,6 +44,12 @@ public class TokenReissueAspect {
         } catch (FeignException.Unauthorized e) {
             String methodName = joinPoint.getSignature().getName();
             if (methodName.equals("login") || methodName.equals("reissue")) {
+                throw e;
+            }
+
+            // 비회원 장바구니 등 게스트 호출은 토큰 재발급 대상 아님
+            if (isGuestCartCall(joinPoint)) {
+                log.debug("게스트 호출 감지, 토큰 재발급 스킵 후 그대로 예외 전달");
                 throw e;
             }
 
@@ -139,6 +146,22 @@ public class TokenReissueAspect {
                 Thread.currentThread().interrupt();
             }
         }).start();
+    }
+
+    private boolean isGuestCartCall(JoinPoint joinPoint) {
+        Object target = joinPoint.getTarget();
+        if (target != null) {
+            for (Class<?> iface : target.getClass().getInterfaces()) {
+                if ("CartGuestClient".equals(iface.getSimpleName())) {
+                    return true;
+                }
+            }
+            if (target.getClass().getSimpleName().contains("CartGuestClient")) {
+                return true;
+            }
+        }
+        String sig = joinPoint.getSignature().toShortString();
+        return sig.contains("CartGuestClient");
     }
 
     //Access Token(JWT)을 이용해서 Spring Security의 SecurityContext를 직접 동기화하는 로직

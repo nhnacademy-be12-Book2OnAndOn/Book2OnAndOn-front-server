@@ -145,11 +145,11 @@
             </div> </section>
 
         <section class="detail-content-wrapper">
-            <div class="tab-nav">
-                <a href="#info" class="tab-item active">도서 정보</a>
-                <a href="#intro" class="tab-item">책 소개</a>
-                <a href="#toc" class="tab-item" th:if="${bookDetail.chapter != null}">목차</a>
-                <a href="#reviews" class="tab-item">리뷰 (<span th:text="${bookDetail.reviewCount}">0</span>)</a>
+            <div class="tab-nav" id="detailTabs">
+                <button class="tab-item active" data-tab="info" type="button">도서 정보</button>
+                <button class="tab-item" data-tab="intro" type="button">책 소개</button>
+                <button class="tab-item" data-tab="toc" type="button" th:if="${bookDetail.chapter != null}">목차</button>
+                <button class="tab-item" data-tab="reviews" type="button">리뷰 (<span th:text="${bookDetail.reviewCount}">0</span>)</button>
             </div>
 
             <div id="recentMeta"
@@ -159,7 +159,7 @@
                  th:data-thumb="${(bookDetail.images != null and !bookDetail.images.isEmpty()) ? bookDetail.images[0].url : ''}"
                  style="display:none;"></div>
 
-            <div id="info" class="content-block">
+            <div id="info" class="content-block tab-panel active">
                 <h3>도서 정보</h3>
                 <div class="meta-info-box">
                     <div class="row">
@@ -185,23 +185,23 @@
                 </div>
             </div>
 
-            <div id="intro" class="content-block">
+            <div id="intro" class="content-block tab-panel">
                 <h3>책 소개</h3>
                 <div class="description-body" th:utext="${bookDetail.descriptionHtml}">
                 </div>
             </div>
 
-            <div id="toc" class="content-block" th:if="${bookDetail.chapter != null}">
+            <div id="toc" class="content-block tab-panel" th:if="${bookDetail.chapter != null}">
                 <h3>목차</h3>
                 <div class="toc-body" th:utext="${#strings.replace(bookDetail.chapter, '
 ', '<br>')}">
                 </div>
             </div>
 
-            <div id="reviews" class="content-block">
+            <div id="reviews" class="content-block tab-panel">
                 <div class="review-header">
                     <h3>고객 리뷰</h3>
-                    <button class="btn secondary sm">리뷰 작성</button>
+                    <a class="btn secondary sm" href="#reviewForm">리뷰 작성</a>
                 </div>
 
                 <div class="review-summary-card" th:data-rating="${bookDetail.rating}">
@@ -217,31 +217,64 @@
                         <div class="score-count" th:text="${bookDetail.reviewCount} + '개 리뷰'">1,247개 리뷰</div>
                     </div>
                     <div class="review-bars">
-                        <div class="review-bar-row" data-star="5">
-                            <span class="label">5점</span>
-                            <div class="review-bar"><span class="fill"></span></div>
+                        <div class="review-bar-row" th:each="star : ${#numbers.sequence(5,1,-1)}" th:data-star="${star}">
+                            <span class="label" th:text="${star} + '점'">5점</span>
+                            <div class="review-bar">
+                                <span class="fill" style="width:0%"></span>
+                            </div>
                             <span class="percent">0%</span>
                         </div>
-                        <div class="review-bar-row" data-star="4">
-                            <span class="label">4점</span>
-                            <div class="review-bar"><span class="fill"></span></div>
-                            <span class="percent">0%</span>
+                    </div>
+                </div>
+
+                <div class="review-form-card" id="reviewForm">
+                    <div class="form-card-inner" th:if="${currentUser != null}">
+                        <div class="form-card-head">
+                            <div>
+                                <p class="eyebrow">리뷰 작성</p>
+                                <h4>당신의 한 줄이 누군가의 선택이 됩니다</h4>
+                            </div>
                         </div>
-                        <div class="review-bar-row" data-star="3">
-                            <span class="label">3점</span>
-                            <div class="review-bar"><span class="fill"></span></div>
-                            <span class="percent">0%</span>
+                        <form th:action="@{'/api/books/' + ${bookDetail.id} + '/reviews'}" method="post" enctype="multipart/form-data">
+                            <div class="form-grid two-col">
+                                <div class="form-field">
+                                    <label for="reviewTitle">제목</label>
+                                    <input id="reviewTitle" name="title" type="text" placeholder="리뷰 제목을 입력하세요" required>
+                                </div>
+                                <div class="form-field">
+                                    <label for="reviewScore">별점</label>
+                                    <div class="star-rate" id="starRate" aria-label="별점 선택" role="radiogroup">
+                                        <input type="hidden" name="score" id="reviewScore" required>
+                                        <span class="star" data-value="1">★</span>
+                                        <span class="star" data-value="2">★</span>
+                                        <span class="star" data-value="3">★</span>
+                                        <span class="star" data-value="4">★</span>
+                                        <span class="star" data-value="5">★</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-field">
+                                <label for="reviewContent">내용</label>
+                                <textarea id="reviewContent" name="content" rows="4" placeholder="도서에 대한 솔직한 의견을 남겨주세요 (10~500자)" required></textarea>
+                            </div>
+                            <div class="form-field">
+                                <label for="reviewImages">이미지 (선택)</label>
+                                <input id="reviewImages" type="file" name="images" accept="image/*" multiple>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn primary sm">등록</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="form-card-inner muted" th:if="${currentUser == null}">
+                        <div class="form-card-head">
+                            <div>
+                                <p class="eyebrow">로그인 필요</p>
+                                <h4>리뷰 작성은 로그인 후 이용 가능합니다</h4>
+                            </div>
                         </div>
-                        <div class="review-bar-row" data-star="2">
-                            <span class="label">2점</span>
-                            <div class="review-bar"><span class="fill"></span></div>
-                            <span class="percent">0%</span>
-                        </div>
-                        <div class="review-bar-row" data-star="1">
-                            <span class="label">1점</span>
-                            <div class="review-bar"><span class="fill"></span></div>
-                            <span class="percent">0%</span>
-                        </div>
+                        <p style="margin: 0 0 1rem;">좋아한 책에 대해 이야기를 남기고 싶다면 로그인해 주세요.</p>
+                        <a class="btn ghost" href="/login">로그인하기</a>
                     </div>
                 </div>
 
@@ -249,10 +282,16 @@
                     <div class="review-item" th:each="review : ${bookDetail.reviews}" th:data-score="${review.score}">
                         <div class="review-meta">
                             <span class="reviewer" th:text="${review.writerName} ?: '익명'">사용자</span>
-                            <span class="stars">★ <span th:text="${review.score}">5</span></span>
+                            <span class="stars">
+                                <span th:each="i : ${#numbers.sequence(1,5)}"
+                                      th:text="${i <= review.score} ? '★' : '☆'">★</span>
+                            </span>
                             <span class="date" th:text="${#temporals.format(review.writeDate, 'yyyy.MM.dd')}">2024.01.01</span>
                         </div>
                         <p class="review-content" th:text="${review.content}">리뷰 내용이 들어갑니다.</p>
+                        <div class="review-helpful">
+                            <button type="button" class="btn ghost sm" disabled>도움됨 <span th:text="${review.helpfulCount} ?: 0">0</span></button>
+                        </div>
                     </div>
                     <div class="empty-review" th:if="${bookDetail.reviews == null or bookDetail.reviews.isEmpty()}">
                         <p>아직 작성된 리뷰가 없습니다. 첫 번째 리뷰를 남겨보세요!</p>
@@ -512,6 +551,17 @@
         const reviewItems = document.querySelectorAll('#reviews .review-item');
         const reviewBars = document.querySelectorAll('#reviews .review-bar-row');
         const summaryCard = document.querySelector('#reviews .review-summary-card');
+        const tabs = document.querySelectorAll('#detailTabs .tab-item');
+        const panels = document.querySelectorAll('.tab-panel');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+                tabs.forEach(t => t.classList.toggle('active', t === tab));
+                panels.forEach(panel => panel.classList.toggle('active', panel.id === target));
+            });
+        });
+
         if (summaryCard) {
             const ratingValue = Number(summaryCard.dataset.rating) || 0;
             const filled = Math.max(0, Math.min(5, Math.round(ratingValue)));
@@ -541,6 +591,49 @@
             if (fill) fill.style.width = `${percent}%`;
             if (label) label.textContent = `${percent}%`;
         });
+
+        // 별점 드래그/호버 선택
+        const starContainer = document.getElementById('starRate');
+        const starInput = document.getElementById('reviewScore');
+        if (starContainer && starInput) {
+            const stars = Array.from(starContainer.querySelectorAll('.star'));
+            let current = Number(starInput.value) || 0;
+
+            const render = (val) => {
+                stars.forEach(star => {
+                    const v = Number(star.dataset.value);
+                    star.classList.toggle('active', v <= val);
+                });
+            };
+
+            const handleSelect = (val) => {
+                current = val;
+                starInput.value = val;
+                render(val);
+            };
+
+            stars.forEach(star => {
+                star.addEventListener('mouseenter', () => render(Number(star.dataset.value)));
+                star.addEventListener('mouseleave', () => render(current));
+                star.addEventListener('click', () => handleSelect(Number(star.dataset.value)));
+            });
+
+            // 드래그로 별점 채우기
+            let dragging = false;
+            starContainer.addEventListener('mousedown', (e) => {
+                dragging = true;
+                const target = e.target.closest('.star');
+                if (target) handleSelect(Number(target.dataset.value));
+            });
+            window.addEventListener('mouseup', () => dragging = false);
+            starContainer.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                const target = e.target.closest('.star');
+                if (target) handleSelect(Number(target.dataset.value));
+            });
+
+            render(current);
+        }
     });
     /*]]>*/
 </script>

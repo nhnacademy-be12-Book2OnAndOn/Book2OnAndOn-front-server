@@ -18,11 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequiredArgsConstructor
 public class OrderRedirectController {
 
-    private final GuestOrderClient guestOrderClient;
-
-    @GetMapping("/orders/me")
+    @GetMapping("/users/me/orders/view")
     public String redirectLegacyOrders() {
-        return "redirect:/users/me/orders";
+        return "redirect:/orders/history";
     }
 
     @GetMapping("/orders/guest/login")
@@ -63,5 +61,19 @@ public class OrderRedirectController {
         }
 
         return "redirect:/orders/guest/login?error=unknown";
+    @GetMapping("/orders/payment")
+    public String orderPaymentPage() {
+        // 결제/주문 작성 화면
+        return "orderpayment/OrderPayment";
+    }
+
+    @GetMapping("/orders/history")
+    public String orderHistoryPage(HttpServletRequest request) {
+        // 로그인 필요: 비로그인은 로그인 페이지로 유도
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        if (accessToken == null || accessToken.isBlank()) {
+            return "redirect:/login";
+        }
+        return "orderpayment/OrderHistory";
     }
 }
