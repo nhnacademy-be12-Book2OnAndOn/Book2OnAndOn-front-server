@@ -8,14 +8,13 @@ import com.nhnacademy.book2onandonfrontservice.client.DeliveryPolicyClient;
 import com.nhnacademy.book2onandonfrontservice.client.PointAdminClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.couponDto.CouponUpdateDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryCompany;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryPolicyDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryWaybillUpdateDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.OrderStatus;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.status.OrderStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryAdminAdjustRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
@@ -31,7 +30,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,7 +40,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
 @Controller

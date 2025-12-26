@@ -2,7 +2,7 @@ package com.nhnacademy.book2onandonfrontservice.client;
 
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryWaybillUpdateDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.OrderStatus;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.status.OrderStatus;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
