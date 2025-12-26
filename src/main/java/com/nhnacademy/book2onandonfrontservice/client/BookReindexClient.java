@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface BookReindexClient {
 
     /// 전체 재인덱싱
-    @PostMapping("/api/admin/search/reindex")
+    @PostMapping("/api/admin/reindex")
     String reindexAll();
 
     /// 특정 카테고리 강제 재인덱싱 (카테고리 하나를 지정해서 강제로 재인덱싱 시킴 / 뭔가 데이터 불일치가 있을때)
-    @PostMapping("/api/admin/search/reindex/category/{categoryId}")
+    @PostMapping("/api/admin/reindex/category/{categoryId}")
     String manualReindexCategory(@PathVariable Long categoryId);
 
     /// 특정 태그 강제 재인덱싱 (태그 하나를 지정해서 강제로 재인덱싱 시킴 / 뭔가 데이터 불일치가 있을때)
-    @PostMapping("/api/admin/search/reindex/tag/{tagId}")
+    @PostMapping("/api/admin/reindex/tag/{tagId}")
     String manualReindexTag(@PathVariable Long tagId);
 
     ///  ------------ 카테고리 / 태그 이름 수정 ---------------

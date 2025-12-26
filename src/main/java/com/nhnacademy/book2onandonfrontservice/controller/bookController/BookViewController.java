@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -101,6 +102,26 @@ public class BookViewController {
         return "books/search-result";
     }
 
+    @GetMapping("/books/search/ai-result")
+    @ResponseBody
+    public ResponseEntity<String> getAiSearchResult(@RequestParam String keyword,
+                                                    @RequestParam(required = false) Long categoryId,
+                                                    HttpServletRequest request){
+        try{
+            String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+            String jsonResult = bookClient.searchAiBooks(toBearer(accessToken), keyword, categoryId);
+
+            if(jsonResult==null || jsonResult.isBlank()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(jsonResult);
+        }catch(Exception e){
+            log.warn("AI 검색 결과 조회 실패 (아직 생성 안됨 or 에러) : {}", e.getMessage());
+            return ResponseEntity.noContent().build();
+        }
+    }
     /// 카테고리별 조회
     @GetMapping("/books/categories/{categoryId}")
     public String getBooksByCategoryId(@PathVariable Long categoryId,

@@ -31,5 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
 .env
 application-local.properties
+.DS_Store

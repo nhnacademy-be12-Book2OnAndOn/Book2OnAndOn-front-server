@@ -138,8 +138,9 @@
                         <span class="like-count" th:text="${bookDetail.likeCount}">0</span>
                     </button>
                     <button type="button" class="btn ghost"
-                            th:onclick="|addToCart(${bookDetail.id}, parseInt(document.getElementById('quantity')?.value || '1'))|">장바구니</button>
-                    <button type="button" class="btn primary fill">바로구매</button>
+                            id="addToCartBtn">장바구니</button>
+                    <button type="button" class="btn primary fill"
+                            id="buyNowBtn">바로구매</button>
                 </div>
 
             </div> </section>
@@ -354,6 +355,11 @@
         updateTotalPrice(newVal);
     }
 
+    function getSelectedQuantity() {
+        const val = parseInt(document.getElementById('quantity')?.value || '1', 10);
+        return Number.isFinite(val) && val > 0 ? val : 1;
+    }
+
     function updateTotalPrice(qty) {
         const total = unitPrice * qty;
         document.getElementById('totalPrice').innerText = total.toLocaleString();
@@ -392,10 +398,65 @@
         }
     }
 
+    // 선택한 수량을 장바구니에 담은 뒤 결제 페이지로 이동
+    async function buyNow(bookId, qty) {
+        if (!bookId) return;
+        const quantity = Number(qty) > 0 ? Number(qty) : 1;
+        const payload = JSON.stringify({bookId: bookId, quantity});
+        const guestId = window.ensureGuestId ? window.ensureGuestId() : null;
+        const headers = guestId
+            ? {'Content-Type': 'application/json', 'X-Guest-Id': guestId}
+            : {'Content-Type': 'application/json'};
+
+        const commonOpts = {
+            method: 'POST',
+            headers,
+            credentials: 'include',
+            body: payload
+        };
+        try {
+            const accessToken = getCookie('accessToken');
+            let res;
+
+            if (accessToken) {
+                res = await fetch('/cart/user/items', commonOpts);
+            }
+
+            if (!accessToken || (res && (res.status === 401 || res.status >= 500))) {
+                const resolvedGuestId = guestId || (window.ensureGuestId ? window.ensureGuestId() : null);
+                const guestHeaders = resolvedGuestId
+                    ? {...commonOpts.headers, 'X-Guest-Id': resolvedGuestId}
+                    : commonOpts.headers;
+                res = await fetch('/cart/guest/items', {
+                    ...commonOpts,
+                    headers: guestHeaders
+                });
+            }
+
+            if (!res || !res.ok) {
+                throw new Error('주문 준비에 실패했습니다. 잠시 후 다시 시도해주세요.');
+            }
+
+            window.location.href = '/orders/payment';
+        } catch (e) {
+            console.error(e);
+            alert(e.message || '주문 준비 중 오류가 발생했습니다.');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('couponModal');
         if(modal) {
             modal.addEventListener('click', (e) => { if (e.target === modal) closeCouponModal(); });
+        }
+
+        const addBtn = document.getElementById('addToCartBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => addToCart(bookId, getSelectedQuantity()));
+        }
+        const buyBtn = document.getElementById('buyNowBtn');
+        if (buyBtn) {
+            buyBtn.addEventListener('click', () => buyNow(bookId, getSelectedQuantity()));
         }
     });
 

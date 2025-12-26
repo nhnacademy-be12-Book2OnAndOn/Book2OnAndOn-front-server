@@ -2,7 +2,7 @@ package com.nhnacademy.book2onandonfrontservice.client;
 
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryWaybillUpdateDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.OrderStatus;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.status.OrderStatus;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +18,8 @@ public interface DeliveryClient {
     //주문 번호로 배송정보 조회
     @GetMapping("/api/deliveries")
     DeliveryDto getDeliveryByOrder(@RequestParam("orderId") Long orderId,
-                                   @RequestHeader("Authorization") String accessToken);
+                                   @RequestHeader(value = "Authorization", required = false) String accessToken,
+                                   @RequestHeader(value = "X-Guest-Order-Token", required = false) String guestToken);
 
 
     // admin 배송 목록 조회 (페이징 + 상태 필터링)

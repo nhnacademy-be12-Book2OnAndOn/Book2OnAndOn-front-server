@@ -24,13 +24,28 @@
             </span>
         </div>
 
-        <div>
+        <div class = "summary-controls" style="display: flex; align-items: center">
+            <button id="btn-ai-recommend"
+                    class="btn-ai-trigger"
+                    type="button"
+                    th:if="${condition.keyword != null and condition.keyword != ''}"
+                    style="padding: 8px 16px; margin: 0 15px 0 0;font-size: 0.9rem;"> <span class="sparkle">✨</span> AI 추천 분석 보기
+            </button>
             <select class="search-sort" onchange="location.href=this.value">
                 <option th:value="@{/books/search(keyword=${condition.keyword}, sort='score', priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}"
                         th:selected="${condition.sort == null or condition.sort.toString() == 'score'}">정확도순</option>
                 <option th:value="@{/books/search(keyword=${condition.keyword}, sort='publishDate,desc', priceRange=${param.priceRange}, ratingRange=${param.ratingRange})}"
                         th:selected="${condition.sort != null and condition.sort.toString().contains('publishDate')}">최신순</option>
             </select>
+        </div>
+    </div>
+
+    <div class="ai-recommendation-section" th:if="${condition.keyword != null and condition.keyword != ''}">
+        <div id="ai-result-container" style="display:none;">
+            <div id="ai-loading" style="display:none;">
+                <span> AI가 책을 분석하고 있습니다... (약 2~3초 소요)</span>
+            </div>
+            <div id="ai-content"></div>
         </div>
     </div>
 
@@ -88,7 +103,8 @@
 
         <div class="book-grid">
             <div th:each="book : ${books}" class="book-card"
-                 th:attr="data-price=${book.priceSales}, data-rating=${book.rating != null ? book.rating : 0}">
+                 th:attr="data-price=${book.priceSales}, data-rating=${book.rating != null ? book.rating : 0},
+                   data-book-id=${book.id}">
                 <a class="card-overlay-link" th:href="@{/books/{id}(id=${book.id})}"></a>
 
                 <div class="book-cover">

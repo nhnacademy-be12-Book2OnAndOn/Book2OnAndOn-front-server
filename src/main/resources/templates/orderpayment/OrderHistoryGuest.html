@@ -34,12 +34,28 @@
                     <h3>비회원 주문 조회</h3>
                     <p class="muted">주문 시 입력했던 정보로 조회할 수 있습니다.</p>
                 </div>
-                <form class="stacked-form" id="guestLookupForm">
-                    <input id="guestOrderId" placeholder="주문 번호" required type="text">
-                    <input id="guestOrderer" placeholder="주문자 이름" required type="text">
-                    <input id="guestPassword" placeholder="주문 비밀번호 (또는 연락처 끝 4자리)" required type="password">
-                    <button class="btn-primary full" type="submit">주문 조회</button>
+
+                <div th:if="${param.error}" class="alert alert-danger" style="color: red; margin-bottom: 15px; font-weight: bold;">
+                    <p>주문 정보가 일치하지 않습니다. 주문번호와 비밀번호를 확인해주세요.</p>
+                </div>
+
+                <form action="/orders/guest/login" method="post" class="stacked-form">
+
+                    <input type="text"
+                           id="guestOrderId"
+                           name="orderNumber"
+                           placeholder="주문 번호"
+                           required>
+
+                    <input type="password"
+                           id="guestPassword"
+                           name="guestPassword"
+                           placeholder="비밀번호"
+                           required>
+
+                    <button type="submit" class="btn-primary full">주문 조회</button>
                 </form>
+
                 <p class="muted helper-text">
                     이미 회원이신가요? <a class="link-cta accent" th:href="@{/login}">로그인</a> 하고 전체 주문 내역을 확인하세요.
                 </p>

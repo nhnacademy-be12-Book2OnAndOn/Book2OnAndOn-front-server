@@ -1,4 +1,4 @@
-package com.nhnacademy.book2onandonfrontservice.dto.orderDto;
+package com.nhnacademy.book2onandonfrontservice.dto.orderDto.status;
 
 
 public enum OrderStatus {

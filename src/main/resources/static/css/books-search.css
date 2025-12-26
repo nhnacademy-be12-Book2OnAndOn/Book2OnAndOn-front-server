@@ -181,6 +181,95 @@
     border-color: #2d5f3f;
 }
 
+/*
+ AI 추천
+ */
+
+.ai-recommendation-section {
+    margin-bottom: 60px;
+    display: block;
+}
+
+.btn-ai-trigger {
+    background: linear-gradient(135deg, #2d5f3f, #4caf50);
+    color: white;
+    border: none;
+
+    height: 38px;
+    padding: 0 20px;
+    margin-right: 30px;
+
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    box-shadow: 0 2px 5px rgba(45, 95, 63, 0.2);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.btn-ai-trigger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(45, 95, 63, 0.4);
+    filter: brightness(1.1);
+}
+
+.btn-ai-trigger:disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+#ai-result-container {
+    margin-top: 20px;
+    background: #fcfdfc;
+    border: 1px solid #dbece0;
+    border-radius: 12px;
+    padding: 20px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* 추천 도서 금색 하이라이트 효과 */
+.book-card.ai-highlight {
+    border: 2px solid #fbbf24;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+    transform: translateY(-4px);
+    z-index: 5;
+}
+
+/* 카드 내부에 붙을 추천 사유 텍스트 */
+.card-ai-reason {
+    background-color: #fffbeb;
+    color: #92400e;
+    font-size: 0.85rem;
+    padding: 10px;
+    margin: 0 10px 10px 10px;
+    border-radius: 8px;
+    border: 1px solid #fcd34d;
+    line-height: 1.4;
+    animation: fadeIn 0.5s ease-in;
+}
+
+.card-ai-reason strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* 반응형 */
 @media (max-width: 992px) {
     .search-summary {
