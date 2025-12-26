@@ -20,8 +20,12 @@ public class DeliveryViewController {
     @GetMapping
     public String trackDelivery(@RequestParam Long orderId, HttpServletRequest request, Model model) {
 
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
-        DeliveryDto delivery = deliveryClient.getDeliveryByOrder(orderId, token);
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        String guestToken = CookieUtils.getCookieValue(request, "guestOrderToken");
+
+        String memberHeader = (accessToken != null) ? "Bearer" + accessToken : null;
+
+        DeliveryDto delivery = deliveryClient.getDeliveryByOrder(orderId, memberHeader, guestToken);
 
         model.addAttribute("delivery", delivery);
 
