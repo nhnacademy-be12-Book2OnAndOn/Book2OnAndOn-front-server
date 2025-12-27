@@ -1,6 +1,54 @@
 // ============================
 // 기본 설정
 // ============================
+// 브라우저에 실제로 들어있는 쿠키 상태를 로그로 까보고 싶어서 추가함. 지워도 ok
+function dumpCookies() {
+    const cookieStr = document.cookie || '';
+    const cookies = cookieStr.split(';').map(v => v.trim()).filter(Boolean);
+
+    const map = {};
+    for (const c of cookies) {
+        const idx = c.indexOf('=');
+        const k = idx >= 0 ? c.slice(0, idx) : c;
+        const v = idx >= 0 ? decodeURIComponent(c.slice(idx + 1)) : '';
+        map[k] = v;
+    }
+    console.log('[cart] cookies(map)=', map);
+    console.log('[cart] cookies(raw)=', cookieStr);
+    return map;
+}
+
+// 있으면 Authorization 붙이고, 없으면 아무 것도 안 붙임
+// -> bearer 문제때문에 혹시 몰라 추가
+function buildAuthHeaders(base = {}) {
+    const token = getCookie('accessToken');
+    if (!token) return base;
+    const auth = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+    return { ...base, 'Authorization': auth };
+}
+
+// 비회원 요청에 필요한 guest 식별 헤더를 일관되게 생성
+// -> 비회원 장바구니 유실 방지용
+function buildGuestHeaders(base = {}) {
+    const gid = ensureGuestId();
+    return { ...base, 'X-Guest-Id': gid };
+}
+
+// 회원 -> 비회원 fallback 전략을 캡슐화
+async function fetchUserThenGuest(userUrl, guestUrl, userOpts, guestOpts) {
+    let res = await fetch(userUrl, userOpts);
+    console.log('[cart][user attempt]', userUrl, 'status=', res.status, 'redirected=', res.redirected);
+
+    // 프론트보다 서버 응답을 우선 신뢰 (토큰 만료/재발급/쿠키 불일치 시 판단 오류 등을 방지)
+    // 토큰이 있어도 만료면 401 → guest
+    // 토큰이 없는데 세션 살아있으면 200 → user
+    if (res.status === 401 || res.status === 403) {
+        res = await fetch(guestUrl, guestOpts);
+        return { res, mode: 'guest' };
+    }
+    // 병합 여부 판단, UI 분기를 위해 mode 추가
+    return { res, mode: 'user' };
+}
 
 // 쿠키 읽기 유틸
 function getCookie(name) {
@@ -37,12 +85,17 @@ function ensureGuestId() {
 const userId = localStorage.getItem('userId');
 
 // accessToken 기준으로 회원/비회원 판단
-const accessToken = getCookie('accessToken');
-let uuid = ensureGuestId();
+// const accessToken = getCookie('accessToken');
+// let uuid = ensureGuestId();
+// const isGuest = !accessToken;
+// -> 이는 스크립트 로드 시점의 쿠키 상태를 고정하는 방식.
+// but 페이지가 살아 있는 동안 accessToken 상태는 계속 변함.
+// 따라서 전역 const는 이 변화를 절대 따라가지 못함.
 
-const isGuest = !accessToken;
+
 const API_BASE = '/cart';
 const USE_DUMMY = false;
+
 
 // 더미 아이템 (개발용)
 const DUMMY_ITEMS = [
@@ -51,7 +104,7 @@ const DUMMY_ITEMS = [
         title: '샘플 도서',
         thumbnailUrl: '',
         originalPrice: 15000,
-        price: 15000,
+        salePrice: 15000, // book-service, cart-service의 dto필드명 통일
         stockCount: 3,
         saleEnded: false,
         deleted: false,
@@ -66,21 +119,6 @@ let cartItems = USE_DUMMY ? [...DUMMY_ITEMS] : [];
 // 서버 응답 전체를 담아둘 상태 (배송비, 최종 결제금액 포함)
 let cartSummaryData = null;
 
-// ============================
-// 공통 헤더 생성 유틸
-// ============================
-
-function buildAuthHeaders(baseHeaders = {}) {
-    const headers = {...baseHeaders};
-
-    if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-    } else if (uuid) {
-        headers['X-Guest-Id'] = uuid;
-    }
-    return headers;
-}
-
 
 // ============================
 // 서버에서 장바구니 조회
@@ -88,36 +126,36 @@ function buildAuthHeaders(baseHeaders = {}) {
 
 async function loadCartFromServer() {
     try {
-        let url;
-        const baseHeaders = {
-            'Content-Type': 'application/json',
-        };
+        const baseHeaders = {'Content-Type': 'application/json'};
 
-        if (accessToken) {
-            // 회원 장바구니 조회: GET /cart/user
-            url = `${API_BASE}/user`;
-        } else {
-            url = `${API_BASE}/guest`;
-        }
+        // 요청 옵션을 “회원용/비회원용”으로 분리
+        const userOpts = { method: 'GET', headers: buildAuthHeaders(baseHeaders), credentials: 'include' };
+        const guestOpts = { method: 'GET', headers: buildGuestHeaders(baseHeaders), credentials: 'include' };
 
-        const headers = buildAuthHeaders(baseHeaders);
+        const { res, mode } = await fetchUserThenGuest(
+            `${API_BASE}/user`,
+            `${API_BASE}/guest`,
+            userOpts,
+            guestOpts
+        );
 
-        const response = await fetch(url, {
-            method: 'GET',
-            headers,
-            credentials: 'include'
-        });
-
-        if (!response.ok) {
-            console.error('장바구니 조회 실패', response.status);
+        if (!res.ok) {
+            console.error('장바구니 조회 실패', res.status);
             return;
         }
 
-        const data = await response.json(); // CartItemsResponseDto 구조
+        const data = await res.json();
         cartSummaryData = data;
         cartItems = data.items || [];
 
         renderCart();
+        updateHeaderCartBadgeFromSummary(); // 헤더 뱃지 동기화
+
+        // 쿠키를 읽지 않고도 "로그인 상태"를 확정할 수 있도록 함
+        if (mode === 'user') {
+            const gid = ensureGuestId();
+            if (gid) await checkMergeStatusAndMaybeOpenModal(gid);
+        }
     } catch (e) {
         console.error('장바구니 조회 중 오류', e);
     }
@@ -152,8 +190,8 @@ function renderCart() {
         const isUnavailable = item.deleted || item.hidden || item.saleEnded;
         const isOutOfStock = item.stockCount === 0;
         const isLowStock = item.stockCount > 0 && item.stockCount <= 5;
-        const hasDiscount = item.originalPrice > item.price;
-        const discountRate = hasDiscount ? Math.round((1 - item.price / item.originalPrice) * 100) : 0;
+        const hasDiscount = item.originalPrice > item.salePrice;
+        const discountRate = hasDiscount ? Math.round((1 - item.salePrice / item.originalPrice) * 100) : 0;
 
         return `
           <div class="cart-item ${isUnavailable ? 'item-unavailable-overlay' : ''}">
@@ -184,7 +222,7 @@ function renderCart() {
               </div>
               <div class="item-price-section">
                 ${hasDiscount ? `<span class="item-original-price">${item.originalPrice.toLocaleString()}원</span>` : ''}
-                <span class="item-price">${item.price.toLocaleString()}원</span>
+                <span class="item-price">${item.salePrice.toLocaleString()}원</span>
                 ${hasDiscount ? `<span class="item-discount-rate">${discountRate}%↓</span>` : ''}
               </div>
             </div>
@@ -198,7 +236,7 @@ function renderCart() {
                   onclick="updateQuantity(${item.bookId}, ${item.quantity + 1})"
                   ${isUnavailable || isOutOfStock || item.quantity >= item.stockCount ? 'disabled' : ''}>+</button>
               </div>
-              <div class="item-total">${(item.price * item.quantity).toLocaleString()}원</div>
+              <div class="item-total">${(item.salePrice * item.quantity).toLocaleString()}원</div>
               <button class="btn-remove" onclick="removeItem(${item.bookId})">삭제</button>
             </div>
           </div>
@@ -248,177 +286,109 @@ function updateSelectAllCheckbox() {
 // ============================
 
 async function toggleSelectAll() {
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const selectAll = selectAllCheckbox.checked;
+    const selectAll = document.getElementById('selectAll').checked;
+    const body = JSON.stringify({ selected: selectAll });
 
-    // 실제 API 모드
-    try {
-        let url;
-        const body = JSON.stringify({selected: selectAll});
-        const baseHeaders = {
-            'Content-Type': 'application/json'
-        };
+    const baseHeaders = { 'Content-Type': 'application/json' };
 
-        if (accessToken) {
-            // 회원: PATCH /cart/user/items/select-all
-            url = `${API_BASE}/user/items/select-all`;
-        } else {
-            // 비회원: PATCH /cart/guest/items/select-all
-            url = `${API_BASE}/guest/items/select-all`;
-        }
+    // const userOpts = { method: 'PATCH', headers: baseHeaders, body, credentials: 'include' };
+    const userOpts = { method: 'PATCH', headers: buildAuthHeaders(baseHeaders), body, credentials: 'include' };
+    const guestOpts = { method: 'PATCH', headers: buildGuestHeaders(baseHeaders), body, credentials: 'include' };
 
-        const headers = buildAuthHeaders(baseHeaders);
+    const { res } = await fetchUserThenGuest(
+        `${API_BASE}/user/items/select-all`,
+        `${API_BASE}/guest/items/select-all`,
+        userOpts,
+        guestOpts
+    );
 
-        const res = await fetch(url, {
-            method: 'PATCH',
-            headers,
-            body
-        });
-
-        if (!res.ok) {
-            console.error('전체 선택/해제 실패', res.status);
-            alert('전체 선택/해제 중 문제가 발생했습니다.');
-            return;
-        }
-
-        await loadCartFromServer();
-    } catch (e) {
-        console.error('전체 선택/해제 중 오류', e);
-        alert('전체 선택/해제 중 오류가 발생했습니다.');
+    if (!res.ok) {
+        console.error('전체 선택/해제 실패', res.status);
+        alert('전체 선택/해제 중 문제가 발생했습니다.');
+        return;
     }
+
+    await loadCartFromServer();
 }
 
 async function toggleItem(bookId) {
     const item = cartItems.find(i => i.bookId === bookId);
     if (!item) return;
 
-    // 실제 API 모드
-    try {
-        let url;
-        const nextSelected = !item.selected;
+    const body = JSON.stringify({ bookId, selected: !item.selected });
+    const baseHeaders = { 'Content-Type': 'application/json' };
 
-        const body = JSON.stringify({
-            bookId: bookId,
-            selected: nextSelected
-        });
+    // const userOpts = { method: 'PATCH', headers: baseHeaders, body, credentials: 'include' };
+    const userOpts = { method: 'PATCH', headers: buildAuthHeaders(baseHeaders), body, credentials: 'include' };
+    const guestOpts = { method: 'PATCH', headers: buildGuestHeaders(baseHeaders), body, credentials: 'include' };
 
-        const baseHeaders = {
-            'Content-Type': 'application/json'
-        };
+    const { res } = await fetchUserThenGuest(
+        `${API_BASE}/user/items/select`,
+        `${API_BASE}/guest/items/select`,
+        userOpts,
+        guestOpts
+    );
 
-        if (accessToken) {
-            // 회원: PATCH /cart/user/items/select
-            url = `${API_BASE}/user/items/select`;
-        } else {
-            // 비회원: PATCH /cart/guest/items/select
-            url = `${API_BASE}/guest/items/select`;
-        }
-
-        const headers = buildAuthHeaders(baseHeaders);
-
-        const res = await fetch(url, {
-            method: 'PATCH',
-            headers,
-            body
-        });
-
-        if (!res.ok) {
-            console.error('선택/해제 실패', res.status);
-            alert('선택/해제 중 문제가 발생했습니다.');
-            return;
-        }
-
-        await loadCartFromServer();
-    } catch (e) {
-        console.error('선택/해제 중 오류', e);
-        alert('선택/해제 중 오류가 발생했습니다.');
+    if (!res.ok) {
+        console.error('선택/해제 실패', res.status);
+        alert('선택/해제 중 문제가 발생했습니다.');
+        return;
     }
+
+    await loadCartFromServer();
 }
+
 
 async function updateQuantity(bookId, newQuantity) {
     const item = cartItems.find(i => i.bookId === bookId);
     if (!item) return;
-
-    // 간단한 프론트 유효성 검사
     if (newQuantity < 1 || newQuantity > item.stockCount) return;
 
-    // 실제 API 모드
-    try {
-        let url;
-        const body = JSON.stringify({
-            bookId: bookId,
-            quantity: newQuantity
-        });
+    const body = JSON.stringify({ bookId, quantity: newQuantity });
+    const baseHeaders = { 'Content-Type': 'application/json' };
 
-        const baseHeaders = {
-            'Content-Type': 'application/json'
-        };
+    // const userOpts = { method: 'PATCH', headers: baseHeaders, body, credentials: 'include' };
+    const userOpts = { method: 'PATCH', headers: buildAuthHeaders(baseHeaders), body, credentials: 'include' };
+    const guestOpts = { method: 'PATCH', headers: buildGuestHeaders(baseHeaders), body, credentials: 'include' };
 
-        if (accessToken) {
-            // 회원: PATCH /cart/user/items/quantity
-            url = `${API_BASE}/user/items/quantity`;
-        } else {
-            // 비회원: PATCH /cart/guest/items/quantity
-            url = `${API_BASE}/guest/items/quantity`;
-        }
+    const { res } = await fetchUserThenGuest(
+        `${API_BASE}/user/items/quantity`,
+        `${API_BASE}/guest/items/quantity`,
+        userOpts,
+        guestOpts
+    );
 
-        const headers = buildAuthHeaders(baseHeaders);
-
-        const res = await fetch(url, {
-            method: 'PATCH',
-            headers,
-            body
-        });
-
-        if (!res.ok) {
-            console.error('수량 변경 실패', res.status);
-            alert('수량 변경 중 문제가 발생했습니다.');
-            return;
-        }
-
-        await loadCartFromServer();
-    } catch (e) {
-        console.error('수량 변경 중 오류', e);
-        alert('수량 변경 중 오류가 발생했습니다.');
+    if (!res.ok) {
+        console.error('수량 변경 실패', res.status);
+        alert('수량 변경 중 문제가 발생했습니다.');
+        return;
     }
+
+    await loadCartFromServer();
 }
 
 async function removeItem(bookId) {
     if (!confirm('이 상품을 삭제하시겠습니까?')) return;
 
-    // 실제 API 모드
-    try {
-        let url;
-        const baseHeaders = {
-            'Content-Type': 'application/json'
-        };
+    const baseHeaders = { 'Content-Type': 'application/json' };
+    // const userOpts = { method: 'DELETE', headers: baseHeaders, credentials: 'include' };
+    const userOpts = { method: 'DELETE', headers: buildAuthHeaders(baseHeaders), credentials: 'include' };
+    const guestOpts = { method: 'DELETE', headers: buildGuestHeaders(baseHeaders), credentials: 'include' };
 
-        if (accessToken) {
-            // 회원: DELETE /cart/user/items/{bookId}
-            url = `${API_BASE}/user/items/${bookId}`;
-        } else {
-            // 비회원: DELETE /cart/guest/items/{bookId}
-            url = `${API_BASE}/guest/items/${bookId}`;
-        }
+    const { res } = await fetchUserThenGuest(
+        `${API_BASE}/user/items/${bookId}`,
+        `${API_BASE}/guest/items/${bookId}`,
+        userOpts,
+        guestOpts
+    );
 
-        const headers = buildAuthHeaders(baseHeaders);
-
-        const res = await fetch(url, {
-            method: 'DELETE',
-            headers
-        });
-
-        if (!res.ok) {
-            console.error('상품 삭제 실패', res.status);
-            alert('상품 삭제 중 문제가 발생했습니다.');
-            return;
-        }
-
-        await loadCartFromServer();
-    } catch (e) {
-        console.error('상품 삭제 중 오류', e);
-        alert('상품 삭제 중 오류가 발생했습니다.');
+    if (!res.ok) {
+        console.error('상품 삭제 실패', res.status);
+        alert('상품 삭제 중 문제가 발생했습니다.');
+        return;
     }
+
+    await loadCartFromServer();
 }
 
 async function deleteSelected() {
@@ -427,85 +397,54 @@ async function deleteSelected() {
         alert('선택된 상품이 없습니다.');
         return;
     }
-
     if (!confirm(`선택한 ${selectedItems.length}개 상품을 삭제하시겠습니까?`)) return;
 
-    // 실제 API 모드
-    try {
-        let url;
-        const baseHeaders = {
-            'Content-Type': 'application/json'
-        };
+    const baseHeaders = { 'Content-Type': 'application/json' };
+    // const userOpts = { method: 'DELETE', headers: baseHeaders, credentials: 'include' };
+    const userOpts = { method: 'DELETE', headers: buildAuthHeaders(baseHeaders), credentials: 'include' };
 
-        if (accessToken) {
-            // 회원: DELETE /cart/user/items/selected
-            url = `${API_BASE}/user/items/selected`;
-        } else {
-            // 비회원: DELETE /cart/guest/items/selected
-            url = `${API_BASE}/guest/items/selected`;
-        }
+    const guestOpts = { method: 'DELETE', headers: buildGuestHeaders(baseHeaders), credentials: 'include' };
 
-        const headers = buildAuthHeaders(baseHeaders);
+    const { res } = await fetchUserThenGuest(
+        `${API_BASE}/user/items/selected`,
+        `${API_BASE}/guest/items/selected`,
+        userOpts,
+        guestOpts
+    );
 
-        const res = await fetch(url, {
-            method: 'DELETE',
-            headers
-        });
-
-        if (!res.ok) {
-            console.error('선택 삭제 실패', res.status);
-            alert('선택 삭제 중 문제가 발생했습니다.');
-            return;
-        }
-
-        await loadCartFromServer();
-    } catch (e) {
-        console.error('선택 삭제 중 오류', e);
-        alert('선택 삭제 중 오류가 발생했습니다.');
-    }
-}
-
-async function clearCart() {
-    if (cartItems.length === 0) {
-        alert('장바구니가 비어있습니다.');
+    if (!res.ok) {
+        console.error('선택 삭제 실패', res.status);
+        alert('선택 삭제 중 문제가 발생했습니다.');
         return;
     }
 
+    await loadCartFromServer();
+}
+
+
+async function clearCart() {
+    if (cartItems.length === 0) { alert('장바구니가 비어있습니다.'); return; }
     if (!confirm('장바구니를 전체 삭제하시겠습니까?')) return;
 
-    // 실제 API 모드
-    try {
-        let url;
-        const baseHeaders = {
-            'Content-Type': 'application/json'
-        };
+    const baseHeaders = { 'Content-Type': 'application/json' };
+    // const userOpts = { method: 'DELETE', headers: baseHeaders, credentials: 'include' };
+    const userOpts = { method: 'DELETE', headers: buildAuthHeaders(baseHeaders), credentials: 'include' };
+    const guestOpts = { method: 'DELETE', headers: buildGuestHeaders(baseHeaders), credentials: 'include' };
 
-        if (accessToken) {
-            // 회원: DELETE /cart/user/items
-            url = `${API_BASE}/user/items`;
-        } else {
-            // 비회원: DELETE /cart/guest/items
-            url = `${API_BASE}/guest/items`;
-        }
+    const { res } = await fetchUserThenGuest(
+        `${API_BASE}/user/items`,
+        `${API_BASE}/guest/items`,
+        userOpts,
+        guestOpts
+    );
 
-        const headers = buildAuthHeaders(baseHeaders);
-
-        const res = await fetch(url, {
-            method: 'DELETE',
-            headers
-        });
-
-        if (!res.ok) {
-            console.error('전체 삭제 실패', res.status);
-            alert('전체 삭제 중 문제가 발생했습니다.');
-            return;
-        }
-
-        await loadCartFromServer();
-    } catch (e) {
-        console.error('전체 삭제 중 오류', e);
-        alert('전체 삭제 중 오류가 발생했습니다.');
+    if (!res.ok) {
+        console.error('전체 삭제 실패', res.status);
+        alert('전체 삭제 중 문제가 발생했습니다.');
+        return;
     }
+
+    await loadCartFromServer();
 }
 
 function checkout() {
@@ -530,59 +469,22 @@ function checkout() {
 }
 
 async function initCartPage() {
-
-    console.log("[cart] accessToken(document.cookie) =", accessToken);
     console.log("[cart] document.cookie =", document.cookie);
     console.log("[cart] API_BASE =", API_BASE);
+    // const cookies = dumpCookies();
+    // console.log("[cart] localStorage.userId =", localStorage.getItem('userId'));
+    // console.log("[cart] guestId(localStorage.uuid) =", localStorage.getItem('uuid'));
+    // console.log("[cart] guestId(cookie.GUEST_ID) =", cookies.GUEST_ID);
+    // console.log("[cart] guestId(cookie.guestId) =", cookies.guestId);
 
-    await loadCartFromServer(); // 기존 장바구니 렌더링
+    await loadCartFromServer();
 
-    // 로그인 상태 + uuid가 있는 경우에만 merge-status 조회
-    if (userId && uuid) {
-        await checkMergeStatusAndMaybeOpenModal();
-    }
+    // merge-status 로직을 유지하려면 guestId를 여기서만 구해서 사용
+    // const gid = ensureGuestId();
+    // if (userId && gid) {
+    //     await checkMergeStatusAndMaybeOpenModal(gid);
+    // }
 }
-
-// async function checkMergeStatusAndMaybeOpenModal() {
-//     try {
-//         const baseHeaders = {
-//             'Content-Type': 'application/json'
-//         };
-//         const headers = buildAuthHeaders(baseHeaders);
-//
-//         const res = await fetch('/cart/user/merge-status', {
-//             method: 'GET',
-//             headers
-//         });
-//
-//         if (!res.ok) {
-//             console.error('merge-status 조회 실패', res.status);
-//             return;
-//         }
-//
-//         const data = await res.json(); // CartMergeStatusResponseDto
-//
-//         // 1) 게스트 카트가 아예 없으면 아무것도 안 함
-//         if (!data.hasGuestCart) {
-//             return;
-//         }
-//
-//         // 2) 게스트 O + 회원 X → 자동 병합
-//         if (data.hasGuestCart && !data.hasUserCart) {
-//             // 자동 병합 후 간단 안내만 띄우고 끝
-//             await mergeGuestCart(true); // true = autoMergeFlag 정도로
-//             return;
-//         }
-//
-//         // 3) 게스트 O + 회원 O → 모달 띄워서 선택형 병합
-//         if (data.hasGuestCart && data.hasUserCart) {
-//             openMergeModal(data.guestItemCount);
-//         }
-//     } catch (e) {
-//         console.error('merge-status 조회 중 오류', e);
-//     }
-// }
-
 
 function openMergeModal(guestItemCount) {
     const confirmMerge = confirm(
@@ -623,55 +525,32 @@ function openMergeModal(guestItemCount) {
 }
 
 async function mergeGuestCart(isAuto = false) {
-    try {
-        const baseHeaders = {
-            'Content-Type': 'application/json'
-        };
-        const headers = buildAuthHeaders(baseHeaders);
+    const gid = ensureGuestId();
+    const res = await fetch('/cart/user/merge', {
+        method: 'POST',
+        headers: { 'X-Guest-Id': gid },
+        credentials: 'include'
+    });
 
-        const res = await fetch('/cart/user/merge', {
-            method: 'POST',
-            headers
-        });
+    if (!res.ok) throw new Error('장바구니 병합 중 오류가 발생했습니다.');
 
-        if (!res.ok) {
-            alert('장바구니 병합 중 오류가 발생했습니다.');
-            return;
-        }
-
-        const mergeResult = await res.json();
-
-        // 병합 성공 시 uuid 정리할지 정책에 따라 선택
-        // if (mergeResult.mergeSucceeded) {
-        //     localStorage.removeItem('uuid');
-        //     uuid = null;
-        // }
-
-        if (isAuto) {
-            // 자동 병합 케이스라면 살짝 안내 한 줄 정도
-            alert('비회원 장바구니를 회원 장바구니로 자동 병합했습니다.');
-        } else {
-            // 모달에서 사용자가 "예"를 누른 병합 케이스
-            alert('장바구니 병합이 완료되었습니다.');
-        }
-
-        await loadCartFromServer();
-    } catch (e) {
-        console.error('merge 호출 중 오류', e);
-        alert('장바구니 병합 중 오류가 발생했습니다.');
-    }
+    alert(isAuto ? '비회원 장바구니를 회원 장바구니로 자동 병합했습니다.' : '장바구니 병합이 완료되었습니다.');
+    await loadCartFromServer();
 }
 
-async function checkMergeStatusAndMaybeOpenModal() {
+
+async function checkMergeStatusAndMaybeOpenModal(gid) {
     try {
-        const res = await fetch('/cart/user/merge-status', {
+        const res  = await fetch('/cart/user/merge-status', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'X-User-Id': userId,
-                'X-Guest-Id': uuid
-            }
+                // 'X-User-Id': userId,
+                'X-Guest-Id': gid
+            },
+            credentials: 'include'
         });
+        console.log('[merge-status] status=', res.status);
 
         if (!res.ok) {
             console.error('merge-status 조회 실패', res.status);
@@ -679,6 +558,7 @@ async function checkMergeStatusAndMaybeOpenModal() {
         }
 
         const data = await res.json(); // CartMergeStatusResponseDto
+        console.log('[merge-status] data=', data);
 
         // 1) 게스트 카트가 아예 없으면 아무것도 안 함
         if (!data.hasGuestCart) {
@@ -701,62 +581,16 @@ async function checkMergeStatusAndMaybeOpenModal() {
     }
 }
 
+function updateHeaderCartBadgeFromSummary() {
+    const badge = document.querySelector('[data-cart-count]');
+    if (!badge) return;
 
-function openMergeModal(guestItemCount) {
-    const confirmMerge = confirm(
-        `비회원 장바구니에 ${guestItemCount}개의 상품이 있습니다.\n` +
-        `현재 회원 장바구니와 병합하시겠습니까?`
-    );
+    // 서버 DTO가 내려주는 totalQuantity / totalItemCount 중 원하는 기준 선택
+    const count = (cartSummaryData && Number(cartSummaryData.totalItemCount)) || 0;
 
-    if (confirmMerge) {
-        mergeGuestCart();
-    } else {
-        // 정책에 따라:
-        // 1) 그냥 아무것도 안 하기 (게스트 카트 유지)
-        // 2) 게스트 카트 바로 삭제
-        //   fetch('/cart/user/guest-clear', ...) 같은 API 만들어서 처리
-    }
+    badge.textContent = String(count);
+    badge.style.display = count > 0 ? 'inline-flex' : 'none';
 }
-
-async function mergeGuestCart(isAuto = false) {
-    try {
-        const res = await fetch('/cart/user/merge', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-User-Id': userId,
-                'X-Guest-Id': uuid
-            }
-        });
-
-        if (!res.ok) {
-            alert('장바구니 병합 중 오류가 발생했습니다.');
-            return;
-        }
-
-        const mergeResult = await res.json();
-
-        // 병합 성공 시 uuid 정리할지 정책에 따라 선택
-        // if (mergeResult.mergeSucceeded) {
-        //     localStorage.removeItem('uuid');
-        //     uuid = null;
-        // }
-
-        if (isAuto) {
-            // 자동 병합 케이스라면 살짝 안내 한 줄 정도
-            alert('비회원 장바구니를 회원 장바구니로 자동 병합했습니다.');
-        } else {
-            // 모달에서 사용자가 "예"를 누른 병합 케이스
-            alert('장바구니 병합이 완료되었습니다.');
-        }
-
-        await loadCartFromServer();
-    } catch (e) {
-        console.error('merge 호출 중 오류', e);
-        alert('장바구니 병합 중 오류가 발생했습니다.');
-    }
-}
-
 
 // ============================
 // 초기화
