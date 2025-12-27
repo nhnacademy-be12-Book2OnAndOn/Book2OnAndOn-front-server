@@ -2,33 +2,17 @@ package com.nhnacademy.book2onandonfrontservice.controller.cartController;
 
 import com.nhnacademy.book2onandonfrontservice.client.CartGuestClient;
 import com.nhnacademy.book2onandonfrontservice.client.CartUserClient;
-import com.nhnacademy.book2onandonfrontservice.dto.cartDto.CartItemCountResponseDto;
-import com.nhnacademy.book2onandonfrontservice.dto.cartDto.CartItemQuantityUpdateRequestDto;
-import com.nhnacademy.book2onandonfrontservice.dto.cartDto.CartItemRequestDto;
-import com.nhnacademy.book2onandonfrontservice.dto.cartDto.CartItemSelectAllRequestDto;
-import com.nhnacademy.book2onandonfrontservice.dto.cartDto.CartItemSelectRequestDto;
-import com.nhnacademy.book2onandonfrontservice.dto.cartDto.CartItemsResponseDto;
-import com.nhnacademy.book2onandonfrontservice.dto.cartDto.CartMergeResultResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.cartDto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/cart")
+@RequestMapping(value = "/cart", produces = "application/json")
 @RequiredArgsConstructor
-// REST API + BFF(Backend for Frontend) 역할.
 public class CartClientController {
 
-    // 브라우저에서 보내주는 헤더 이름
     private static final String GUEST_ID_HEADER = "X-Guest-Id";
 
     private final CartUserClient cartUserClient;
@@ -38,193 +22,224 @@ public class CartClientController {
     // 회원 장바구니 API
     // =========================
 
-    // 1. 회원 장바구니 조회
     @GetMapping("/user")
-    public CartItemsResponseDto getUserCart(
+    public ResponseEntity<CartItemsResponseDto> getUserCart(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
         if (accessToken == null) {
-            throw new RuntimeException("로그인이 필요합니다.");
+            return ResponseEntity.status(401).build();
         }
-        return cartUserClient.getUserCart("Bearer " + accessToken);
+        return ResponseEntity.ok(cartUserClient.getUserCart("Bearer " + accessToken));
     }
 
-    // 2. 회원 장바구니 담기
     @PostMapping("/user/items")
-    public void addItemToUserCart(
+    public ResponseEntity<Void> addItemToUserCart(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @Valid @RequestBody CartItemRequestDto requestDto
     ) {
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
         cartUserClient.addItemToUserCart("Bearer " + accessToken, requestDto);
+        return ResponseEntity.noContent().build(); // 204
     }
 
-    // 3. 회원 장바구니 수량 변경
     @PatchMapping("/user/items/quantity")
-    public void updateUserItemQuantity(
+    public ResponseEntity<Void> updateUserItemQuantity(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @Valid @RequestBody CartItemQuantityUpdateRequestDto requestDto
     ) {
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
         cartUserClient.updateQuantityUserCartItem("Bearer " + accessToken, requestDto);
+        return ResponseEntity.noContent().build();
     }
 
-    // 4. 회원 장바구니 단일 아이템 삭제
     @DeleteMapping("/user/items/{bookId}")
-    public void removeItemFromUserCart(
+    public ResponseEntity<Void> removeItemFromUserCart(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @PathVariable Long bookId
     ) {
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
         cartUserClient.deleteUserCartItem("Bearer " + accessToken, bookId);
+        return ResponseEntity.noContent().build();
     }
 
-    // 5. 회원 장바구니 전체 항목 삭제
     @DeleteMapping("/user/items")
-    public void clearUserCart(
+    public ResponseEntity<Void> clearUserCart(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
         cartUserClient.clearUserCart("Bearer " + accessToken);
+        return ResponseEntity.noContent().build();
     }
 
-    // 6. 회원 장바구니 "선택된" 항목 삭제
     @DeleteMapping("/user/items/selected")
-    public void deleteSelectedUserCartItems(
+    public ResponseEntity<Void> deleteSelectedUserCartItems(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
         cartUserClient.deleteSelectedUserCartItems("Bearer " + accessToken);
+        return ResponseEntity.noContent().build();
     }
 
-    // 7. 회원 장바구니 단건 선택/해제
     @PatchMapping("/user/items/select")
-    public void selectUserCartItem(
+    public ResponseEntity<Void> selectUserCartItem(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @Valid @RequestBody CartItemSelectRequestDto requestDto
     ) {
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
         cartUserClient.selectUserCartItem("Bearer " + accessToken, requestDto);
+        return ResponseEntity.noContent().build();
     }
 
-    // 8. 회원 장바구니 전체 선택/해제
     @PatchMapping("/user/items/select-all")
-    public void selectAllUserCartItems(
+    public ResponseEntity<Void> selectAllUserCartItems(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @Valid @RequestBody CartItemSelectAllRequestDto requestDto
     ) {
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
         cartUserClient.selectAllUserCartItems("Bearer " + accessToken, requestDto);
+        return ResponseEntity.noContent().build();
     }
 
-    // 9. 아이콘용 장바구니 개수 조회 (회원)
     @GetMapping("/user/items/count")
-    public CartItemCountResponseDto getUserCartCount(
+    public ResponseEntity<CartItemCountResponseDto> getUserCartCount(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
-        return cartUserClient.getUserCartCount("Bearer " + accessToken);
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(cartUserClient.getUserCartCount("Bearer " + accessToken));
     }
 
-    // 10. 회원 장바구니 중 "선택된 + 구매 가능한" 항목만 조회 (주문용)
     @GetMapping("/user/selected")
-    public CartItemsResponseDto getUserSelectedCart(
+    public ResponseEntity<CartItemsResponseDto> getUserSelectedCart(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
-        return cartUserClient.getUserSelectedCart("Bearer " + accessToken);
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(cartUserClient.getUserSelectedCart("Bearer " + accessToken));
     }
 
-    // 11. 비회원 → 회원 장바구니 병합
-    // Frontend는 X-Guest-Id 헤더로 UUID를 보냄 -> @RequestHeader로 수신
     @PostMapping("/user/merge")
-    public CartMergeResultResponseDto mergeGuestCartToUserCart(
+    public ResponseEntity<CartMergeResultResponseDto> mergeGuestCartToUserCart(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        // CartUserClient.merge... 는 @RequestParam으로 uuid를 받도록 정의되어 있음 (이전 코드 기준)
-        return cartUserClient.mergeGuestCartToUserCart("Bearer " + accessToken, uuid);
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(cartUserClient.mergeGuestCartToUserCart("Bearer " + accessToken, uuid));
     }
+
+    @GetMapping("/user/merge-status")
+    public ResponseEntity<CartMergeStatusResponseDto> getMergeStatus(
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @RequestHeader(GUEST_ID_HEADER) String uuid
+    ) {
+        if (accessToken == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(cartUserClient.getMergeStatus("Bearer " + accessToken, uuid));
+    }
+
 
     // =========================
     // 비회원 장바구니 API
-    // Frontend는 X-Guest-Id 헤더로 UUID를 보냄 -> @RequestHeader로 수신
-    // Gateway는 Cookie를 확인 -> "GUEST_ID=uuid" 쿠키 문자열로 변환하여 Client 호출
     // =========================
 
-    // 1. 비회원 장바구니 조회
     @GetMapping("/guest")
-    public CartItemsResponseDto getGuestCart(
+    public ResponseEntity<CartItemsResponseDto> getGuestCart(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        return cartGuestClient.getGuestCart(uuid);
+        return ResponseEntity.ok(cartGuestClient.getGuestCart(uuid));
     }
 
-    // 2. 비회원 장바구니 담기
     @PostMapping("/guest/items")
-    public void addItemToGuestCart(
+    public ResponseEntity<Void> addItemToGuestCart(
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemRequestDto requestDto
     ) {
         cartGuestClient.addItemToGuestCart(uuid, requestDto);
+        return ResponseEntity.noContent().build();
     }
 
-    // 3. 비회원 장바구니 수량 변경
     @PatchMapping("/guest/items/quantity")
-    public void updateQuantityGuestCartItem(
+    public ResponseEntity<Void> updateQuantityGuestCartItem(
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemQuantityUpdateRequestDto requestDto
     ) {
         cartGuestClient.updateQuantityGuestCartItem(uuid, requestDto);
+        return ResponseEntity.noContent().build();
     }
 
-    // 4. 비회원 장바구니 단일 아이템 삭제
     @DeleteMapping("/guest/items/{bookId}")
-    public void deleteGuestCartItem(
+    public ResponseEntity<Void> deleteGuestCartItem(
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @PathVariable Long bookId
     ) {
         cartGuestClient.deleteGuestCartItem(uuid, bookId);
+        return ResponseEntity.noContent().build();
     }
 
-    // 5. 비회원 장바구니 전체 항목 삭제
     @DeleteMapping("/guest/items")
-    public void clearGuestCart(
+    public ResponseEntity<Void> clearGuestCart(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
         cartGuestClient.clearGuestCart(uuid);
+        return ResponseEntity.noContent().build();
     }
 
-    // 6. 비회원 장바구니 "선택된" 항목 삭제
     @DeleteMapping("/guest/items/selected")
-    public void deleteSelectedGuestCartItems(
+    public ResponseEntity<Void> deleteSelectedGuestCartItems(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
         cartGuestClient.deleteSelectedGuestCartItems(uuid);
+        return ResponseEntity.noContent().build();
     }
 
-    // 7. 비회원 장바구니 단건 선택/해제
     @PatchMapping("/guest/items/select")
-    public void selectGuestCartItem(
+    public ResponseEntity<Void> selectGuestCartItem(
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemSelectRequestDto requestDto
     ) {
         cartGuestClient.selectGuestCartItem(uuid, requestDto);
+        return ResponseEntity.noContent().build();
     }
 
-    // 8. 비회원 장바구니 전체 선택/해제
     @PatchMapping("/guest/items/select-all")
-    public void selectAllGuestCartItems(
+    public ResponseEntity<Void> selectAllGuestCartItems(
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemSelectAllRequestDto requestDto
     ) {
         cartGuestClient.selectAllGuestCartItems(uuid, requestDto);
+        return ResponseEntity.noContent().build();
     }
 
-    // 9. 아이콘용 장바구니 개수 조회 (비회원)
     @GetMapping("/guest/items/count")
-    public CartItemCountResponseDto getGuestCartCount(
+    public ResponseEntity<CartItemCountResponseDto> getGuestCartCount(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        return cartGuestClient.getGuestCartCount(uuid);
+        return ResponseEntity.ok(cartGuestClient.getGuestCartCount(uuid));
     }
 
-    // 10. 비회원 장바구니 중 "선택된 + 구매 가능한" 항목만 조회 (주문용)
     @GetMapping("/guest/selected")
-    public CartItemsResponseDto getGuestSelectedCart(
+    public ResponseEntity<CartItemsResponseDto> getGuestSelectedCart(
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        return cartGuestClient.getGuestSelectedCart(uuid);
+        return ResponseEntity.ok(cartGuestClient.getGuestSelectedCart(uuid));
     }
 }
