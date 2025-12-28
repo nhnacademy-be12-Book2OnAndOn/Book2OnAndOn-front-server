@@ -53,7 +53,63 @@
                 <section class="order-section products-option-section">
                     <h2>🛒 주문 상품 및 옵션 확인</h2>
                     <div id="selectedProductList">
+                        <!-- 주문 상품이 있을 때 -->
+                        <div th:if="${!#lists.isEmpty(orderItems)}">
+
+                            <div class="order-item-detail"
+                                 th:each="item : ${orderItems}"
+                                 th:attr="data-book-id=${item.bookId}">
+
+                                <!-- 상품 이미지 -->
+                                <img th:src="${item.imageUrl}"
+                                     alt="상품 이미지"/>
+
+                                <!-- 상품 정보 -->
+                                <div class="item-info">
+                                    <div class="item-title"
+                                         th:text="${item.title + ' (' + item.quantity + '권)'}">
+                                        상품명 (1권)
+                                    </div>
+
+                                    <div class="item-price">
+                                        가격:
+                                        <span th:text="${item.priceSales * item.quantity}">0</span>원
+                                    </div>
+
+                                    <!-- 포장 옵션 -->
+                                    <div class="item-wrap-option">
+                                        <div th:if="${item.packable}">
+                                            <label>
+                                                <input type="checkbox"
+                                                       class="wrap-toggle"
+                                                       th:attr="data-book-id=${item.bookId}">
+                                                포장 선택
+                                            </label>
+
+                                            <button type="button"
+                                                    class="btn-select-wrap"
+                                                    th:attr="data-book-id=${item.bookId}"
+                                                    disabled>
+                                                포장지 선택/변경
+                                            </button>
+                                        </div>
+
+                                        <div th:unless="${item.packable}">
+                                            <span class="non-packable">포장 불가</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- 주문 상품이 없을 때 -->
+                        <div th:if="${#lists.isEmpty(orderItems)}">
+                            <p>선택된 상품이 없습니다.</p>
+                        </div>
                     </div>
+
+
                 </section>
 
                 <section class="order-section delivery-info-section">

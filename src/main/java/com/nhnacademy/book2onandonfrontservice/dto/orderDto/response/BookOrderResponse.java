@@ -16,4 +16,5 @@ public class BookOrderResponse {
     private Integer stockCount;
     private String stockStatus;
     private Long categoryId;
+    private Integer quantity;
 }
