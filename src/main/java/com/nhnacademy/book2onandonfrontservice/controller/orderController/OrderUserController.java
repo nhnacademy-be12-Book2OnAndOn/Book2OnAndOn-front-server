@@ -170,7 +170,7 @@ public class OrderUserController {
             return "redirect:/login";
         }
         String token = toBearer(accessToken);
-        OrderDetailResponseDto order = orderUserClient.getOrderDetail(token, orderNumber);
+        OrderDetailResponseDto order = orderUserClient.getOrderDetail(token, null, orderNumber);
         try {
             model.addAttribute("user", userClient.getMyInfo(token));
         } catch (Exception e) {
