@@ -7,6 +7,7 @@ import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.MemberCouponResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreateResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderDetailResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
@@ -20,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -91,8 +94,8 @@ public class OrderUserController {
 
     @PostMapping
     @ResponseBody
-    public OrderCreateResponseDto createPreOrder(@CookieValue(value = "accessToken", required = false) String accessToken,
-                                                 @RequestBody OrderCreateRequestDto req){
+    public ResponseEntity<OrderCreateResponseDto> createPreOrder(@CookieValue(value = "accessToken", required = false) String accessToken,
+                                                                @RequestBody OrderCreateRequestDto req){
         log.info("POST /orders 호출 : 사전 주문 데이터 생성");
 
         // TODO err
@@ -102,7 +105,9 @@ public class OrderUserController {
 
         String token = toBearer(accessToken);
 
-        return orderUserClient.createPreOrder(token, req);
+        OrderCreateResponseDto orderCreateResponseDto = orderUserClient.createPreOrder(token, req);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderCreateResponseDto);
     }
 
     // 주문조회 리스트 반환
@@ -113,6 +118,7 @@ public class OrderUserController {
                                HttpServletRequest request){
         log.info("GET /orders/my-order 호출 : 주문 리스트 데이터 반환");
 
+        // TODO err 페이지
         if(accessToken == null){
             return "redirect:/login";
         }

@@ -6,12 +6,6 @@ const API_BASE = {
     TOSS_CONFIRM: '/payment/TOSS/confirm'
 };
 
-const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-};
-
 const USER_ID = window.USER_ID || null;
 const ensureGuestId = () => {
     // 공통 ensureGuestId가 있으면 그대로 사용
@@ -39,7 +33,6 @@ const FIXED_DELIVERY_FEE = 3000;
 const FREE_DELIVERY_THRESHOLD = 30000;
 
 let cartData = null;
-let wrapOptions = [];
 let selectedWrapData = {};
 let currentBookId = null;
 let userPointBalance = 0;
@@ -91,6 +84,7 @@ function buildCartDataFromPrepare(orderItems) {
 
 // --- 1. 초기화 및 데이터 로드 ---
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log("dom 완료")
     setDeliveryDateOptions();
     await loadInitialData();
     setupEventListeners();
@@ -142,7 +136,7 @@ async function loadInitialData() {
             }
         }
 
-        renderProductList();
+        // renderProductList();
         updatePointUI();
         calculateFinalAmount();
     } catch (error) {
@@ -214,19 +208,59 @@ function setupEventListeners() {
         }
     });
 
-    // 7. 할인 계산 이벤트 리스너 (Payment)
-    document.getElementById('couponSelect')?.addEventListener('change', calculateFinalAmount);
-    document.getElementById('pointDiscountAmount')?.addEventListener('blur', (e) => {
-        let val = Number(e.target.value);
-        if(val > userPointBalance){
-            alert('최대 ${userPointBalance.toLocaleString()}P까지 사용 가능합니다.');
-            e.target.value = userPointBalance;
+    const pointInput = document.getElementById('pointDiscountAmount');
+    const currentPointSpan = document.getElementById('currentPointValue');
+    const maxPoint = Number(currentPointSpan.dataset.currentPoint);
+
+    pointInput.addEventListener('input', () => {
+        let value = pointInput.value;
+
+        // 숫자가 아니면 경고
+        if (!/^\d*$/.test(value)) {
+            alert('숫자만 입력할 수 있습니다.');
+            pointInput.value = value.replace(/\D/g, '');
+            return;
         }
-        if(val < 0){
-            e.target.value = 0;
+
+        // 빈 값 방지
+        if (value === '') {
+            pointInput.value = '0';
+            return;
         }
+
+        const inputPoint = Number(value);
+
+        // 음수 방지 (사실상 text라 여기까지 오기 힘듦)
+        if (inputPoint < 0) {
+            alert('0 이상의 숫자만 입력할 수 있습니다.');
+            pointInput.value = '0';
+            return;
+        }
+
+        // 보유 포인트 초과
+        if (inputPoint > maxPoint) {
+            alert(`사용 가능한 최대 포인트는 ${maxPoint.toLocaleString()}P 입니다.`);
+            pointInput.value = maxPoint;
+        }
+
         calculateFinalAmount();
     });
+
+    // 7. 할인 계산 이벤트 리스너 (Payment)
+    document.getElementById('couponSelect')?.addEventListener('change', calculateFinalAmount);
+
+
+    // document.getElementById('pointDiscountAmount')?.addEventListener('blur', (e) => {
+    //     let val = Number(e.target.value);
+    //     if(val > userPointBalance){
+    //         alert('최대 ${userPointBalance.toLocaleString()}P까지 사용 가능합니다.');
+    //         e.target.value = userPointBalance;
+    //     }
+    //     if(val < 0){
+    //         e.target.value = 0;
+    //     }
+    //     calculateFinalAmount();
+    // });
 }
 
 function renderProductList() {
@@ -393,17 +427,32 @@ function collectDeliveryAddress() {
         deliveryAddressDetail: document.getElementById('deliveryAddressDetail')?.value,
         deliveryMessage: deliveryMessage,
         recipient: document.getElementById('recipient')?.value,
-        recipientPhonenumber: document.getElementById('recipientPhonenumber')?.value.replace(/[^0-9]/g, '')
+        recipientPhoneNumber: document.getElementById('recipientPhoneNumber')?.value.replace(/[^0-9]/g, '')
     };
 }
 
 function validateInputs(address, orderItems) {
-    if (!address.recipient || !address.recipientPhonenumber || !address.deliveryAddress || !document.getElementById('wantDeliveryDate')?.value) {
-        alert('수령인 정보, 주소, 연락처, 희망 배송일을 모두 입력해주세요.');
+    if (!address.recipient) {
+        alert("수령인을 입력해주세요");
+        return false;
+    }
+
+    if(!address.recipientPhoneNumber){
+        alert("연락처를 입력해주세요");
+        return false;
+    }
+
+    if(!address.deliveryAddress){
+        alert("주소를 입력해주세요");
+        return false;
+    }
+
+    if(!document.getElementById('wantDeliveryDate')?.value){
+        alert("배송 희망 날짜를 입력해주세요");
         return false;
     }
     const phoneRegex = /^\d{11}$/;
-    if (!phoneRegex.test(address.recipientPhonenumber)) {
+    if (!phoneRegex.test(address.recipientPhoneNumber)) {
         alert('연락처 형식이 올바르지 않습니다. 11자리 숫자로 입력해주세요.');
         return false;
     }
@@ -538,49 +587,85 @@ function calculateFeesAndDiscounts(totalItemPrice, coupon, point, items) {
     };
 }
 
+function getDeliveryPolicyId(){
+    const deliveryPolicyId = document.getElementById('delivery-policy-id');
+    return Number(deliveryPolicyId.dataset.deliveryPolicyId);
+}
+
+function getMemberCouponId(){
+    const couponId = document.getElementById('couponSelect').value
+    if(couponId === "0" || couponId === ""){
+        return null;
+    }
+    return Number(couponId);
+}
+
+function getTomorrowString() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+console.log(getTomorrowString());
+
 async function handleTossPaymentRequest() {
     const orderItems = collectOrderItems();
     const address = collectDeliveryAddress();
     if (!validateInputs(address, orderItems)) return;
+    const deliveryPolicyId = getDeliveryPolicyId();
+    const memberCouponId = getMemberCouponId();
+    const wantDeliveryDate = getTomorrowString();
+    console.log(wantDeliveryDate);
 
     try {
         const headers = { 'Content-Type': 'application/json' };
-        if (IS_USER) headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
-        else headers['X-Guest-Id'] = GUEST_ID;
 
         // 1. 서버에 주문 생성
         const response = await fetch(API_BASE.ORDER, {
             method: 'POST',
             headers,
             body: JSON.stringify({
-                orderItems,
-                ...address,
-                couponDiscount: Number(document.getElementById('couponSelect').value),
-                pointUsage: Number(document.getElementById('pointDiscountAmount').value),
-                wantDeliveryDate: document.getElementById('wantDeliveryDate').value
+                orderItems: orderItems,
+                deliveryAddress: address,
+                deliveryPolicyId: deliveryPolicyId,
+                wantDeliveryDate: wantDeliveryDate,
+                memberCouponId: memberCouponId,
+                point: Number(document.getElementById('pointDiscountAmount').value)
             })
         });
 
-        if(!response.ok){
-            throw new Error("주문 서버 생성 실패");
-        }
         const orderResult = await response.json();
 
-        // 토스 결제창에 표시할 주문명 생성
-        const firstItem = cartData.items[0];
-        const firstTitle = (firstItem.bookTitle || firstItem.title).split('(')[0].trim();
+        if (!response.ok) {
+            let message = "주문 생성 실패";
+
+            try {
+                message = orderResult.message || message;
+            } catch {}
+
+            throw new Error(message);
+        }
+
+
 
         //상품이 2건 이상이면 "제목 외 N건" , 1건이면 "제목"만 표시
-        const orderName = cartData.items.length > 1 ? `${firstTitle} 외 ${cartData.items.length - 1}건` : firstTitle;
+        const orderName = orderResult.orderTitle;
+
+        const userInfo = document.getElementById('user-info');
 
         // 2. 토스 결제창 열기
         await requestTossPaymentV2(
             orderResult.totalAmount,
             orderResult.orderNumber,
-            `${cartData.items[0].bookTitle} 외`,
+            orderName,
             document.querySelector('input[name="paymentMethod"]:checked').value,
-            address.recipient,
-            'user@example.com'
+            userInfo.dataset.userName,
+            userInfo.dataset.userEmail
         );
     } catch (e) {
         console.error("결제 프로세스 오류:", e);
@@ -593,8 +678,12 @@ async function requestTossPaymentV2(amount, orderId, orderName, method, customer
     const toss = TossPayments(TOSS_CLIENT_KEY);
     const payment = toss.payment({ customerKey: IS_USER ? String(USER_ID) : TossPayments.ANONYMOUS });
     await payment.requestPayment({
-        method, amount: { currency: "KRW", value: amount },
-        orderId, orderName, customerName, customerEmail,
+        method: method,
+        amount: { currency: "KRW", value: amount },
+        orderId: orderId,
+        orderName: orderName,
+        customerName: customerName,
+        customerEmail: customerEmail,
         successUrl: window.location.origin + API_BASE.TOSS_CONFIRM,
         failUrl: window.location.origin + "/fail.html"
     });
