@@ -110,7 +110,7 @@ public class OrderUserController {
 
         String token = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
 
-        OrderDetailResponseDto orderResponseDto = orderUserClient.getOrderDetail(token, orderNumber);
+        OrderDetailResponseDto orderResponseDto = orderUserClient.getOrderDetail(token, null, orderNumber);
 
         model.addAttribute("orderInfo", orderResponseDto);
 

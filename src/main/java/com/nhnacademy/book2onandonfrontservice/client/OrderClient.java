@@ -26,10 +26,6 @@ public interface OrderClient {
             @RequestParam(value = "status", required = false) String status
     );
 
-    // 3. 비회원 주문 조회
-    @PostMapping("/api/orders/guest/lookup")
-    OrderDetailResponseDto lookupGuestOrder(@RequestBody GuestLookupRequestDto lookupRequest);
-
     // 4. 주문 상세 조회
     @GetMapping("/api/orders/{orderId}")
     OrderDetailResponseDto getOrderDetail(
