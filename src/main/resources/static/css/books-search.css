@@ -96,6 +96,7 @@
     gap: 22px;
     width: 100%;
 }
+
 .book-card {
     background: #fff;
     border: 1px solid #eee;
@@ -111,14 +112,23 @@
 .book-card.is-hidden { display: none; }
 
 .book-cover {
-    height: 260px;
+    /* 표지 비율(2:3)에 맞춰 세로를 조금 더 확보해 잘린 이미지가 없도록 유지 */
+    aspect-ratio: 2 / 3;
     background-color: #f0f0f0;
     display: flex;
     align-items: center;
     justify-content: center;
     border-bottom: 1px solid #eee;
+    overflow: hidden;
 }
-.book-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+.book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    background: #f8faf7;
+}
 
 .book-details {
     padding: 1.1rem;

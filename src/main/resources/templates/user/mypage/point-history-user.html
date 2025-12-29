@@ -81,7 +81,9 @@
                         <td th:text="${item.pointReason != null ? item.pointReason : '-'}">내용</td>
                         <td class="point-change"
                             th:classappend="${item.pointHistoryChange > 0} ? ' point-plus' : ' point-minus'">
-                            <span th:text="${item.pointHistoryChange > 0 ? '+' : '-'} + ${#numbers.formatInteger(T(Math).abs(item.pointHistoryChange), 0, 'COMMA')} + ' P'">+0 P</span>
+                            <span th:text="${(item.pointHistoryChange > 0 ? '+' : '-')
+                                + #numbers.formatInteger(item.pointHistoryChange > 0 ? item.pointHistoryChange : -item.pointHistoryChange, 0, 'COMMA')
+                                + ' P'}">+0 P</span>
                         </td>
                         <td>
                             <strong th:text="${#numbers.formatInteger(item.totalPoints != null ? item.totalPoints : (item.remainingPoint != null ? item.remainingPoint : 0), 0, 'COMMA')} + ' P'">0
@@ -105,6 +107,10 @@
     </div>
 </section>
 
+<div id="inlineFooterWrapper">
+    <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+</div>
+
 <script th:inline="javascript">
     window.initialPointHistory = /*[[${histories}]]*/ [];
     window.initialTotalPages = /*[[${totalPages}]]*/ 0;
@@ -112,6 +118,16 @@
     window.initialMonthlyEarned = /*[[${summary != null ? summary.earnedThisMonth : 0}]]*/ 0;
     window.initialMonthlyUsed = /*[[${summary != null ? summary.usedThisMonth : 0}]]*/ 0;
     window.initialExpiringPoint = /*[[${expiring != null ? expiring.expiringAmount : 0}]]*/ 0;
+
+    // 레이아웃이 이미 공통 푸터를 렌더하면 인라인 푸터를 제거해 중복을 막는다.
+    document.addEventListener('DOMContentLoaded', () => {
+        const inlineWrapper = document.getElementById('inlineFooterWrapper');
+        if (!inlineWrapper) return;
+        const layoutFooter = document.querySelector('body > .site-footer');
+        if (layoutFooter) {
+            inlineWrapper.remove();
+        }
+    });
 </script>
 <script th:src="@{/js/pointHistoryUser.js}"></script>
 </body>
