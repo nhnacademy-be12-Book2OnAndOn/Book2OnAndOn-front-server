@@ -15,6 +15,10 @@ const USER_ID =
     (typeof window !== 'undefined' && window.USER_ID !== undefined)
         ? window.USER_ID
         : null;
+const USE_SERVER_PAGING =
+    (typeof window !== 'undefined' && window.USE_SERVER_PAGING !== undefined)
+        ? Boolean(window.USE_SERVER_PAGING)
+        : false;
 
 // 백엔드 Enum 및 UI 표시용 상태명
 const ORDER_STATUS = {
@@ -35,7 +39,7 @@ const RETURN_REASON = {
 };
 
 let currentOrderDetail = null;
-let memberOrders = [];
+let memberOrders = Array.isArray(window.INITIAL_ORDERS) ? window.INITIAL_ORDERS : [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeView();
@@ -74,7 +78,7 @@ function setupEventListeners() {
     });
 
     document.getElementById('sortOrderSelect')?.addEventListener('change', (e) => {
-        const filtered = filterMockOrders(memberOrders, getCurrentFilters());
+        const filtered = filterOrders(memberOrders, getCurrentFilters());
         sortOrdersAndRender(e.target.value, filtered);
     });
 
@@ -133,12 +137,16 @@ function renderOrderList(orders) {
     container.innerHTML = orders.length ? '' : '<p id="noOrdersMessage">주문 내역이 없습니다.</p>';
 
     orders.forEach(o => {
+        const statusText = ORDER_STATUS[o.orderStatus] || ORDER_STATUS[o.status] || o.orderStatus || '상태 미정';
+        const createdAt = o.orderDateTime || o.date;
+        const dateText = createdAt ? formatDate(createdAt) : '';
+        const title = o.orderTitle || (o.items && o.items[0]?.name) || '주문 상품';
         container.innerHTML += `
-            <div class="order-item" data-order-id="${o.orderId}" style="cursor:pointer; border:1px solid #ddd; padding:15px; margin-bottom:10px; border-radius:8px;">
+            <div class="order-item" data-order-id="${o.orderNumber || o.orderId}" style="cursor:pointer; border:1px solid #ddd; padding:15px; margin-bottom:10px; border-radius:8px;">
                 <div class="order-info">
-                    <strong>주문 번호: ${o.orderId}</strong> (${o.date})<br>
-                    총 금액: ${o.total.toLocaleString()}원 | 상태: <span style="font-weight:bold; color:${getStatusColor(o.status)};">${o.status}</span><br>
-                    상품: ${o.items[0].name} ${o.items.length > 1 ? `외 ${o.items.length - 1}건` : ''}
+                    <strong>주문 번호: ${o.orderNumber || o.orderId || ''}</strong> ${dateText ? `(${dateText})` : ''}<br>
+                    총 금액: ${(o.totalAmount ?? o.total ?? 0).toLocaleString()}원 | 상태: <span style="font-weight:bold; color:${getStatusColor(statusText)};">${statusText}</span><br>
+                    상품: ${title}
                 </div>
                 <button class="btn-primary" style="margin-top:10px;">상세 보기</button>
             </div>`;
@@ -394,36 +402,24 @@ function initializeFilterForm() {
     filterMonth.innerHTML = '<option value="all">전체보기</option>';
     for (let m = 1; m <= 12; m++) filterMonth.innerHTML += `<option value="${String(m).padStart(2, '0')}">${m}월</option>`;
     filterStatus.innerHTML = '<option value="all">전체보기</option>';
-    Object.values(ORDER_STATUS).forEach(v => filterStatus.innerHTML += `<option value="${v}">${v}</option>`);
+    Object.keys(ORDER_STATUS).forEach(k => filterStatus.innerHTML += `<option value="${k}">${ORDER_STATUS[k]}</option>`);
 }
 
 async function fetchMemberOrders() {
-    try {
-        const response = await fetch(`${API_BASE}/me`, {
-            headers: { 'Authorization': `Bearer ${getCookie('accessToken')}` }
-        });
-
-        if (!response.ok) throw new Error("주문 내역 로드 실패");
-
-        const data = await response.json();
-        memberOrders = data.orders || data; // 응답 구조에 따라 조정
-
-        // HTML의 닉네임 표시 영역 업데이트
-        const nameDisplay = document.getElementById('userNameDisplay');
-        if (nameDisplay && data.nickname) {
-            nameDisplay.textContent = data.nickname;
-        }
-
-        sortOrdersAndRender('latest', memberOrders);
-    } catch (error) {
-        console.error("Error:", error);
-        renderOrderList([]); // 에러 시 빈 화면
+    if (USE_SERVER_PAGING) {
+        // 서버 페이지네이션일 때는 서버 렌더링 결과를 그대로 사용
+        return;
     }
+    // 서버에서 타임리프로 내려준 초기 데이터 사용
+    memberOrders = Array.isArray(window.INITIAL_ORDERS) ? window.INITIAL_ORDERS : [];
+    sortOrdersAndRender('latest', memberOrders);
 }
 
 function sortOrdersAndRender(sortType, orders) {
     const sorted = [...(orders || memberOrders)].sort((a, b) =>
-        sortType === 'latest' ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date));
+        sortType === 'latest'
+            ? new Date(b.orderDateTime || b.date) - new Date(a.orderDateTime || a.date)
+            : new Date(a.orderDateTime || a.date) - new Date(b.orderDateTime || b.date));
     renderOrderList(sorted);
 }
 
@@ -431,28 +427,9 @@ function sortOrdersAndRender(sortType, orders) {
 async function handleOrderFiltering(e) {
     e.preventDefault(); // 페이지 새로고침 방지
 
-    const filters = getCurrentFilters(); // 사용자가 선택한 값 수집 (year, month, status, keyword 등)
-
-    try {
-        // 서버에 필터 조건을 쿼리 파라미터로 전달하여 검색된 결과만 요청
-        const queryString = new URLSearchParams(filters).toString();
-        const response = await fetch(`${API_BASE}/me?${queryString}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getCookie('accessToken')}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) throw new Error("필터링된 주문 내역 로드 실패");
-
-        memberOrders = await response.json(); // 서버에서 준 필터링된 결과 저장
-        sortOrdersAndRender('latest', memberOrders); // 화면 렌더링
-
-    } catch (error) {
-        console.error("필터링 중 오류:", error);
-        alert("검색 중 오류가 발생했습니다.");
-    }
+    const filters = getCurrentFilters();
+    const filtered = filterOrders(memberOrders, filters);
+    sortOrdersAndRender(document.getElementById('sortOrderSelect')?.value || 'latest', filtered);
 }
 
 // 화면의 (년도, 월, 상태, 키워드) <- 현재 사용자가 선택하거나 입력한 값들 수집하여 하나 객체로 반환
@@ -467,37 +444,48 @@ function getCurrentFilters() {
     };
 }
 
-// 실제 데이터 필터링 로직 ( 주문 날짜와 선택된 기간이 일치하는지 확인 , 사용자가 특정 상태를 선택했다면 해당 주문들만 남김)
-function filterMockOrders(orders, f) {
-    return orders.filter(o => {
-        const d = new Date(o.date);
-        if (f.year !== 'all' && f.year !== String(d.getFullYear())) {
-            return false;
-        }
-        if (f.month !== 'all' && f.month !== String(d.getMonth() + 1).padStart(2, '0')) {
-            return false;
-        }
-        if (f.status !== 'all' && f.status !== o.status) {
-            return false;
-        }
-        if (f.keyword) {
-            if (f.searchType === 'orderItemName') {
-                // 주문 상품명 검색 (여러 상품일 수 있으므로 join하여 검색)
-                const productNames = o.items.map(item => item.name).join(' ').toLowerCase();
-                if (!productNames.includes(f.keyword)) return false;
-            }
-            else if (f.searchType === 'orderNumber') {
-                // 주문 번호 검색
-                if (!o.orderId.toLowerCase().includes(f.keyword)) return false;
-            }
-            else if (f.searchType === 'recipientName') {
-                const recipient = o.recipient || "";
-                if (!recipient.toLowerCase().includes(f.keyword)) return false;
-            }
+// 실제 데이터 필터링 로직
+function filterOrders(orders, f) {
+    const keyword = (f.keyword || '').toLowerCase();
+    return (orders || []).filter(o => {
+        const d = new Date(o.orderDateTime || o.date || '');
+        if (f.year !== 'all' && String(d.getFullYear()) !== f.year) return false;
+        if (f.month !== 'all' && String(d.getMonth() + 1).padStart(2, '0') !== f.month) return false;
+
+        if (f.status && f.status !== 'all') {
+            const statusKey = o.orderStatus || o.status;
+            if (statusKey !== f.status) return false;
         }
 
+        if (keyword) {
+            if (f.searchType === 'orderItemName') {
+                const title = (o.orderTitle || '').toLowerCase();
+                if (!title.includes(keyword)) return false;
+            } else if (f.searchType === 'orderNumber') {
+                const num = (o.orderNumber || o.orderId || '').toString().toLowerCase();
+                if (!num.includes(keyword)) return false;
+            } else if (f.searchType === 'recipientName') {
+                const recipient = (o.recipient || '').toLowerCase();
+                if (!recipient.includes(keyword)) return false;
+            }
+        }
         return true;
     });
+}
+
+function formatDate(value) {
+    try {
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return '';
+        const yy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mi = String(d.getMinutes()).padStart(2, '0');
+        return `${yy}-${mm}-${dd} ${hh}:${mi}`;
+    } catch (e) {
+        return '';
+    }
 }
 // 비회원이 주문 정보를 입력하고 조회 버튼 눌렀을때 실행
 async function handleGuestLookup(e) {

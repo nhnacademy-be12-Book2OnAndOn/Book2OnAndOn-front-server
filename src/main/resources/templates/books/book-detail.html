@@ -230,12 +230,12 @@
 
                 <div class="review-form-card" id="reviewForm">
                     <div class="form-card-inner" th:if="${currentUser != null}">
-                        <div class="form-card-head">
-                            <div>
-                                <p class="eyebrow">리뷰 작성</p>
-                                <h4>당신의 한 줄이 누군가의 선택이 됩니다</h4>
-                            </div>
-                        </div>
+<!--                        <div class="form-card-head">-->
+<!--                            <div>-->
+<!--                                <p class="eyebrow">리뷰 작성</p>-->
+<!--                                <h4>당신의 한 줄이 누군가의 선택이 됩니다</h4>-->
+<!--                            </div>-->
+<!--                        </div>-->
                         <form th:action="@{'/api/books/' + ${bookDetail.id} + '/reviews'}" method="post" enctype="multipart/form-data">
                             <div class="form-grid two-col">
                                 <div class="form-field">

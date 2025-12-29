@@ -5,6 +5,7 @@ let currentPage = 0;
 let currentFilter = 'ALL';
 let allHistory = [];
 let totalPages = 0;
+let filteredHistory = [];
 
 const initialHistory = Array.isArray(window.initialPointHistory) ? window.initialPointHistory : [];
 const initialTotalPages = typeof window.initialTotalPages === 'number' ? window.initialTotalPages : 0;
@@ -183,9 +184,8 @@ async function loadCurrentPoint() {
 async function loadHistory(page = 0) {
     if (Array.isArray(initialHistory) && initialHistory.length > 0) {
         allHistory = [...initialHistory];
-        totalPages = initialTotalPages || 1;
+        // 서버가 내려준 총페이지는 사용하지 않고 클라이언트에서 다시 계산
         updateSummaryFromHistory(allHistory);
-        renderPagination(totalPages);
         applyFilter();
         return;
     }
@@ -207,9 +207,7 @@ async function loadHistory(page = 0) {
         const data = await response.json();
         console.debug('point history response', data);
         allHistory = data.content || [];
-        totalPages = data.totalPages || 0;
         updateSummaryFromHistory(allHistory);
-        renderPagination(totalPages);
         applyFilter();
     } catch (error) {
         console.error('Error:', error);
@@ -219,7 +217,7 @@ async function loadHistory(page = 0) {
 
 // 필터 적용
 function applyFilter() {
-    let filteredHistory = allHistory;
+    filteredHistory = allHistory;
 
     if (currentFilter !== 'ALL') {
         filteredHistory = allHistory.filter(item =>
@@ -227,6 +225,10 @@ function applyFilter() {
         );
     }
 
+    totalPages = Math.max(1, Math.ceil(filteredHistory.length / 10));
+    if (currentPage >= totalPages) currentPage = 0;
+
+    renderPagination(totalPages);
     renderHistory(filteredHistory);
 }
 
@@ -307,7 +309,7 @@ function renderPagination(totalPages) {
 // 페이지 변경
 function changePage(page) {
     currentPage = page;
-    loadHistory(page);
+    applyFilter();
 }
 
 function renderErrorRow(message) {

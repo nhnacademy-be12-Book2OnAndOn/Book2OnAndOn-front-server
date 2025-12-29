@@ -8,9 +8,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderDetail
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderSimpleDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,8 +41,9 @@ public interface OrderUserClient {
      * Pageable은 쿼리 파라미터 (?page=0&size=20)로 변환되어 전달
      */
     @GetMapping("/api/orders/my-order")
-    Page<OrderSimpleDto> getOrderList(@RequestHeader(value = "Authorization", required = false) String accessToken,
-                                                      Pageable pageable);
+    java.util.Map<String, Object> getOrderList(
+            @RequestHeader(value = "Authorization", required = false) String accessToken,
+            Pageable pageable);
 
     /**
      * 주문 상세 조회

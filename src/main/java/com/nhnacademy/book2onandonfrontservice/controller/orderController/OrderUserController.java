@@ -1,5 +1,8 @@
 package com.nhnacademy.book2onandonfrontservice.controller.orderController;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateRequestDto;
@@ -8,13 +11,17 @@ import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreate
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderDetailResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderSimpleDto;
+import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -49,7 +56,13 @@ public class OrderUserController {
 
         String token = toBearer(accessToken);
 
-        OrderPrepareResponseDto orderSheetResponseDto = orderUserClient.getOrderPrepare(token, req);
+        OrderPrepareResponseDto orderSheetResponseDto;
+        try {
+            orderSheetResponseDto = orderUserClient.getOrderPrepare(token, req);
+        } catch (Exception e) {
+            log.warn("주문 준비 데이터 조회 실패", e);
+            return "redirect:/cartpage?error=order_prepare_failed";
+        }
 
         // 헤더/뷰 공통 데이터
         try {
@@ -96,19 +109,32 @@ public class OrderUserController {
     @GetMapping("/my-order")
     public String getOrderList(Model model,
                                @CookieValue(value = "accessToken", required = false) String accessToken,
-                               Pageable pageable){
+                               @PageableDefault(size = 3, sort = "orderDateTime", direction = Sort.Direction.DESC) Pageable pageable,
+                               HttpServletRequest request){
         log.info("GET /orders/my-order 호출 : 주문 리스트 데이터 반환");
 
-        // TODO err 페이지
         if(accessToken == null){
-            return null;
+            return "redirect:/login";
         }
 
         String token = toBearer(accessToken);
 
-        Page<OrderSimpleDto> page = orderUserClient.getOrderList(token, pageable);
+        var raw = orderUserClient.getOrderList(token, pageable);
+        RestPage<OrderSimpleDto> page = toRestPage(raw, pageable);
 
+        try {
+            model.addAttribute("user", userClient.getMyInfo(token));
+        } catch (Exception e) {
+            model.addAttribute("user", null);
+            log.warn("사용자 정보 조회 실패: {}", e.getMessage());
+        }
+        Object cartCount = request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
+        model.addAttribute("cartCount", cartCount);
         model.addAttribute("orderList", page);
+        List<Integer> pageNumbers = page.getTotalPages() > 0
+                ? IntStream.rangeClosed(1, page.getTotalPages()).boxed().toList()
+                : List.of();
+        model.addAttribute("pageNumbers", pageNumbers);
 
         return "orderpayment/OrderHistory";
 
@@ -177,5 +203,20 @@ public class OrderUserController {
     private String toBearer(String accessToken) {
         if (accessToken == null || accessToken.isBlank()) return null;
         return accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+    }
+
+    private RestPage<OrderSimpleDto> toRestPage(java.util.Map<String, Object> raw, Pageable pageable) {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        var content = mapper.convertValue(raw.getOrDefault("content", java.util.List.of()),
+                new TypeReference<java.util.List<OrderSimpleDto>>() {});
+        long total = 0;
+        Object totalObj = raw.get("totalElements");
+        if (totalObj instanceof Number n) {
+            total = n.longValue();
+        } else if (content != null) {
+            total = content.size();
+        }
+        return new RestPage<>(content, pageable, total);
     }
 }

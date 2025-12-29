@@ -542,7 +542,7 @@
 
 .liked-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.2rem;
 }
 
@@ -601,10 +601,17 @@
 /* 포인트 내역 페이지 정렬 보강 */
 .points-page .point-summary-row {
     display: grid;
-    grid-template-columns: 1.6fr repeat(3, 1fr);
-    gap: 0.9rem;
+    gap: 0.7rem;
     align-items: stretch;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.points-page .balance-row {
+    grid-template-columns: minmax(260px, 1fr);
+}
+
+.points-page .metrics-row {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .points-page .point-balance-card {
@@ -622,16 +629,12 @@
     margin: 0.5rem 0;
 }
 
-.points-page .point-metrics {
-    display: contents;
-}
-
 .points-page .point-metric-card {
     background: #ffffff;
     border: 1px solid #e0e7e2;
-    border-radius: 16px;
-    padding: 0.9rem 1rem;
-    box-shadow: 0 14px 28px rgba(7, 28, 15, 0.06);
+    border-radius: 14px;
+    padding: 0.7rem 0.85rem;
+    box-shadow: 0 12px 24px rgba(7, 28, 15, 0.05);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -672,27 +675,28 @@
 
 .liked-card {
     background: #ffffff;
-    border: 1px solid #e0e7e2;
-    border-radius: 14px;
+    border: 1px solid #dce5dc;
+    border-radius: 16px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    height: 100%;
     text-decoration: none;
     color: inherit;
-    box-shadow: 0 16px 34px rgba(7, 28, 15, 0.08);
+    box-shadow: 0 18px 36px rgba(7, 28, 15, 0.08);
     transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .liked-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 20px 44px rgba(7, 28, 15, 0.14);
-    border-color: #c9d7ce;
+    box-shadow: 0 22px 46px rgba(7, 28, 15, 0.14);
+    border-color: #c2d1c4;
 }
 
 .liked-thumb {
     position: relative;
     padding-top: 140%;
-    background: #f5f7f4;
+    background: linear-gradient(180deg, #f7faf8 0%, #eef2ee 100%);
 }
 
 .liked-thumb img {
@@ -705,24 +709,30 @@
 }
 
 .liked-body {
-    padding: 1rem 1rem 1.2rem;
+    padding: 1rem 1.1rem 1.1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.4rem;
+    flex: 1;
 }
 
 .liked-title {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.98rem;
     font-weight: 800;
     color: #1f4a30;
     line-height: 1.4;
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .liked-authors {
     margin: 0;
     color: #6b7b6c;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
 }
 
 .liked-price {
@@ -735,18 +745,61 @@
 .liked-price .price-sale {
     color: #e53935;
     font-weight: 800;
+    display: inline-block;
 }
 
 .liked-price .price-origin {
     color: #8b9b8d;
     text-decoration: line-through;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
 }
 
 .liked-meta {
     margin-top: auto;
     color: #6b7b6c;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
+}
+
+.liked-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+    padding: 0 0 0.8rem;
+}
+
+.btn-like-action {
+    border-radius: 999px;
+    padding: 0.6rem 0.85rem;
+    font-weight: 800;
+    font-size: 0.93rem;
+    border: 1px solid rgba(47, 98, 66, 0.25);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    min-height: 42px;
+    width: 90%;
+    align-self: center;
+}
+
+.btn-like-action.ghost {
+    background: #eef6ee;
+    color: #205433;
+}
+
+.btn-like-action.ghost:hover {
+    background: #e2ede3;
+    border-color: #2d5f3f;
+}
+
+.btn-like-action.solid {
+    background: linear-gradient(135deg, #2f6242, #2b593a);
+    color: #ffffff;
+    border-color: #2f6242;
+    box-shadow: 0 12px 24px rgba(47, 98, 66, 0.18);
+}
+
+.btn-like-action.solid:hover {
+    background: linear-gradient(135deg, #2b593a, #264f35);
 }
 
 /* ============================
