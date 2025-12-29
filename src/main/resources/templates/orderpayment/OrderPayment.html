@@ -40,6 +40,16 @@
 <body>
 <main layout:fragment="content">
 <div class="container">
+    <th:block th:if="${orderItems != null}">
+        <script th:inline="javascript">
+            window.__ORDER_PREPARE__ = {
+                orderItems: /*[[${orderItems}]]*/ [],
+                addresses: /*[[${addresses}]]*/ [],
+                coupons: /*[[${coupons}]]*/ [],
+                currentPoint: /*[[${point}]]*/ null
+            };
+        </script>
+    </th:block>
     <header>
         <h1 class="page-title">통합 주문 및 결제</h1>
         <p class="page-subtitle">주문 상품과 배송 정보를 확인하고 한 번에 결제하세요.</p>
@@ -51,7 +61,7 @@
 
             <form id="orderForm" onsubmit="return false;">
                 <section class="order-section products-option-section">
-                    <h2>🛒 주문 상품 및 옵션 확인</h2>
+                    <h2>주문 상품 및 옵션 확인</h2>
                     <div id="selectedProductList">
                         <!-- 주문 상품이 있을 때 -->
                         <div th:if="${!#lists.isEmpty(orderItems)}">
@@ -73,7 +83,7 @@
 
                                     <div class="item-price">
                                         가격:
-                                        <span th:text="${item.priceSales * item.quantity}">0</span>원
+                                        <span th:text="|${#numbers.formatInteger(item.priceSales * item.quantity, 0, 'COMMA')}원|">0원</span>
                                     </div>
 
                                     <!-- 포장 옵션 -->
@@ -113,7 +123,7 @@
                 </section>
 
                 <section class="order-section delivery-info-section">
-                    <h2>🏠 배송지 및 희망일 정보</h2>
+                    <h2>배송지 및 희망일 정보</h2>
                     <div class="form-group"><label for="recipient">수령인</label><input type="text" id="recipient" name="recipient" required placeholder="수령인 이름을 입력해주세요"></div>
                     <div class="form-group"><label for="recipientPhonenumber">연락처</label><input type="tel" id="recipientPhonenumber" name="recipientPhonenumber" required placeholder="01012345678 (숫자만)"></div>
                     <div class="form-group">
@@ -145,29 +155,35 @@
                 </section>
             </form>
 
-            <section class="order-section discount-selection-section">
-                <h2>🏷️ 쿠폰 선택</h2>
+                <section class="order-section discount-selection-section">
+                    <h2>쿠폰 선택</h2>
                 <div class="form-group discount-field">
                     <label for="couponSelect">적용 가능한 쿠폰</label>
                     <select id="couponSelect" name="couponDiscountAmount">
                         <option value="0">쿠폰 미사용</option>
-                        <option value="5000">🎉 생일 축하 쿠폰 (5,000원 할인)</option>
-                        <option value="10000">💰 10% 할인 쿠폰 (최대 10,000원)</option>
+                        <option th:each="c : ${coupons}"
+                                th:value="${c.discountAmount}"
+                                th:text="|${c.couponName} (-${#numbers.formatInteger(c.discountAmount, 0, 'COMMA')}원)|">쿠폰</option>
                     </select>
                 </div>
             </section>
 
-            <section class="order-section point-usage-section">
-                <h2>💸 포인트 사용</h2>
+                <section class="order-section point-usage-section">
+                    <h2>포인트 사용</h2>
                 <div class="form-group discount-field">
                     <label for="pointDiscountAmount">사용할 포인트</label>
                     <input type="number" id="pointDiscountAmount" name="pointDiscountAmount" value="0" min="0" step="100">
-                    <span class="current-point">보유 포인트: <span id="currentPointValue">12,500 P</span></span>
+                    <span class="current-point">보유 포인트:
+                        <span id="currentPointValue"
+                              th:text="${point != null && point.currentPoint != null} ? ${#numbers.formatInteger(point.currentPoint, 0, 'COMMA')} + ' P' : '0 P'">
+                            0 P
+                        </span>
+                    </span>
                 </div>
             </section>
 
-            <section class="order-section payment-method-section">
-                <h2>💳 결제 수단</h2>
+                <section class="order-section payment-method-section">
+                    <h2>결제 수단</h2>
                 <div class="payment-method-options">
                     <label><input type="radio" name="paymentMethod" value="CARD" checked> 카드 결제</label>
                     <label><input type="radio" name="paymentMethod" value="TRANSFER"> 계좌 이체</label>
@@ -182,20 +198,24 @@
                 <h2>최종 결제 금액</h2>
 
                 <div class="price-breakdown">
-                    <div class="summary-line"><span>총 상품 금액</span> <span id="summaryTotalItemPrice" class="price">0원</span></div>
-                    <div class="summary-line"><span>배송비</span> <span id="deliveryFee" class="price fee">0원</span></div>
-                    <div class="summary-line"><span>포장비</span> <span id="wrappingFee" class="price fee">0원</span></div>
-                    <div class="summary-line discount-row"><span>쿠폰 할인</span> <span id="couponDiscount" class="price discount">-0원</span></div>
-                    <div class="summary-line discount-row"><span>포인트 사용</span> <span id="pointDiscount" class="price discount">-0원</span></div>
+                    <div class="summary-line">
+                        <span>총 상품 금액</span>
+                        <span id="summaryTotalItemPrice" class="price"
+                              th:text="|${#numbers.formatInteger(itemTotal ?: 0, 0, 'COMMA')}원|">0원</span>
+                    </div>
+                    <div class="summary-line"><span>배송비</span> <span id="deliveryFee" class="price fee" th:text="|0원|">0원</span></div>
+                    <div class="summary-line"><span>포장비</span> <span id="wrappingFee" class="price fee" th:text="|0원|">0원</span></div>
+                    <div class="summary-line discount-row"><span>쿠폰 할인</span> <span id="couponDiscount" class="price discount" th:text="|-${#numbers.formatInteger(0,0,'COMMA')}원|">-0원</span></div>
+                    <div class="summary-line discount-row"><span>포인트 사용</span> <span id="pointDiscount" class="price discount" th:text="|-${#numbers.formatInteger(0,0,'COMMA')}원|">-0원</span></div>
                 </div>
 
                 <div class="final-total-row">
                     <span>총 주문 금액 (VAT 포함)</span>
-                    <span id="finalPaymentAmount">0원</span>
+                    <span id="finalPaymentAmount" th:text="|${#numbers.formatInteger(itemTotal ?: 0, 0, 'COMMA')}원|">0원</span>
                 </div>
 
                 <button type="button" id="requestTossPayment" class="btn-checkout-final">
-                    <span id="finalPaymentButtonText">0원 결제하기</span>
+                    <span id="finalPaymentButtonText" th:text="|${#numbers.formatInteger(itemTotal ?: 0, 0, 'COMMA')}원 결제하기|">0원 결제하기</span>
                 </button>
             </div>
         </div>

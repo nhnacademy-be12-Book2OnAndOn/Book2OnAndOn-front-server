@@ -1,6 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.controller.orderController;
 
 import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
+import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreateResponseDto;
@@ -11,12 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -34,27 +32,46 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/orders")
 public class OrderUserController {
     private final OrderUserClient orderUserClient;
+    private final UserClient userClient;
 
     // 장바구니 혹은 바로구매시 준비할 데이터 (책 정보, 회원 배송지 정보)
     @PostMapping("/prepare")
     public String getOrderPrepare(Model model,
                                   @CookieValue(value = "accessToken", required = false) String accessToken,
-                                  @ModelAttribute  @RequestBody OrderPrepareRequestDto req){
+                                  @ModelAttribute OrderPrepareRequestDto req,
+                                  HttpServletRequest request){
         log.info("POST /orders/prepare 호출");
 
         // TODO err 페이지
         if(accessToken == null){
-            return null;
+            return "redirect:/login";
         }
 
-        String token = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+        String token = toBearer(accessToken);
 
         OrderPrepareResponseDto orderSheetResponseDto = orderUserClient.getOrderPrepare(token, req);
+
+        // 헤더/뷰 공통 데이터
+        try {
+            model.addAttribute("user", userClient.getMyInfo(token));
+        } catch (Exception e) {
+            model.addAttribute("user", null);
+            log.warn("사용자 정보 조회 실패: {}", e.getMessage());
+        }
+        model.addAttribute("cartCount", request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null);
 
         model.addAttribute("orderItems", orderSheetResponseDto.orderItems());
         model.addAttribute("addresses", orderSheetResponseDto.addresses());
         model.addAttribute("coupons", orderSheetResponseDto.coupons());
         model.addAttribute("point", orderSheetResponseDto.currentPoint());
+        long itemTotal = orderSheetResponseDto.orderItems() == null ? 0L :
+                orderSheetResponseDto.orderItems().stream()
+                        .mapToLong(i -> {
+                            long price = i.getPriceSales() != null ? i.getPriceSales() : (i.getPriceStandard() != null ? i.getPriceStandard() : 0L);
+                            long qty = i.getQuantity() != null ? i.getQuantity() : 1L;
+                            return price * qty;
+                        }).sum();
+        model.addAttribute("itemTotal", itemTotal);
 
         return "orderpayment/OrderPayment";
     }
@@ -70,7 +87,7 @@ public class OrderUserController {
             return null;
         }
 
-        String token = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+        String token = toBearer(accessToken);
 
         return orderUserClient.createPreOrder(token, req);
     }
@@ -87,7 +104,7 @@ public class OrderUserController {
             return null;
         }
 
-        String token = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+        String token = toBearer(accessToken);
 
         Page<OrderSimpleDto> page = orderUserClient.getOrderList(token, pageable);
 
@@ -108,7 +125,7 @@ public class OrderUserController {
             return null;
         }
 
-        String token = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+        String token = toBearer(accessToken);
 
         OrderDetailResponseDto orderResponseDto = orderUserClient.getOrderDetail(token, orderNumber);
 
@@ -116,6 +133,27 @@ public class OrderUserController {
 
         // TODO 주문 상세 내역 만들기
         return "";
+    }
+
+    @GetMapping("/complete/{orderNumber}")
+    public String orderComplete(Model model,
+                                @CookieValue(value = "accessToken", required = false) String accessToken,
+                                @PathVariable("orderNumber") String orderNumber,
+                                HttpServletRequest request) {
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+        String token = toBearer(accessToken);
+        OrderDetailResponseDto order = orderUserClient.getOrderDetail(token, orderNumber);
+        try {
+            model.addAttribute("user", userClient.getMyInfo(token));
+        } catch (Exception e) {
+            model.addAttribute("user", null);
+        }
+        Object cartCount = request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
+        model.addAttribute("cartCount", cartCount);
+        model.addAttribute("order", order);
+        return "orderpayment/OrderComplete";
     }
 
     // 결제 후 바로 주문 취소하는 경우
@@ -129,10 +167,15 @@ public class OrderUserController {
             return null;
         }
 
-        String token = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+        String token = toBearer(accessToken);
 
         orderUserClient.cancelOrder(token, orderNumber);
 
         return "";
+    }
+
+    private String toBearer(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) return null;
+        return accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
     }
 }

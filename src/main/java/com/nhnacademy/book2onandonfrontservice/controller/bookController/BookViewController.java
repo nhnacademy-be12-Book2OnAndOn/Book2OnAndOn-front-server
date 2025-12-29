@@ -128,6 +128,12 @@ public class BookViewController {
                                        HttpServletRequest request,
                                        Model model) {
         commonData(model);
+        // 현재 로그인 사용자/카트 카운트 세팅 (헤더 표시용)
+        Object sessionUser = request.getSession(false) != null ? request.getSession(false).getAttribute("user") : null;
+        model.addAttribute("currentUser", sessionUser);
+        Object cartCount = request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
+        model.addAttribute("cartCount", cartCount);
+
         String accessToken = CookieUtils.getCookieValue(request, "accessToken");
         Page<BookDto> booksByCategory = Page.empty();
         String categoryName = "카테고리";

@@ -206,23 +206,14 @@ function computeLocalSelectedSubtotal() {
 }
 
 function updateSummary() {
-    const subtotalElem = document.getElementById('subtotal');
-    const shippingElem = document.getElementById('shipping');
     const totalElem = document.getElementById('total');
 
     const localSubtotal = computeLocalSelectedSubtotal();
-    subtotalElem.textContent = localSubtotal.toLocaleString() + '원';
 
-    if (!cartSummaryData) {
-        shippingElem.textContent = '계산중';
-        totalElem.textContent = '계산중';
-        return;
-    }
+    const finalPaymentAmount = (cartSummaryData && cartSummaryData.finalPaymentAmount) != null
+        ? cartSummaryData.finalPaymentAmount
+        : localSubtotal;
 
-    const deliveryFee = cartSummaryData.deliveryFee || 0;
-    const finalPaymentAmount = cartSummaryData.finalPaymentAmount || 0;
-
-    shippingElem.textContent = deliveryFee === 0 ? '무료' : deliveryFee.toLocaleString() + '원';
     totalElem.textContent = finalPaymentAmount.toLocaleString() + '원';
 }
 

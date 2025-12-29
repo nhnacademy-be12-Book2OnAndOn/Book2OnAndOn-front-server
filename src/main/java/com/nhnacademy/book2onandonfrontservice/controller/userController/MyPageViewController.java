@@ -307,7 +307,7 @@ public class MyPageViewController {
         if (accessToken == null) {
             return "redirect:/login";
         }
-        return "orderpayment/OrderHistory";
+        return "redirect:/users/me/orders";
     }
 
     //내 정보 수정 페이지

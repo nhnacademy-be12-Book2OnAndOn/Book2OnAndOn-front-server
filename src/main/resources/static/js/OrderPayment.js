@@ -1,7 +1,7 @@
 // --- 상수 및 전역 변수 영역 (Order & Payment 공통) ---
 const API_BASE = {
     CART: '/cart',
-    ORDER: '/orders', // Mock 환경에서 서버 통신 없이 사용
+    ORDER: '/orders',
     WRAP: '/wrappapers',
     TOSS_CONFIRM: '/payment/TOSS/confirm'
 };
@@ -43,6 +43,51 @@ let wrapOptions = [];
 let selectedWrapData = {};
 let currentBookId = null;
 let userPointBalance = 0;
+const PREPARE_DATA = typeof window !== 'undefined' ? window.__ORDER_PREPARE__ : null;
+
+function applyPrepareAddresses(addresses) {
+    if (!Array.isArray(addresses) || addresses.length === 0) return;
+    const primary = addresses.find(a => a.isDefault) || addresses[0];
+    if (!primary) return;
+    const recipientEl = document.getElementById('recipient');
+    const phoneEl = document.getElementById('recipientPhonenumber');
+    const addrEl = document.getElementById('deliveryAddress');
+    const addrDetailEl = document.getElementById('deliveryAddressDetail');
+    if (recipientEl && primary.recipientName) recipientEl.value = primary.recipientName;
+    if (phoneEl && primary.phoneNumber) phoneEl.value = primary.phoneNumber;
+    if (addrEl && primary.address) addrEl.value = primary.address;
+    if (addrDetailEl && primary.addressDetail) addrDetailEl.value = primary.addressDetail;
+}
+
+function buildCartDataFromPrepare(orderItems) {
+    if (!Array.isArray(orderItems)) return null;
+    const items = orderItems.map(item => {
+        const price = Number(item.priceSales ?? item.priceStandard ?? 0);
+        const qty = Number(item.quantity || 1);
+        return {
+            bookId: item.bookId,
+            title: item.title,
+            bookTitle: item.title,
+            price: price,
+            priceSales: price,
+            originalPrice: Number(item.priceStandard || price),
+            quantity: qty,
+            selected: true,
+            thumbnailUrl: item.imageUrl,
+            isPackable: item.isPackable !== false,
+            stockCount: item.stockCount || 0,
+            categoryId: item.categoryId
+        };
+    });
+    const selectedTotalPrice = items.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    return {
+        items,
+        selectedTotalPrice,
+        finalPaymentAmount: selectedTotalPrice,
+        deliveryFee: 0,
+        wrappingFee: 0
+    };
+}
 
 // --- 1. 초기화 및 데이터 로드 ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -63,24 +108,38 @@ async function loadInitialData() {
         if (IS_USER) headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
         else headers['X-Guest-Id'] = GUEST_ID;
 
-        const cartEndpoint = IS_USER ? `${API_BASE.CART}/user/items/selected` : `${API_BASE.CART}/guest/selected`;
+        // 우선 서버에서 내려준 준비 데이터가 있으면 사용
+        if (PREPARE_DATA && PREPARE_DATA.orderItems) {
+            cartData = buildCartDataFromPrepare(PREPARE_DATA.orderItems);
+            if (PREPARE_DATA.coupons) {
+                renderCouponOptions(PREPARE_DATA.coupons);
+            }
+            if (PREPARE_DATA.currentPoint && typeof PREPARE_DATA.currentPoint.currentPoint === 'number') {
+                userPointBalance = PREPARE_DATA.currentPoint.currentPoint;
+            }
+            if (PREPARE_DATA.addresses) {
+                applyPrepareAddresses(PREPARE_DATA.addresses);
+            }
+        } else {
+            const cartEndpoint = IS_USER ? `${API_BASE.CART}/user/items/selected` : `${API_BASE.CART}/guest/selected`;
 
-        const [cartRes, wrapRes, pointRes] = await Promise.all([
-            fetch(cartEndpoint, { headers }),
-            fetch(`${API_BASE.WRAP}`, { headers }),
-            IS_USER ? fetch(`/api/user/me/points/api/current`, { headers }) : Promise.resolve(null)
-        ]);
-        const couponRes = IS_USER ? await fetch('/coupons/me', { headers }) : null;
-        if (couponRes && couponRes.ok) {
-            const coupons = await couponRes.json();
-            renderCouponOptions(coupons);
-        }
+            const [cartRes, wrapRes, pointRes] = await Promise.all([
+                fetch(cartEndpoint, { headers }),
+                fetch(`${API_BASE.WRAP}`, { headers }),
+                IS_USER ? fetch(`/api/user/me/points/api/current`, { headers }) : Promise.resolve(null)
+            ]);
+            const couponRes = IS_USER ? await fetch('/coupons/me', { headers }) : null;
+            if (couponRes && couponRes.ok) {
+                const coupons = await couponRes.json();
+                renderCouponOptions(coupons);
+            }
 
-        if (cartRes.ok) cartData = await cartRes.json();
-        if (wrapRes.ok) wrapOptions = await wrapRes.json();
-        if (pointRes && pointRes.ok) {
-            const pointData = await pointRes.json();
-            userPointBalance = pointData.currentPoint;
+            if (cartRes.ok) cartData = await cartRes.json();
+            if (wrapRes.ok) wrapOptions = await wrapRes.json();
+            if (pointRes && pointRes.ok) {
+                const pointData = await pointRes.json();
+                userPointBalance = pointData.currentPoint;
+            }
         }
 
         renderProductList();
@@ -447,7 +506,7 @@ function openPostcodeSearch() {
 // --- 금액 계산 ---
 function calculateFinalAmount() {
     if (!cartData) return;
-    const totalItemPrice = cartData.selectedTotalPrice || 0;
+    const totalItemPrice = Number(cartData.selectedTotalPrice || 0);
     const couponDiscount = Number(document.getElementById('couponSelect')?.value) || 0;
     let pointDiscount = Number(document.getElementById('pointDiscountAmount')?.value) || 0;
 
@@ -455,13 +514,17 @@ function calculateFinalAmount() {
     const orderItems = collectOrderItems();
     const result = calculateFeesAndDiscounts(totalItemPrice, couponDiscount, pointDiscount, orderItems);
 
+    const deliveryFeeVal = Number((cartData.deliveryFee ?? result.deliveryFee) || 0);
+    const wrappingFeeVal = Number((cartData.wrappingFee ?? result.wrappingFee) || 0);
+    const finalAmountVal = Number((cartData.finalPaymentAmount ?? result.finalAmount) || 0);
+
     document.getElementById('summaryTotalItemPrice').textContent = `${totalItemPrice.toLocaleString()}원`;
-    document.getElementById('deliveryFee').textContent = `${result.deliveryFee.toLocaleString()}원`;
-    document.getElementById('wrappingFee').textContent = `${result.wrappingFee.toLocaleString()}원`;
+    document.getElementById('deliveryFee').textContent = `${deliveryFeeVal.toLocaleString()}원`;
+    document.getElementById('wrappingFee').textContent = `${wrappingFeeVal.toLocaleString()}원`;
     document.getElementById('couponDiscount').textContent = `-${couponDiscount.toLocaleString()}원`;
     document.getElementById('pointDiscount').textContent = `-${pointDiscount.toLocaleString()}원`;
 
-    const finalStr = `${result.finalAmount.toLocaleString()}원`;
+    const finalStr = `${finalAmountVal.toLocaleString()}원`;
     document.getElementById('finalPaymentAmount').textContent = finalStr;
     document.getElementById('finalPaymentButtonText').textContent = `${finalStr} 결제하기`;
 }
