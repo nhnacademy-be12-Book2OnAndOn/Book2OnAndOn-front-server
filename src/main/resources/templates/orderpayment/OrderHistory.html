@@ -15,6 +15,8 @@
             /*<![CDATA[*/
             window.IS_MEMBER_LOGGED_IN = /*[[${(user != null) or (session.user != null)}]]*/ false;
             window.USER_ID = /*[[${user != null ? user.userId : (session.user != null ? session.user.userId : null)}]]*/ null;
+            window.INITIAL_ORDERS = /*[[${orderList != null ? orderList.content : null}]]*/ [];
+            window.USE_SERVER_PAGING = /*[[${orderList != null and orderList.totalPages > 1}]]*/ false;
             /*]]>*/
         </script>
     </th:block>
@@ -27,7 +29,7 @@
             <div>
                 <h2>주문 내역</h2>
                 <p class="muted">
-                    <span th:text="${(user != null && user.nickname != null) ? user.nickname : '회원'}"></span>님의 주문을 확인하고
+                    <span th:text="${(user != null && user.nickname != null) ? user.nickname : (session.user != null ? session.user.nickname : '회원')}"></span>님의 주문을 확인하고
                     관리하세요.
                 </p>
             </div>
@@ -55,12 +57,16 @@
             </p>
         </section>
 
-        <section class="order-card order-list-container hidden" id="memberHistorySection">
+        <section class="order-card order-list-container"
+                 id="memberHistorySection"
+                 th:if="${user != null or session.user != null}">
             <div class="history-header-wrapper">
                 <div>
                     <p class="eyebrow">회원</p>
                     <h3>전체 주문 내역</h3>
-                    <p class="muted"><span id="userNameDisplay">회원</span>님의 주문 기록입니다.</p>
+                    <p class="muted">
+                        <span th:text="${(user != null && user.nickname != null) ? user.nickname : (session.user != null ? session.user.nickname : '회원')}"></span>님의 주문 기록입니다.
+                    </p>
                 </div>
 
                 <select class="select-compact" id="sortOrderSelect">
@@ -119,8 +125,49 @@
                 </form>
             </div>
 
-            <div id="orderList"></div>
-            <p class="hidden" id="noOrdersMessage">주문 내역이 없습니다.</p>
+            <div id="orderList" th:if="${orderList != null and orderList.content != null and !orderList.content.isEmpty()}">
+                <article class="order-card-entry order-item"
+                         th:each="order : ${orderList.content}"
+                         th:attr="data-order-id=${order.orderNumber}">
+                    <div class="order-entry-head">
+                        <div class="order-id-row">
+                            <a class="order-number"
+                               th:href="@{/orders/{orderNumber}(orderNumber=${order.orderNumber})}"
+                               th:text="${order.orderNumber}">ORD-0000</a>
+                            <span class="order-date"
+                                  th:text="${order.orderDateTime != null ? #temporals.format(order.orderDateTime, 'yyyy-MM-dd HH:mm') : ''}">2025-01-01 12:00</span>
+                        </div>
+                        <span class="order-status"
+                              th:classappend="${order.orderStatus != null} ? ' status-' + ${order.orderStatus.name().toLowerCase()} : ''"
+                              th:text="${order.orderStatus != null ? order.orderStatus.getDescription() : '상태 미정'}">상태</span>
+                    </div>
+
+                    <div class="order-entry-body">
+                        <div class="order-title" th:text="${order.orderTitle}">대표 상품명</div>
+                        <div class="order-meta">
+                            <span class="order-amount"
+                                  th:text="${#numbers.formatInteger(order.totalAmount, 0, 'COMMA')} + '원'">0원</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            <p id="noOrdersMessage"
+               th:if="${orderList == null or orderList.content == null or orderList.content.isEmpty()}">주문 내역이 없습니다.</p>
+
+            <div class="order-pagination"
+                 th:if="${orderList != null and orderList.totalPages > 1}">
+                <a class="page-btn prev"
+                   th:classappend="${orderList.first} ? ' disabled' : ''"
+                   th:href="@{/orders/my-order(page=${orderList.number - 1}, size=${orderList.size})}">‹</a>
+                <a th:each="p : ${pageNumbers}"
+                   th:href="@{/orders/my-order(page=${p - 1}, size=${orderList.size})}"
+                   th:text="${p}"
+                   th:classappend="${p - 1 == orderList.number} ? ' active' : ''"
+                   class="page-num"></a>
+                <a class="page-btn next"
+                   th:classappend="${orderList.last} ? ' disabled' : ''"
+                   th:href="@{/orders/my-order(page=${orderList.number + 1}, size=${orderList.size})}">›</a>
+            </div>
         </section>
 
         <div class="order-guide-section">

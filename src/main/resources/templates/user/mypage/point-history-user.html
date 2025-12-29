@@ -12,98 +12,103 @@
 
 <body>
 <section class="dashboard-main mypage-content points-page" layout:fragment="content">
-    <div class="dashboard-card page-card point-history-card">
-        <div class="dashboard-header">
-            <h2>포인트 내역</h2>
-            <p class="muted">적립/사용 기록과 잔액을 한 번에 확인하세요.</p>
-        </div>
-
-        <div class="point-summary-row">
-            <div class="point-balance-card">
-                <div class="card-head">
-                    <span class="card-label">보유 포인트</span>
-                </div>
-                <div class="point-amount stat-value" id="currentPoint"
-                     th:text="${currentPoint != null ? #numbers.formatInteger(currentPoint.currentPoint, 0, 'COMMA') : 0} + ' P'">
-                    0 P
-                </div>
-                <p class="subtext">구매와 활동으로 모은 포인트</p>
-            </div>
-            <div class="point-metrics">
-                <div class="point-metric-card">
-                    <span class="metric-label">이번 달 적립</span>
-                    <span class="metric-value" id="monthlyEarned"
-                          th:text="${summary != null ? #numbers.formatInteger(summary.earnedThisMonth, 0, 'COMMA') : 0} + ' P'">0 P</span>
-                </div>
-                <div class="point-metric-card">
-                    <span class="metric-label">이번 달 사용</span>
-                    <span class="metric-value" id="monthlyUsed"
-                          th:text="${summary != null ? #numbers.formatInteger(summary.usedThisMonth, 0, 'COMMA') : 0} + ' P'">0 P</span>
-                </div>
-                <div class="point-metric-card">
-                    <span class="metric-label">소멸 예정</span>
-                    <span class="metric-value" id="expiringPoint"
-                          th:text="${expiring != null ? #numbers.formatInteger(expiring.expiringAmount, 0, 'COMMA') : 0} + ' P'">0 P</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="history-header card-head">
-            <span class="card-label">포인트 내역</span>
-            <div class="filter-tabs">
-                <button class="filter-tab active" onclick="filterHistory(event, 'ALL')">전체</button>
-                <button class="filter-tab" onclick="filterHistory(event, 'EARN')">적립</button>
-                <button class="filter-tab" onclick="filterHistory(event, 'USE')">사용</button>
-            </div>
-        </div>
-
-        <div class="history-table">
-            <table>
-                <thead>
-                <tr>
-                    <th>일시</th>
-                    <th>구분</th>
-                    <th>내용</th>
-                    <th>포인트</th>
-                    <th>잔액</th>
-                    <th>만료일</th>
-                </tr>
-                </thead>
-                <tbody id="historyTableBody">
-                <th:block th:if="${histories != null and !histories.isEmpty()}">
-                    <tr th:each="item : ${histories}">
-                        <td th:text="${item.pointCreatedDate}">2025-01-01</td>
-                        <td>
-                            <span class="status-badge"
-                                  th:classappend="${item.pointHistoryChange > 0} ? 'badge-earn' : 'badge-use'"
-                                  th:text="${item.pointHistoryChange > 0 ? '적립' : '사용'}">적립</span>
-                        </td>
-                        <td th:text="${item.pointReason != null ? item.pointReason : '-'}">내용</td>
-                        <td class="point-change"
-                            th:classappend="${item.pointHistoryChange > 0} ? ' point-plus' : ' point-minus'">
-                            <span th:text="${item.pointHistoryChange > 0 ? '+' : '-'} + ${#numbers.formatInteger(T(Math).abs(item.pointHistoryChange), 0, 'COMMA')} + ' P'">+0 P</span>
-                        </td>
-                        <td>
-                            <strong th:text="${#numbers.formatInteger(item.totalPoints != null ? item.totalPoints : (item.remainingPoint != null ? item.remainingPoint : 0), 0, 'COMMA')} + ' P'">0
-                                P</strong>
-                        </td>
-                        <td th:text="${item.pointExpiredDate != null ? item.pointExpiredDate : '-'}">-</td>
-                    </tr>
-                </th:block>
-                <th:block th:if="${histories == null or histories.isEmpty()}">
-                    <tr>
-                        <td class="empty-state" colspan="6">
-                            <div>포인트 내역을 불러오는 중...</div>
-                        </td>
-                    </tr>
-                </th:block>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="page-nav point-pagination" id="pagination"></div>
+    <div class="dashboard-header">
+        <h2>포인트 내역</h2>
+        <p class="muted">적립/사용 기록과 잔액을 한 번에 확인하세요.</p>
     </div>
+
+    <div class="point-summary-row balance-row">
+        <div class="point-balance-card">
+            <div class="card-head">
+                <span class="card-label">보유 포인트</span>
+            </div>
+            <div class="point-amount stat-value" id="currentPoint"
+                 th:text="${currentPoint != null ? #numbers.formatInteger(currentPoint.currentPoint, 0, 'COMMA') : 0} + ' P'">
+                0 P
+            </div>
+            <p class="subtext">구매와 활동으로 모은 포인트</p>
+        </div>
+    </div>
+
+    <div class="point-summary-row metrics-row">
+        <div class="point-metric-card">
+            <span class="metric-label">이번 달 적립</span>
+            <span class="metric-value" id="monthlyEarned"
+                  th:text="${summary != null ? #numbers.formatInteger(summary.earnedThisMonth, 0, 'COMMA') : 0} + ' P'">0 P</span>
+        </div>
+        <div class="point-metric-card">
+            <span class="metric-label">이번 달 사용</span>
+            <span class="metric-value" id="monthlyUsed"
+                  th:text="${summary != null ? #numbers.formatInteger(summary.usedThisMonth, 0, 'COMMA') : 0} + ' P'">0 P</span>
+        </div>
+        <div class="point-metric-card">
+            <span class="metric-label">소멸 예정</span>
+            <span class="metric-value" id="expiringPoint"
+                  th:text="${expiring != null ? #numbers.formatInteger(expiring.expiringAmount, 0, 'COMMA') : 0} + ' P'">0 P</span>
+        </div>
+    </div>
+
+    <div class="history-header card-head">
+        <span class="card-label">포인트 내역</span>
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterHistory(event, 'ALL')">전체</button>
+            <button class="filter-tab" onclick="filterHistory(event, 'EARN')">적립</button>
+            <button class="filter-tab" onclick="filterHistory(event, 'USE')">사용</button>
+        </div>
+    </div>
+
+    <div class="history-table">
+        <table>
+            <thead>
+            <tr>
+                <th>일시</th>
+                <th>구분</th>
+                <th>내용</th>
+                <th>포인트</th>
+                <th>잔액</th>
+                <th>만료일</th>
+            </tr>
+            </thead>
+            <tbody id="historyTableBody">
+            <th:block th:if="${histories != null and !histories.isEmpty()}">
+                <tr th:each="item : ${histories}">
+                    <td th:text="${item.pointCreatedDate}">2025-01-01</td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${item.pointHistoryChange > 0} ? 'badge-earn' : 'badge-use'"
+                              th:text="${item.pointHistoryChange > 0 ? '적립' : '사용'}">적립</span>
+                    </td>
+                    <td th:text="${item.pointReason != null ? item.pointReason : '-'}">내용</td>
+                    <td class="point-change"
+                        th:classappend="${item.pointHistoryChange > 0} ? ' point-plus' : ' point-minus'">
+                        <span th:text="${(item.pointHistoryChange > 0 ? '+' : '-')
+                            + #numbers.formatInteger(item.pointHistoryChange > 0 ? item.pointHistoryChange : -item.pointHistoryChange, 0, 'COMMA')
+                            + ' P'}">+0 P</span>
+                    </td>
+                    <td>
+                        <strong th:text="${#numbers.formatInteger(item.totalPoints != null ? item.totalPoints : (item.remainingPoint != null ? item.remainingPoint : 0), 0, 'COMMA')} + ' P'">0
+                            P</strong>
+                    </td>
+                    <td th:text="${item.pointExpiredDate != null ? item.pointExpiredDate : '-'}">-</td>
+                </tr>
+            </th:block>
+            <th:block th:if="${histories == null or histories.isEmpty()}">
+                <tr>
+                    <td class="empty-state" colspan="6">
+                        <div>포인트 내역을 불러오는 중...</div>
+                    </td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="page-nav point-pagination" id="pagination"></div>
 </section>
+
+<div id="inlineFooterWrapper">
+    <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+</div>
 
 <script th:inline="javascript">
     window.initialPointHistory = /*[[${histories}]]*/ [];
@@ -112,6 +117,16 @@
     window.initialMonthlyEarned = /*[[${summary != null ? summary.earnedThisMonth : 0}]]*/ 0;
     window.initialMonthlyUsed = /*[[${summary != null ? summary.usedThisMonth : 0}]]*/ 0;
     window.initialExpiringPoint = /*[[${expiring != null ? expiring.expiringAmount : 0}]]*/ 0;
+
+    // 레이아웃이 이미 공통 푸터를 렌더하면 인라인 푸터를 제거해 중복을 막는다.
+    document.addEventListener('DOMContentLoaded', () => {
+        const inlineWrapper = document.getElementById('inlineFooterWrapper');
+        if (!inlineWrapper) return;
+        const layoutFooter = document.querySelector('body > .site-footer');
+        if (layoutFooter) {
+            inlineWrapper.remove();
+        }
+    });
 </script>
 <script th:src="@{/js/pointHistoryUser.js}"></script>
 </body>

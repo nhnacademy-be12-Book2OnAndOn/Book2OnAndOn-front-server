@@ -230,12 +230,12 @@
 
                 <div class="review-form-card" id="reviewForm">
                     <div class="form-card-inner" th:if="${currentUser != null}">
-                        <div class="form-card-head">
-                            <div>
-                                <p class="eyebrow">리뷰 작성</p>
-                                <h4>당신의 한 줄이 누군가의 선택이 됩니다</h4>
-                            </div>
-                        </div>
+<!--                        <div class="form-card-head">-->
+<!--                            <div>-->
+<!--                                <p class="eyebrow">리뷰 작성</p>-->
+<!--                                <h4>당신의 한 줄이 누군가의 선택이 됩니다</h4>-->
+<!--                            </div>-->
+<!--                        </div>-->
                         <form th:action="@{'/api/books/' + ${bookDetail.id} + '/reviews'}" method="post" enctype="multipart/form-data">
                             <div class="form-grid two-col">
                                 <div class="form-field">
@@ -398,11 +398,40 @@
         }
     }
 
+
+    function directBuy(bookId, quantity) {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/orders/prepare";
+
+        form.appendChild(createHidden("bookItems[0].bookId", bookId));
+        form.appendChild(createHidden("bookItems[0].quantity", quantity));
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function createHidden(name, value) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        return input;
+    }
+
+
     // 선택한 수량을 장바구니에 담은 뒤 결제 페이지로 이동
     async function buyNow(bookId, qty) {
         if (!bookId) return;
         const quantity = Number(qty) > 0 ? Number(qty) : 1;
-        const payload = JSON.stringify({bookId: bookId, quantity});
+        const payload = JSON.stringify({
+            bookItems: [
+                {
+                    bookId: bookId,
+                    quantity: quantity
+                }
+            ]
+        });
         const guestId = window.ensureGuestId ? window.ensureGuestId() : null;
         const headers = guestId
             ? {'Content-Type': 'application/json', 'X-Guest-Id': guestId}
@@ -415,29 +444,40 @@
             body: payload
         };
         try {
-            const accessToken = getCookie('accessToken');
-            let res;
+            // const accessToken = getCookie('accessToken');
+            // let res;
+            //
+            // if (accessToken) {
+            //     res = await fetch('/cart/user/items', commonOpts);
+            // }
+            //
+            // if (!accessToken || (res && (res.status === 401 || res.status >= 500))) {
+            //     const resolvedGuestId = guestId || (window.ensureGuestId ? window.ensureGuestId() : null);
+            //     const guestHeaders = resolvedGuestId
+            //         ? {...commonOpts.headers, 'X-Guest-Id': resolvedGuestId}
+            //         : commonOpts.headers;
+            //     res = await fetch('/cart/guest/items', {
+            //         ...commonOpts,
+            //         headers: guestHeaders
+            //     });
+            // }
+            //
+            // if (!res || !res.ok) {
+            //     throw new Error('주문 준비에 실패했습니다. 잠시 후 다시 시도해주세요.');
+            // }
+            //
+            // window.location.href = '/orders/payment';
 
-            if (accessToken) {
-                res = await fetch('/cart/user/items', commonOpts);
-            }
+            fetch("/orders/prepare", {
+                ...commonOpts
+            })
+            .then(res => res.text())
+            .then(html => {
+                document.open();
+                document.write(html);
+                document.close();
+            });
 
-            if (!accessToken || (res && (res.status === 401 || res.status >= 500))) {
-                const resolvedGuestId = guestId || (window.ensureGuestId ? window.ensureGuestId() : null);
-                const guestHeaders = resolvedGuestId
-                    ? {...commonOpts.headers, 'X-Guest-Id': resolvedGuestId}
-                    : commonOpts.headers;
-                res = await fetch('/cart/guest/items', {
-                    ...commonOpts,
-                    headers: guestHeaders
-                });
-            }
-
-            if (!res || !res.ok) {
-                throw new Error('주문 준비에 실패했습니다. 잠시 후 다시 시도해주세요.');
-            }
-
-            window.location.href = '/orders/payment';
         } catch (e) {
             console.error(e);
             alert(e.message || '주문 준비 중 오류가 발생했습니다.');
@@ -456,7 +496,7 @@
         }
         const buyBtn = document.getElementById('buyNowBtn');
         if (buyBtn) {
-            buyBtn.addEventListener('click', () => buyNow(bookId, getSelectedQuantity()));
+            buyBtn.addEventListener('click', () => directBuy(bookId, getSelectedQuantity()));
         }
     });
 

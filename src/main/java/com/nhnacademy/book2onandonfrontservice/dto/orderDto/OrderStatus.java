@@ -1,4 +1,4 @@
-package com.nhnacademy.book2onandonfrontservice.dto.orderDto.status;
+package com.nhnacademy.book2onandonfrontservice.dto.orderDto;
 
 
 public enum OrderStatus {
@@ -10,8 +10,7 @@ public enum OrderStatus {
     COMPLETED(5, "주문 완료"),
     PARTIAL_RETURN(6, "부분 반품"),
     RETURN_COMPLETED(7, "반품 완료"),
-    RETURN_REQUESTED(8, "반품 신청"),
-    PARTIAL_REFUND(9, "부분 환불");
+    RETURN_REQUESTED(8, "반품 신청");
 
     private final int code;
     private final String description;

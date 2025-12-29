@@ -97,6 +97,32 @@
 
     <th:block th:replace="~{fragments/layout :: categorySidebar(${categories})}"></th:block>
     <script>
+        // 회원 addToCart 요청 포맷 단일화
+        function buildUserAddOpts(payload) {
+            const baseHeaders = { "Content-Type": "application/json" };
+            return {
+                method: "POST",
+                credentials: "include",
+                headers: buildAuthHeaders(baseHeaders),
+                body: payload
+            };
+        }
+
+        // 비회원 addToCart 요청 포맷”이 단일화
+        function buildGuestAddOpts(payload) {
+            const guestId = (typeof window.ensureGuestId === "function") ? window.ensureGuestId() : null;
+            return {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Guest-Id": guestId,
+                    "GUEST_ID": guestId
+                },
+                body: payload
+            };
+        }
+
         function getCookie(name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
@@ -110,15 +136,38 @@
             document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${date.toUTCString()}`;
         }
 
+        function buildAuthHeaders(base = {}) {
+            const token = getCookie('accessToken');
+            if (!token) return base;
+
+            // 쿠키에 "Bearer xxx" 형태로 들어오든, "xxx"로 들어오든 둘 다 처리
+            const auth = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+            return { ...base, 'Authorization': auth };
+        }
+
         window.ensureGuestId = window.ensureGuestId || function ensureGuestId() {
-            const COOKIE_NAME = 'GUEST_ID';
-            let gid = getCookie(COOKIE_NAME);
+            // 1) 기존 값 우선순위: localStorage(uuid) -> cookie(GUEST_ID) -> cookie(guestId)
+            let gid = null;
+            try {
+                // localStorage 접근은 브라우저 정책에 따라 예외가 날 수 있어 try-catch
+                gid = localStorage.getItem('uuid');
+            } catch (e) {}
+
+            // 2) localStorage에 없으면 쿠키에서 복구 시도
+            if (!gid) gid = getCookie('GUEST_ID');
+            if (!gid) gid = getCookie('guestId');
+
+            // 없으면 생성
             if (!gid) {
                 gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-                // 게이트웨이/서버가 대소문자 모두 참조할 가능성 대비해 두 가지 쿠키를 모두 심어둠
-                setCookie(COOKIE_NAME, gid, 30);
-                setCookie('guestId', gid, 30);
             }
+
+            // 3) 저장(둘 다)
+            // 게이트웨이/서버가 대소문자 모두 참조할 가능성 대비해 두 가지 쿠키를 모두 심어둠
+            try { localStorage.setItem('uuid', gid); } catch (e) {}
+            setCookie('GUEST_ID', gid, 30);
+            setCookie('guestId', gid, 30);
+
             return gid;
         };
 
@@ -285,6 +334,9 @@
             const logoutTarget = event.target.closest('.logout-link, .text-link.logout');
             if (logoutTarget) {
                 clearLikedStorage();
+                // 로그아웃 시 서버는 세션/토큰을 무효화하지만, localStorage는 자동으로 지워지지 않는다.
+                // 따라서 로그아웃 시 localStorage를 비워서 로그인 여부 판단 보조
+                localStorage.removeItem('userId');
             }
         });
 
@@ -313,59 +365,139 @@
 
         // 공용 장바구니 담기 로직 (회원/비회원 분기 + 바로 이동)
         window.addToCart = window.addToCart || async function (bookId, qty) {
+            // 로그용
+            const rid = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            console.log('장바구니 시작!!!!!!!!!!!', rid, {bookId, qty, stack: new Error().stack});
+
             if (!bookId) return;
             const quantity = Number(qty) > 0 ? Number(qty) : 1;
             const payload = JSON.stringify({bookId: bookId, quantity});
-            const guestId = window.ensureGuestId ? window.ensureGuestId() : null;
-            const headers = guestId
-                ? {'Content-Type': 'application/json', 'X-Guest-Id': guestId, 'GUEST_ID': guestId}
-                : {'Content-Type': 'application/json'};
 
-            const commonOpts = {
-                method: 'POST',
-                headers,
-                credentials: 'include',
-                body: payload
-            };
+            let res = null;
+            // 쿠키 기준 판단은 신뢰 불가: accessToken 쿠키가 있어도 만료/무효일 수 있음.
+            // 정답은 서버: “회원 요청이 가능한지”는 401/403 응답이 결정.
+            // 결과적으로 프론트 상태 캐시 오류(토큰은 있는데 실제로는 비회원 처리되어야 하는 경우)를 제거.
             try {
-                const accessToken = getCookie('accessToken');
-                let res;
-                console.log("장바구니 진입!!!!!" + accessToken)
+                //2) 배지 증가 로직 제거 → 서버 요약값으로 동기화 -> 회원 요청에 guest 헤더가 섞이거나, 반대로 guest 요청에 auth 헤더가 섞이는 문제 차단
+                // 2-1) 로그인일 때만 회원 장바구니
+                res = await fetch("/cart/user/items", buildUserAddOpts(payload));
+                console.log("[addToCart] user attempt", rid, res.status);
 
-                // 로그인 상태면 우선 회원 장바구니 시도
-                if (accessToken) {
-                    res = await fetch('/cart/user/items', commonOpts);
+                // 2-2) 로그인인데도 401/403이면(만료 등) → 게스트 fallback
+                if (res.status === 401 || res.status === 403) {
+                    res = await fetch("/cart/guest/items", buildGuestAddOpts(payload));
+                    console.log("[addToCart] fallback guest (auth fail)", rid, res.status);
                 }
 
-                // 비로그인 이거나 회원 장바구니 실패(401/5xx) 시 게스트 장바구니 시도
-                if (!accessToken || (res && (res.status === 401 || res.status >= 500))) {
-                    res = await fetch('/cart/guest/items', {
-                        ...commonOpts
-                    });
-                    console.log("비회원 장바구니!!!" + guestId)
+                if (!res.ok) {
+                    // 서버 장애(5xx)**를 비회원 fallback으로 처리하면 중복 담기/상태 꼬임 위험
+                    throw new Error(res.status === 503
+                        ? "장바구니 서비스가 잠시 불안정합니다. 잠시 후 다시 시도해주세요."
+                        : "장바구니 담기에 실패했습니다.");
                 }
 
-                if (!res || !res.ok) {
-                    const fallbackMsg = res?.status === 503
-                        ? '장바구니 서비스가 잠시 불안정합니다. 잠시 후 다시 시도해주세요.'
-                        : null;
-                    throw new Error(fallbackMsg || '장바구니 담기에 실패했습니다.');
-                }
-
-                const badge = document.querySelector('[data-cart-count]');
+                const badge = document.querySelector("[data-cart-count]");
                 if (badge) {
-                    const current = parseInt(badge.textContent || '0', 10) || 0;
-                    badge.textContent = current + quantity;
-                    badge.style.display = 'inline-flex';
+                    // 배지 증가 로직 제거 → 서버 요약값으로 동기화
+                    // const current = parseInt(badge.textContent || "0", 10) || 0;
+                    // badge.textContent = current + quantity;
+                    await refreshCartBadgeViaSummary();
+                    badge.style.display = "inline-flex";
                 }
-                if (confirm('장바구니에 담겼습니다. 장바구니로 이동할까요?')) {
-                    location.href = '/cartpage';
+
+                if (confirm("장바구니에 담겼습니다. 장바구니로 이동할까요?")) {
+                    location.href = "/cartpage";
                 }
             } catch (e) {
                 console.error(e);
-                alert(e.message || '장바구니 담기 실패');
+                alert(e.message || "장바구니 담기 실패");
+            } finally {
+                if (res) console.log("[user response]", rid, res.status);
             }
         };
+
+        // 헤더 장바구니 뱃지를 서버 기준으로 맞추기
+        async function refreshCartBadgeViaSummary() {
+            const badge = document.querySelector('[data-cart-count]');
+            if (!badge) return;
+
+            // 공통 헤더
+            const baseHeaders = { 'Content-Type': 'application/json' };
+
+            // 1) 무조건 user 먼저 시도 (토큰 유무로 분기하지 않음)
+            try {
+                const userRes = await fetch('/cart/user', {
+                    method: 'GET',
+                    headers: buildAuthHeaders(baseHeaders), // 토큰 읽히면 Authorization 포함, 안 읽히면 baseHeaders만
+                    credentials: 'include'
+                });
+
+                if (userRes.ok) {
+                    const data = await userRes.json();
+                    const count = Number(
+                        data.totalItemCount ??
+                        data.itemCount ??
+                        data.totalQuantity ??
+                        (data.items?.length ?? 0)
+                    ) || 0;
+
+                    badge.textContent = String(count);
+                    badge.style.display = count > 0 ? 'inline-flex' : 'none';
+                    return;
+                }
+
+                // 인증 실패(401 / 403)이면 → 비회원 폴백
+                if (userRes.status === 401 || userRes.status === 403) {
+                    await fetchGuestAndUpdateBadge(badge, baseHeaders);
+                    return;
+                }
+
+                // 기타 오류는 UI만 0 처리 (서비스 장애 등)
+                badge.textContent = '0';
+                badge.style.display = 'none';
+                return;
+
+            } catch (e) {
+                // 네트워크/예외는 guest fallback
+                await fetchGuestAndUpdateBadge(badge, baseHeaders);
+            }
+        }
+
+        // 비회원 전용 뱃지 처리
+        // -> 회원 뱃지 표시가 되면 계속 비회원 뱃지 표시가 사라져서 추가함
+        async function fetchGuestAndUpdateBadge(badge, baseHeaders) {
+            const gid = (typeof window.ensureGuestId === 'function') ? window.ensureGuestId() : null;
+            if (!gid) {
+                badge.textContent = '0';
+                badge.style.display = 'none';
+                return;
+            }
+
+            const guestRes = await fetch('/cart/guest', {
+                method: 'GET',
+                headers: { ...baseHeaders, 'X-Guest-Id': gid, 'GUEST_ID': gid },
+                credentials: 'include'
+            });
+
+            if (!guestRes.ok) {
+                badge.textContent = '0';
+                badge.style.display = 'none';
+                return;
+            }
+
+            const data = await guestRes.json();
+            const count = Number(
+                data.totalItemCount ??
+                data.itemCount ??
+                data.totalQuantity ??
+                (data.items?.length ?? 0)
+            ) || 0;
+
+            badge.textContent = String(count);
+            badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+        // 새로고침 직후 헤더 배지 초기값 오염 방지.
+        document.addEventListener('DOMContentLoaded', refreshCartBadgeViaSummary);
     </script>
 </th:block>
 

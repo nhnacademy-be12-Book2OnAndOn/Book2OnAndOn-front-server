@@ -80,6 +80,6 @@ public class OrderRedirectController {
         if (accessToken == null || accessToken.isBlank()) {
             return "redirect:/login";
         }
-        return "orderpayment/OrderHistory";
+        return "redirect:/orders/my-order";
     }
 }

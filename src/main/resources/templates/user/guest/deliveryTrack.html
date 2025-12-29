@@ -1,19 +1,14 @@
 <!DOCTYPE html>
-<html lang="ko"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/mypage-layout}"
-      th:with="sidebarActive='orders'">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title layout:fragment="title">배송 조회</title>
-    <th:block layout:fragment="extraHead">
-        <link rel="stylesheet" th:href="@{/css/mypage-delivery-track.css}">
-    </th:block>
+    <title>배송 조회</title>
+
+    <link rel="stylesheet" th:href="@{/css/mypage-delivery-track.css}">
 </head>
 <body class="delivery-track">
 
-<div class="track-container" layout:fragment="content">
+<div class="track-container">
 
     <div class="track-header">
         <h2>📦 배송 정보</h2>
@@ -21,10 +16,10 @@
         <span class="badge"
               th:classappend="|status-${delivery.orderStatus}|"
               th:switch="${delivery.orderStatus}">
-            <span th:case="'PREPARING'">배송준비중</span>
-            <span th:case="'SHIPPING'">배송중</span>
-            <span th:case="'DELIVERED'">배송완료</span>
-            <span th:case="*">[[${delivery.orderStatus}]]</span> </span>
+                 <span th:case="'PREPARING'">배송준비중</span>
+                 <span th:case="'SHIPPING'">배송중</span>
+                 <span th:case="'DELIVERED'">배송완료</span>
+                 <span th:case="*">[[${delivery.orderStatus}]]</span> </span>
     </div>
 
     <table class="info-table">

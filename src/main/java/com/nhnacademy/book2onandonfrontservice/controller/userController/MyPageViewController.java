@@ -1,8 +1,11 @@
 package com.nhnacademy.book2onandonfrontservice.controller.userController;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.MemberCouponClient;
+import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.PointUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
@@ -10,6 +13,8 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.MyLikedBookResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponDto;
 import com.nhnacademy.book2onandonfrontservice.dto.memberCouponDto.MemberCouponStatus;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderSimpleDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.status.OrderStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
@@ -38,6 +43,8 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -62,6 +69,7 @@ public class MyPageViewController {
     private final UserClient userClient;
     private final BookClient bookClient;
     private final MemberCouponClient memberCouponClient;
+    private final OrderUserClient orderUserClient;
     private final PointUserClient pointUserClient;
     private final UserGradeClient userGradeClient;
 
@@ -100,8 +108,19 @@ public class MyPageViewController {
                 model.addAttribute("recentCoupons", List.of());
             }
 
-            model.addAttribute("orderCount", 0);
-            model.addAttribute("recentOrders", List.of());
+            try {
+                var orderPage = toRestPage(
+                        orderUserClient.getOrderList("Bearer " + accessToken, PageRequest.of(0, 5)),
+                        PageRequest.of(0, 5));
+                model.addAttribute("orderCount", orderPage.getTotalElements());
+                model.addAttribute("orderStatusSummary", toOrderStatusSummary(orderPage.getContent()));
+                model.addAttribute("recentOrders", toRecentOrders(orderPage.getContent()));
+            } catch (Exception e) {
+                log.warn("주문 요약 조회 실패", e);
+                model.addAttribute("orderCount", 0);
+                model.addAttribute("orderStatusSummary", new OrderStatusSummary(0, 0));
+                model.addAttribute("recentOrders", List.of());
+            }
             model.addAttribute("defaultAddress", resolveDefaultAddress(accessToken));
 
             try {
@@ -218,6 +237,36 @@ public class MyPageViewController {
         };
     }
 
+    private OrderStatusSummary toOrderStatusSummary(List<OrderSimpleDto> orders) {
+        long inTransit = 0;
+        long delivered = 0;
+        for (OrderSimpleDto o : orders) {
+            OrderStatus status = o.getOrderStatus();
+            if (status == null) {
+                continue;
+            }
+            if (status == OrderStatus.SHIPPING || status == OrderStatus.PREPARING || status == OrderStatus.PENDING) {
+                inTransit++;
+            } else if (status == OrderStatus.DELIVERED || status == OrderStatus.COMPLETED) {
+                delivered++;
+            }
+        }
+        return new OrderStatusSummary(inTransit, delivered);
+    }
+
+    private List<RecentOrderView> toRecentOrders(List<OrderSimpleDto> orders) {
+        return orders.stream()
+                .limit(3)
+                .map(o -> new RecentOrderView(
+                        o.getOrderId(),
+                        o.getOrderNumber(),
+                        o.getOrderTitle(),
+                        o.getOrderStatus() != null ? o.getOrderStatus().getDescription() : "-",
+                        o.getOrderDateTime() != null ? o.getOrderDateTime().toString() : ""
+                ))
+                .toList();
+    }
+
     //내 리뷰 목록
     @GetMapping("/reviews")
     public String myReviews(
@@ -307,7 +356,8 @@ public class MyPageViewController {
         if (accessToken == null) {
             return "redirect:/login";
         }
-        return "orderpayment/OrderHistory";
+        // 실제 주문 내역 화면으로 이동 (데이터 포함)
+        return "redirect:/orders/my-order";
     }
 
     //내 정보 수정 페이지
@@ -596,9 +646,36 @@ public class MyPageViewController {
         response.addCookie(cookie);
     }
 
+    private record OrderStatusSummary(long inTransit, long delivered) {
+    }
+
+    private record RecentOrderView(
+            Long id,
+            String orderNumber,
+            String title,
+            String status,
+            String date
+    ) {
+    }
+
     private record RecentCouponView(String name, String status, String expireDate, String detail) {
     }
 
     private record RecentPointView(String reason, String date, String amount, String balance) {
+    }
+
+    private RestPage<OrderSimpleDto> toRestPage(java.util.Map<String, Object> raw, Pageable pageable) {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        var content = mapper.convertValue(raw.getOrDefault("content", java.util.List.of()),
+                new TypeReference<java.util.List<OrderSimpleDto>>() {});
+        long total = 0;
+        Object totalObj = raw.get("totalElements");
+        if (totalObj instanceof Number n) {
+            total = n.longValue();
+        } else if (content != null) {
+            total = content.size();
+        }
+        return new RestPage<>(content, pageable, total);
     }
 }

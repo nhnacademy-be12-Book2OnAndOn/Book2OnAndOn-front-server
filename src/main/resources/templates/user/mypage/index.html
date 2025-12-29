@@ -89,7 +89,7 @@
                 <div class="muted" th:if="${recentOrders == null or #lists.isEmpty(recentOrders)}">최근 주문이 없습니다.</div>
                 <div class="order-mini-item" th:each="order : ${recentOrders}">
                     <div class="order-mini-row">
-                        <span class="order-id" th:text="'#' + ${order.id}">#12345</span>
+                        <span class="order-id" th:text="${order.orderNumber != null ? order.orderNumber : ('#' + (order.id != null ? order.id : ''))}">#12345</span>
                         <span class="order-status" th:text="${order.status}">배송중</span>
                     </div>
                     <div class="order-mini-row">

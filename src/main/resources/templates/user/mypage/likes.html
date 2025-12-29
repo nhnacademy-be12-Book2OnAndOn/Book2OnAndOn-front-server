@@ -29,14 +29,14 @@
 
         <div th:unless="${books == null or books.isEmpty()}">
             <div class="liked-grid">
-                <a class="liked-card" th:each="item : ${books}"
-                   th:href="@{/books/{bookId}(bookId=${item.bookInfo.id})}">
-                    <div class="liked-thumb">
+                <div class="liked-card" th:each="item : ${books}">
+                    <a class="liked-thumb" th:href="@{/books/{bookId}(bookId=${item.bookInfo.id})}">
                         <img alt="도서 이미지"
                              th:src="${item.bookInfo.imagePath != null ? item.bookInfo.imagePath : '/images/no-image.png'}">
-                    </div>
+                    </a>
                     <div class="liked-body">
-                        <h5 class="liked-title" th:text="${item.bookInfo.title}">도서 제목</h5>
+                        <a class="liked-title" th:href="@{/books/{bookId}(bookId=${item.bookInfo.id})}"
+                           th:text="${item.bookInfo.title}">도서 제목</a>
                         <p class="liked-authors">
                         <span th:each="author, iterStat : ${item.bookInfo.contributorNames}">
                             <span th:text="${author}">저자</span><span th:if="${!iterStat.last}">, </span>
@@ -52,8 +52,16 @@
                         <div class="liked-meta" th:text="'찜한 날짜 · ' + ${#temporals.format(item.createdAt, 'yyyy-MM-dd')}">
                             2024-01-01
                         </div>
+                        <div class="liked-actions">
+                            <button type="button"
+                                    class="btn-like-action ghost"
+                                    th:onclick="|addLikedToCart(${item.bookInfo.id})|">장바구니</button>
+                            <button type="button"
+                                    class="btn-like-action solid"
+                                    th:onclick="|buyLikedNow(${item.bookInfo.id})|">바로 주문</button>
+                        </div>
                     </div>
-                </a>
+                </div>
             </div>
 
             <div class="page-nav" th:if="${totalPages > 0}">
@@ -105,12 +113,12 @@
             };
 
             items.forEach(item => {
-                const card = document.createElement('a');
+                const card = document.createElement('div');
                 card.className = 'liked-card';
-                card.href = `/books/${item.id}`;
 
-                const thumb = document.createElement('div');
+                const thumb = document.createElement('a');
                 thumb.className = 'liked-thumb';
+                thumb.href = `/books/${item.id}`;
                 const img = document.createElement('img');
                 img.alt = '도서 이미지';
                 img.src = item.thumbnail || '/images/no-image.png';
@@ -119,9 +127,10 @@
                 const body = document.createElement('div');
                 body.className = 'liked-body';
 
-                const title = document.createElement('h5');
-                title.className = 'liked-title';
-                title.textContent = item.title || '도서 제목';
+                const titleLink = document.createElement('a');
+                titleLink.className = 'liked-title';
+                titleLink.href = `/books/${item.id}`;
+                titleLink.textContent = item.title || '도서 제목';
 
                 const authors = document.createElement('p');
                 authors.className = 'liked-authors';
@@ -145,16 +154,78 @@
                 const likedDate = formatDate(item.likedAt);
                 meta.textContent = likedDate ? `찜한 날짜 · ${likedDate}` : '찜한 날짜 · -';
 
-                body.appendChild(title);
+                body.appendChild(titleLink);
                 body.appendChild(authors);
                 body.appendChild(price);
                 body.appendChild(meta);
 
+                // actions
+                const actions = document.createElement('div');
+                actions.className = 'liked-actions';
+                const cartBtn = document.createElement('button');
+                cartBtn.className = 'btn-like-action ghost';
+                cartBtn.type = 'button';
+                cartBtn.textContent = '장바구니';
+                cartBtn.onclick = () => addLikedToCart(item.id);
+                const buyBtn = document.createElement('button');
+                buyBtn.className = 'btn-like-action solid';
+                buyBtn.type = 'button';
+                buyBtn.textContent = '바로 주문';
+                buyBtn.onclick = () => buyLikedNow(item.id);
+                actions.appendChild(cartBtn);
+                actions.appendChild(buyBtn);
+
                 card.appendChild(thumb);
                 card.appendChild(body);
+                card.appendChild(actions);
                 fallback.appendChild(card);
             });
         });
+    </script>
+    <script>
+        async function addLikedToCart(bookId) {
+            if (!bookId) return;
+            if (typeof window.addToCart === 'function') {
+                return window.addToCart(bookId, 1);
+            }
+            try {
+                await fetch('/cart/user/items', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bookId, quantity: 1 })
+                });
+                alert('장바구니에 담았습니다.');
+            } catch (e) {
+                alert('장바구니 담기 실패');
+            }
+        }
+
+        async function buyLikedNow(bookId) {
+            if (!bookId) return;
+            try {
+                const form = document.createElement("form");
+                form.method = "POST";
+                form.action = "/orders/prepare";
+
+                const hiddenId = document.createElement("input");
+                hiddenId.type = "hidden";
+                hiddenId.name = "bookItems[0].bookId";
+                hiddenId.value = String(bookId);
+
+                const hiddenQty = document.createElement("input");
+                hiddenQty.type = "hidden";
+                hiddenQty.name = "bookItems[0].quantity";
+                hiddenQty.value = "1";
+
+                form.appendChild(hiddenId);
+                form.appendChild(hiddenQty);
+                document.body.appendChild(form);
+                form.submit();
+            } catch (e) {
+                alert('바로 주문 이동에 실패했습니다.');
+            }
+        }
     </script>
 </div>
 </body>
