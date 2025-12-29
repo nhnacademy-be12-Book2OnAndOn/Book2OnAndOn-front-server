@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class DeliveryDto {
 
     private Long deliveryId;
-    private Long orderId;
+    private String orderNumber;
     private String orderStatus;
     private String deliveryCompany;
     private String waybill;

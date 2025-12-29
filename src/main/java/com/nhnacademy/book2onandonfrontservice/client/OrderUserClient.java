@@ -53,6 +53,7 @@ public interface OrderUserClient {
     @GetMapping("/api/orders/{orderNumber}")
     OrderDetailResponseDto getOrderDetail(
             @RequestHeader(value = "Authorization", required = false) String accessToken,
+            @RequestHeader(value = "X-Guest-Order-Token", required = false) String guestToken,
             @PathVariable("orderNumber") String orderNumber
     );
 
