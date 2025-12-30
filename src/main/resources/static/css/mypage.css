@@ -350,6 +350,7 @@
     color: #234132;
     font-weight: 700;
     font-size: 0.95rem;
+    gap: 6px;
 }
 
 .order-mini-row + .order-mini-row {
@@ -360,6 +361,10 @@
 
 .order-mini-item .order-id {
     color: #1f4a30;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .order-mini-item .order-status {
@@ -370,6 +375,10 @@
     color: #6b7b6c;
     font-weight: 600;
     font-size: 0.9rem;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .mini-list {
@@ -451,6 +460,7 @@
 
     .point-card .stat-value {
         font-size: 2.4rem;
+        white-space: nowrap;
     }
 }
 
