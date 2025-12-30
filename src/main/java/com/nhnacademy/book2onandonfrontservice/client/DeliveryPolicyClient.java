@@ -32,4 +32,7 @@ public interface DeliveryPolicyClient {
     void updateDeliveryPolicy(@RequestHeader("Authorization") String accessToken,
                               @PathVariable("deliveryPolicyId") Long deliveryPolicyId,
                               @RequestBody DeliveryPolicyDto requestDto);
+
+    @GetMapping("/api/delivery-policies")
+    Page<DeliveryPolicyDto> getDeliveryPolicy();
 }
