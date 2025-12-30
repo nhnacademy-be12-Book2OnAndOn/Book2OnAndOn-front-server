@@ -407,7 +407,9 @@ function initializeFilterForm() {
 
 async function fetchMemberOrders() {
     // 서버에서 타임리프로 내려준 초기 데이터 사용 (페이지네이션 여부와 무관하게 클라이언트 필터에 활용)
-    memberOrders = Array.isArray(window.INITIAL_ORDERS) ? window.INITIAL_ORDERS : [];
+    memberOrders = Array.isArray(window.INITIAL_ORDERS)
+        ? window.INITIAL_ORDERS.filter(o => (o.orderStatus || o.status) !== 'PENDING')
+        : [];
     sortOrdersAndRender('latest', memberOrders);
 }
 

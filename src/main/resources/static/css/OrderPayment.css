@@ -563,3 +563,7 @@ body {
     color: var(--text);
     box-shadow: 0 4px 12px rgba(47, 98, 66, 0.2);
 }
+.summary-card.wide {
+    min-width: 420px;
+    width: 100%;
+}

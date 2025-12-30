@@ -109,6 +109,17 @@ public class AdminViewController {
         return "admin/users";
     }
 
+    // 주문 관리 페이지
+    @GetMapping("/orders")
+    public String orderList(HttpServletRequest request, Model model,
+                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "10") int size) {
+        // TODO: 주문 관리자 API 연동 후 페이지네이션 적용
+        model.addAttribute("orders", java.util.List.of());
+        model.addAttribute("page", null);
+        return "admin/orders";
+    }
+
     //회원 상세 페이지
     @GetMapping("/users/{userId}")
     public String userDetail(HttpServletRequest request,
