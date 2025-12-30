@@ -62,41 +62,42 @@
                  th:if="${user != null or session.user != null}">
             <div class="history-header-wrapper">
                 <div>
-                    <p class="eyebrow">회원</p>
-                    <h3>전체 주문 내역</h3>
-                    <p class="muted">
-                        <span th:text="${(user != null && user.nickname != null) ? user.nickname : (session.user != null ? session.user.nickname : '회원')}"></span>님의 주문 기록입니다.
-                    </p>
+                <!-- 전체 주문 내역 제목 제거 요청으로 주석 처리 -->
+                <!-- <h3>전체 주문 내역</h3> -->
                 </div>
-
-                <select class="select-compact" id="sortOrderSelect">
-                    <option value="latest">최신순 (기본)</option>
-                    <option value="oldest">과거순</option>
-                </select>
             </div>
 
             <div class="order-filter-box">
-                <div class="quick-filter-bar">
-                    <div class="quick-filter-buttons" id="quickFilterButtons">
-                        <button type="button" data-status="all" class="active">전체</button>
-                        <button type="button" data-status="PENDING">주문 대기</button>
-                        <button type="button" data-status="SHIPPING">배송중</button>
-                        <button type="button" data-status="DELIVERED">배송 완료</button>
-                        <button type="button" data-status="COMPLETED">주문 완료</button>
-                    </div>
-                    <div class="quick-search">
-                        <input type="text" id="quickKeyword" placeholder="주문번호 / 상품명 / 수령인 검색">
-                        <button type="button" id="quickSearchButton">검색</button>
-                    </div>
-                </div>
-
                 <form id="orderFilterForm">
+                    <div class="filter-group filter-row-inline">
+                        <div class="inline-field">
+                            <label>정렬</label>
+                            <select class="select-compact" id="sortOrderSelect">
+                                <option value="latest">최신순 (기본)</option>
+                                <option value="oldest">과거순</option>
+                            </select>
+                        </div>
+                        <div class="inline-field filter-with-reset">
+                            <label>배송 상태</label>
+                            <div class="filter-inline">
+                                <select id="filterStatus">
+                                    <option value="all">전체보기</option>
+                                </select>
+                                <button class="btn-secondary" id="filterResetButton" type="button">초기화</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="filter-group">
                         <label>주문 기간</label>
                         <div class="filter-inline">
-                            <select id="filterYear"></select>
+                            <select id="filterYear">
+                                <option value="all">전체보기</option>
+                            </select>
                             <span class="divider">년</span>
-                            <select id="filterMonth"></select>
+                            <select id="filterMonth">
+                                <option value="all">전체보기</option>
+                            </select>
                             <span class="divider">월</span>
                         </div>
                     </div>
@@ -109,19 +110,13 @@
                                 <option value="orderNumber">주문 번호</option>
                                 <option value="recipientName">수령인</option>
                             </select>
-                            <input id="searchKeyword" placeholder="검색어 입력" type="text">
+                            <div style="display:flex; gap:8px; width:100%;">
+                                <input id="searchKeyword" placeholder="검색어 입력" type="text" style="flex:1;">
+                                <button class="btn-primary" id="inlineSearchButton" type="submit">검색</button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="filter-group">
-                        <label>배송 상태</label>
-                        <select id="filterStatus"></select>
-                    </div>
-
-                    <div class="filter-actions">
-                        <button class="btn-primary" id="filterSearchButton" type="submit">찾기</button>
-                        <button class="btn-secondary" id="filterResetButton" type="button">초기화</button>
-                    </div>
                 </form>
             </div>
 
@@ -132,7 +127,7 @@
                     <div class="order-entry-head">
                         <div class="order-id-row">
                             <a class="order-number"
-                               th:href="@{/orders/{orderNumber}(orderNumber=${order.orderNumber})}"
+                               th:href="@{/orders/{orderNumber}/page(orderNumber=${order.orderNumber})}"
                                th:text="${order.orderNumber}">ORD-0000</a>
                             <span class="order-date"
                                   th:text="${order.orderDateTime != null ? #temporals.format(order.orderDateTime, 'yyyy-MM-dd HH:mm') : ''}">2025-01-01 12:00</span>

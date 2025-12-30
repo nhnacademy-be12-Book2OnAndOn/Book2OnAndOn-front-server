@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:fragment="title">주문 완료</title>
+    <th:block layout:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/OrderComplete.css}">
+    </th:block>
+</head>
+<body>
+<main layout:fragment="content">
+    <div class="complete-container">
+        <section class="complete-hero">
+            <div class="icon">✔</div>
+            <h1>주문이 완료되었습니다!</h1>
+            <p class="muted">주문해주셔서 감사합니다. 빠르게 배송해드리겠습니다.</p>
+            <div class="order-number">
+                주문번호
+                <strong th:text="${order?.orderNumber} ?: 'ORD-0000'">ORD-0000</strong>
+            </div>
+        </section>
+
+        <section class="status-card">
+            <h2>배송 진행 상황</h2>
+            <div class="status-steps">
+                <div class="step complete">
+                    <div class="step-icon">✔</div>
+                    <span>주문완료</span>
+                    <small th:text="${#temporals.format(order?.orderDatetime, 'yyyy. MM. dd.') } ?: ''">2025. 12. 26.</small>
+                </div>
+                <div class="step"><div class="step-icon">📦</div><span>배송준비</span><small>대기중</small></div>
+                <div class="step"><div class="step-icon">🚚</div><span>배송중</span><small>대기중</small></div>
+                <div class="step"><div class="step-icon">🏠</div><span>배송완료</span><small th:text="${order?.wantDeliveryDate != null ? #temporals.format(order.wantDeliveryDate, 'yyyy. MM. dd.') : '예상일 준비중'}">예상</small></div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3>주문 상품</h3>
+            <div class="item-list" th:if="${order?.orderItems} != null">
+                <div class="item" th:each="item : ${order.orderItems}">
+                    <div class="thumb">
+                        <img th:src="${item.bookImageUrl}" alt="thumbnail">
+                    </div>
+                    <div class="info">
+                        <div class="title" th:text="${item.bookTitle}">도서명</div>
+                        <div class="meta">수량: <span th:text="${item.orderItemQuantity}">1</span></div>
+                    </div>
+                    <div class="price"
+                         th:text="|${#numbers.formatInteger(item.unitPrice * item.orderItemQuantity, 0, 'COMMA')}원|">0원</div>
+                </div>
+            </div>
+            <div class="total-row">
+                <span>총 결제 금액</span>
+                <strong th:text="|${#numbers.formatInteger(order?.totalAmount ?: 0, 0, 'COMMA')}원|">0원</strong>
+            </div>
+        </section>
+
+        <div class="info-grid">
+            <section class="info-card">
+                <h4>배송 정보</h4>
+                <p><strong>받는 사람</strong> <span th:text="${order?.deliveryAddress?.recipient} ?: '-'">-</span></p>
+                <p><strong>연락처</strong> <span th:text="${order?.deliveryAddress?.recipientPhoneNumber} ?: '-'">-</span></p>
+                <p><strong>배송 주소</strong>
+                    <span th:text="${order?.deliveryAddress?.deliveryAddress} ?: '-'"></span>
+                    <span th:text="${order?.deliveryAddress?.deliveryAddressDetail} ?: ''"></span>
+                </p>
+            </section>
+            <section class="info-card">
+                <h4>결제 정보</h4>
+                <p><strong>결제 금액</strong>
+                    <span th:text="|${#numbers.formatInteger(order?.totalAmount ?: 0, 0, 'COMMA')}원|">0원</span>
+                </p>
+                <p><strong>결제 일시</strong>
+                    <span th:text="${order?.orderDatetime != null ? #temporals.format(order.orderDatetime, 'yyyy. MM. dd. HH:mm') : '-'}">-</span>
+                </p>
+            </section>
+        </div>
+
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/}">쇼핑 계속하기</a>
+            <a class="btn primary" th:href="@{/orders/my-order}">주문 내역 보기</a>
+        </div>
+
+        <section class="notice-card">
+            <h4>안내사항</h4>
+            <ul>
+                <li>주문하신 상품은 영업일 기준 2-3일 내에 배송됩니다.</li>
+                <li>배송 시작 시 등록하신 휴대폰 번호로 알림을 보내드립니다.</li>
+                <li>주문 내역은 마이페이지에서 확인하실 수 있습니다.</li>
+                <li>배송 완료 후 7일 이내 무료로 반품/교환이 가능합니다.</li>
+            </ul>
+        </section>
+    </div>
+</main>
+</body>
+</html>

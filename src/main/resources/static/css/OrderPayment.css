@@ -33,6 +33,27 @@ body {
     color: var(--muted);
 }
 
+.order-meta-banner {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.order-meta-banner .pill {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #eef3ee;
+    color: var(--muted);
+    font-weight: 700;
+    border: 1px solid var(--border);
+}
+
+.order-meta-banner .pill.accent {
+    background: rgba(47, 98, 66, 0.12);
+    color: var(--text);
+}
+
 .order-layout {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -92,6 +113,12 @@ body {
     color: var(--text);
 }
 
+.section-subtext {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
 .form-group input,
 .form-group select {
     border: 1px solid var(--border);
@@ -132,37 +159,63 @@ body {
 
 .payment-method-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin-top: 4px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
 }
 
-.payment-method-options label {
+.payment-method-options .method-card {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    justify-content: center;
-    padding: 12px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: #f8fbf8;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    background: linear-gradient(145deg, #fdfefc, #f4f7f2);
     cursor: pointer;
-    transition: border 0.15s, box-shadow 0.15s, background 0.15s;
+    transition: border 0.18s ease, box-shadow 0.18s ease, transform 0.14s ease;
     font-weight: 700;
-    color: var(--muted);
-    min-height: 72px;
+    color: var(--text);
+    min-height: 90px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
 }
 
-.payment-method-options input[type="radio"] {
+.payment-method-options .method-card input[type="radio"] {
     display: none;
 }
 
-.payment-method-options input[type="radio"]:checked + label {
-    border: 1.5px solid var(--accent);
-    background: #eef5ef;
+.payment-method-options .method-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.method-name {
     color: var(--text);
-    box-shadow: 0 12px 26px rgba(47, 98, 66, 0.15);
+    font-size: 1.05rem;
+}
+
+.method-desc {
+    font-size: 0.92rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.payment-method-options .method-card input[type="radio"]:checked + .method-info {
+    border: none;
+    box-shadow: none;
+}
+
+.payment-method-options .method-card:has(input[type="radio"]:checked) {
+    border-color: var(--accent);
+    background: linear-gradient(145deg, #f8fdf9, #ecf4ed);
+    box-shadow: 0 12px 28px rgba(47, 98, 66, 0.15);
+    transform: translateY(-2px);
+}
+
+.payment-method-options .method-card:hover {
+    border-color: #c5d5c6;
+    transform: translateY(-1px);
 }
 
 .sticky-summary {
@@ -312,9 +365,10 @@ body {
 
 /* 주문 상품 리스트 (renderProductList) */
 .order-item-detail {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: auto 1fr;
     gap: 12px;
+    align-items: center;
     padding: 12px;
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -323,9 +377,28 @@ body {
     margin-bottom: 10px;
 }
 
+.order-item-detail .item-thumb {
+    width: 80px;
+    height: 100px;
+    border-radius: 10px;
+    background: #e8efe8;
+    object-fit: cover;
+}
+
+.order-item-detail .item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .order-item-detail .item-title {
     font-weight: 700;
     color: var(--text);
+}
+
+.order-item-detail .item-meta {
+    color: var(--muted);
+    font-size: 0.9rem;
 }
 
 .order-item-detail .item-price {
@@ -335,6 +408,17 @@ body {
 
 .order-item-detail .item-wrap-option {
     margin-top: 6px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.order-item-detail .wrap-chip {
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: #eef3ee;
+    font-size: 0.9rem;
 }
 
 .order-item-detail img {
@@ -354,6 +438,128 @@ body {
     color: var(--text);
 }
 
-.price-breakdown {
-    margin-bottom: 12px;
+.date-option-button {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.15s;
+}
+
+.date-option-button .day-of-week {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.date-option-button .date-text {
+    color: var(--muted);
+}
+
+.date-option-button.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(47, 98, 66, 0.15);
+    background: #eef5ef;
+}
+
+.empty-state {
+    padding: 20px;
+    text-align: center;
+    color: var(--muted);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f2f5f1 25%, #e7ece6 50%, #f2f5f1 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+
+.saved-address-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+.saved-address-btn {
+    cursor: pointer;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    width: 100%;
+    font-weight: 700;
+}
+
+.saved-address-dropdown {
+    display: none; /* 기본 숨김 */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    z-index: 10;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.saved-address-item {
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.saved-address-item:hover {
+    background-color: #f0f8ff;
+}
+
+/* 배송 날짜 버튼 디자인 */
+.date-option-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.date-option-button .day-of-week {
+    font-size: 0.85rem;
+    color: #4f6658;
+}
+
+.date-option-button .date-text {
+    font-size: 0.95rem;
+    color: #1f3a2c;
+    margin-top: 4px;
+}
+
+.date-option-button:hover {
+    border-color: var(--accent);
+    background-color: #eef5ef;
+}
+
+.date-option-button.selected {
+    border-color: var(--accent);
+    background-color: #d9f0d9;
+    color: var(--text);
+    box-shadow: 0 4px 12px rgba(47, 98, 66, 0.2);
 }

@@ -7,6 +7,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreate
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderDetailResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderSimpleDto;
+import com.nhnacademy.book2onandonfrontservice.client.OrderClient;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,16 +25,22 @@ public interface OrderUserClient {
      * POST /api/orders/prepare
      */
     @PostMapping("/api/orders/prepare")
-    OrderPrepareResponseDto getOrderPrepare(@RequestHeader(value = "Authorization", required = false) String accessToken,
-                                                            @RequestBody OrderPrepareRequestDto requestDto);
+    OrderPrepareResponseDto getOrderPrepare(
+            @RequestHeader(value = "Authorization", required = false) String accessToken,
+            @RequestHeader(value = OrderClient.GUEST_ID_HEADER, required = false) String guestId,
+            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestBody OrderPrepareRequestDto requestDto);
 
     /**
      * 주문 생성(결제 직전 사전 주문데이터 생성)
      * POST /api/orders
      */
     @PostMapping("/api/orders")
-    OrderCreateResponseDto createPreOrder(@RequestHeader(value = "Authorization", required = false) String accessToken,
-                                                          @RequestBody OrderCreateRequestDto requestDto);
+    OrderCreateResponseDto createPreOrder(
+            @RequestHeader(value = "Authorization", required = false) String accessToken,
+            @RequestHeader(value = OrderClient.GUEST_ID_HEADER, required = false) String guestId,
+            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestBody OrderCreateRequestDto requestDto);
 
     /**
      * 내 주문 목록 조회

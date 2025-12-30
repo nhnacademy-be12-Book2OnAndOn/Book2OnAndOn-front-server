@@ -64,7 +64,7 @@
                     <tbody>
                     <tr th:each="delivery : ${deliveries}">
                         <td th:text="${delivery.deliveryId}"></td>
-                        <td th:text="${delivery.orderId}"></td>
+                        <td th:text="${delivery.orderNumber}"></td>
                         <td th:text="${delivery.deliveryCompany != null ? delivery.deliveryCompany : '-'}"></td>
                         <td th:text="${delivery.waybill != null ? delivery.waybill : '-'}"></td>
                         <td th:text="${delivery.deliveryStartedAt != null ? #temporals.format(delivery.deliveryStartedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>

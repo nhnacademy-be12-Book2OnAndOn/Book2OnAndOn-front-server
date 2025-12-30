@@ -12,6 +12,7 @@
         <link rel="stylesheet" href="/css/OrderPayment.css">
         <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
         <script src="https://js.tosspayments.com/v2/standard"></script>
+        <script th:src="@{/js/OrderPayment.js}" defer></script>
         <style>
             .modal {
                 position: fixed; z-index: 1000; left: 0; top: 0;
@@ -124,8 +125,25 @@
 
                 <section class="order-section delivery-info-section">
                     <h2>배송지 및 희망일 정보</h2>
+
+                    <div class="saved-address-wrapper" th:if="${addresses != null && !#lists.isEmpty(addresses)}">
+                        <div class="saved-address-btn">등록된 배송지 선택 ▼</div>
+                        <div class="saved-address-dropdown">
+                            <div th:each="addr : ${addresses}"
+                                 class="saved-address-item"
+                                 th:data-recipient="${addr.recipient}"
+                                 th:data-phone="${addr.phone}"
+                                 th:data-address="${addr.userAddress}"
+                                 th:data-detail="${addr.userAddressDetail}"
+                                 th:text="${addr.userAddress} + ' ' + addr.userAddressDetail + ' / ' + addr.recipient + ' / ' + addr.phone">
+                                배송지 표시
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="form-group"><label for="recipient">수령인</label><input type="text" id="recipient" name="recipient" required placeholder="수령인 이름을 입력해주세요"></div>
-                    <div class="form-group"><label for="recipientPhonenumber">연락처</label><input type="tel" id="recipientPhonenumber" name="recipientPhonenumber" required placeholder="01012345678 (숫자만)"></div>
+                    <div class="form-group"><label for="recipientPhoneNumber">연락처</label><input type="tel" id="recipientPhoneNumber" name="recipientPhoneNumber" required placeholder="01012345678 (숫자만)"></div>
                     <div class="form-group">
                         <label for="deliveryAddress">배송 주소</label>
                         <div class="address-inputs">
@@ -153,41 +171,76 @@
                         <input type="hidden" id="wantDeliveryDate" name="wantDeliveryDate" required>
                     </div>
                 </section>
+
+                <section class="order-section delivery-method-section">
+                    <h2>배송 방식 선택</h2>
+                    <div id="deliveryMethodOptions" class="delivery-method-options">
+                        <!-- JS에서 API 호출 후 radio 버튼으로 동적 추가 -->
+                        <p>배송 방식을 불러오는 중...</p>
+                    </div>
+                </section>
+
+
             </form>
 
-                <section class="order-section discount-selection-section">
+            <section class="order-section discount-selection-section">
                     <h2>쿠폰 선택</h2>
                 <div class="form-group discount-field">
                     <label for="couponSelect">적용 가능한 쿠폰</label>
-                    <select id="couponSelect" name="couponDiscountAmount">
-                        <option value="0">쿠폰 미사용</option>
+                    <select id="couponSelect" name="memberCouponId">
+                        <option value="0" data-discount="0">쿠폰 미사용</option>
                         <option th:each="c : ${coupons}"
-                                th:value="${c.discountAmount}"
-                                th:text="|${c.couponName} (-${#numbers.formatInteger(c.discountAmount, 0, 'COMMA')}원)|">쿠폰</option>
+                                th:value="${c.memberCouponId}"
+                                th:data-discount="${c.discountValue}"
+                                th:text="|${c.couponName} (-${#numbers.formatInteger(c.discountValue, 0, 'COMMA')}원)|">쿠폰</option>
                     </select>
                 </div>
             </section>
 
-                <section class="order-section point-usage-section">
-                    <h2>포인트 사용</h2>
+            <section class="order-section point-usage-section">
+                <h2>포인트 사용</h2>
                 <div class="form-group discount-field">
-                    <label for="pointDiscountAmount">사용할 포인트</label>
-                    <input type="number" id="pointDiscountAmount" name="pointDiscountAmount" value="0" min="0" step="100">
                     <span class="current-point">보유 포인트:
                         <span id="currentPointValue"
-                              th:text="${point != null && point.currentPoint != null} ? ${#numbers.formatInteger(point.currentPoint, 0, 'COMMA')} + ' P' : '0 P'">
+                              th:text="${point != null && point.currentPoint != null} ? ${#numbers.formatInteger(point.currentPoint, 3, 'COMMA')} + ' P' : '0 P'"
+                              th:data-current-point="${point != null && point.currentPoint != null ? point.currentPoint : 0}">
                             0 P
                         </span>
                     </span>
+                    <label for="pointDiscountAmount">사용할 포인트</label>
+
+                    <input type="text"
+                           id="pointDiscountAmount"
+                           name="pointDiscountAmount"
+                           placeholder="0"
+                           autocomplete="off">
                 </div>
             </section>
 
-                <section class="order-section payment-method-section">
-                    <h2>결제 수단</h2>
+            <section class="order-section payment-method-section">
+                <h2>결제 수단</h2>
                 <div class="payment-method-options">
-                    <label><input type="radio" name="paymentMethod" value="CARD" checked> 카드 결제</label>
-                    <label><input type="radio" name="paymentMethod" value="TRANSFER"> 계좌 이체</label>
-                    <label><input type="radio" name="paymentMethod" value="VIRTUAL_ACCOUNT"> 가상 계좌</label>
+                    <label class="method-card">
+                        <input type="radio" name="paymentMethod" value="CARD" checked>
+                        <div class="method-info">
+                            <span class="method-name">카드 결제</span>
+                            <span class="method-desc">신용/체크 카드</span>
+                        </div>
+                    </label>
+                    <label class="method-card">
+                        <input type="radio" name="paymentMethod" value="TRANSFER">
+                        <div class="method-info">
+                            <span class="method-name">계좌 이체</span>
+                            <span class="method-desc">즉시 이체</span>
+                        </div>
+                    </label>
+                    <label class="method-card">
+                        <input type="radio" name="paymentMethod" value="CULTURE_GIFT_CERTIFICATE">
+                        <div class="method-info">
+                            <span class="method-name">문화상품권</span>
+                            <span class="method-desc">기프티콘/상품권</span>
+                        </div>
+                    </label>
                 </div>
             </section>
 
@@ -233,8 +286,14 @@
         </div>
     </div>
 </div>
-</main>
 
-<script src="/js/OrderPayment.js"></script>
+<span id="user-info"
+      th:data-user-name="${user.name}"
+      th:data-user-email="${user.email}">
+</span>
+<span id="delivery-policy-id"
+      th:data-delivery-policy-id="1">
+</span>
+</main>
 </body>
 </html>
