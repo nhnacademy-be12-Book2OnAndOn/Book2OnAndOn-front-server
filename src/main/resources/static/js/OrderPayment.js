@@ -209,8 +209,9 @@ function setupEventListeners() {
     });
 
     const pointInput = document.getElementById('pointDiscountAmount');
-    const currentPointSpan = document.getElementById('currentPointValue');
-    const maxPoint = Number(currentPointSpan.dataset.currentPoint);
+    const currentPointValue = document.getElementById('currentPointValue');
+    console.log(currentPointValue);
+    const maxPoint = Number(currentPointValue.dataset.currentPoint);
 
     pointInput.addEventListener('input', () => {
         let value = pointInput.value;
@@ -236,7 +237,7 @@ function setupEventListeners() {
             pointInput.value = '0';
             return;
         }
-
+        console.log("입력 값 : {}, 최대 포인트 : {}", inputPoint, maxPoint);
         // 보유 포인트 초과
         if (inputPoint > maxPoint) {
             alert(`사용 가능한 최대 포인트는 ${maxPoint.toLocaleString()}P 입니다.`);

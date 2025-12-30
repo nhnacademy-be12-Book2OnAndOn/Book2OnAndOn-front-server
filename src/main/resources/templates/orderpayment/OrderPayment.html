@@ -158,25 +158,26 @@
                 </section>
             </form>
 
-                <section class="order-section discount-selection-section">
+            <section class="order-section discount-selection-section">
                     <h2>쿠폰 선택</h2>
                 <div class="form-group discount-field">
                     <label for="couponSelect">적용 가능한 쿠폰</label>
-                    <select id="couponSelect" name="couponDiscountAmount">
+                    <select id="couponSelect" name="memberCouponId">
                         <option value="0">쿠폰 미사용</option>
                         <option th:each="c : ${coupons}"
-                                th:value="${c.discountValue}"
+                                th:value="${c.memberCouponId}"
                                 th:text="|${c.couponName} (-${#numbers.formatInteger(c.discountValue, 0, 'COMMA')}원)|">쿠폰</option>
                     </select>
                 </div>
             </section>
 
-                <section class="order-section point-usage-section">
-                    <h2>포인트 사용</h2>
+            <section class="order-section point-usage-section">
+                <h2>포인트 사용</h2>
                 <div class="form-group discount-field">
                     <span class="current-point">보유 포인트:
                         <span id="currentPointValue"
-                              th:text="${point != null && point.currentPoint != null} ? ${#numbers.formatInteger(point.currentPoint, 3, 'COMMA')} + ' P' : '0 P'">
+                              th:text="${point != null && point.currentPoint != null} ? ${#numbers.formatInteger(point.currentPoint, 3, 'COMMA')} + ' P' : '0 P'"
+                              th:data-current-point="${point != null && point.currentPoint != null} ? point.currentPoint : 0">
                             0 P
                         </span>
                     </span>
@@ -185,7 +186,7 @@
                     <input type="text"
                            id="pointDiscountAmount"
                            name="pointDiscountAmount"
-                           value="0"
+                           placeholder="0"
                            autocomplete="off">
                 </div>
             </section>
