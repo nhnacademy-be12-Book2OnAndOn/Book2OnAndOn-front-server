@@ -256,10 +256,25 @@
     font-weight: 700;
 }
 
+.filter-row-inline {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.8rem;
+    grid-column: 1 / -1;
+}
+
+.inline-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+}
+
 .filter-inline {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .filter-group select,

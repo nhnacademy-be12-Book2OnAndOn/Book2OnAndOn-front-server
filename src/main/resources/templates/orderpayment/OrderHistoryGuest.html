@@ -29,31 +29,21 @@
             </header>
 
             <section class="order-card guest-form-container" id="guestLookupSection">
-                <div class="card-heading">
-                    <p class="eyebrow">비회원</p>
-                    <h3>비회원 주문 조회</h3>
-                    <p class="muted">주문 시 입력했던 정보로 조회할 수 있습니다.</p>
-                </div>
+                <form action="/orders/guest/login" class="stacked-form" method="post">
 
-                <div th:if="${param.error}" class="alert alert-danger" style="color: red; margin-bottom: 15px; font-weight: bold;">
-                    <p>주문 정보가 일치하지 않습니다. 주문번호와 비밀번호를 확인해주세요.</p>
-                </div>
-
-                <form action="/orders/guest/login" method="post" class="stacked-form">
-
-                    <input type="text"
-                           id="guestOrderId"
+                    <input id="guestOrderId"
                            name="orderNumber"
                            placeholder="주문 번호"
-                           required>
+                           required
+                           type="text">
 
-                    <input type="password"
-                           id="guestPassword"
+                    <input id="guestPassword"
                            name="guestPassword"
                            placeholder="비밀번호"
-                           required>
+                           required
+                           type="password">
 
-                    <button type="submit" class="btn-primary full">주문 조회</button>
+                    <button class="btn-primary full" type="submit">주문 조회</button>
                 </form>
 
                 <p class="muted helper-text">

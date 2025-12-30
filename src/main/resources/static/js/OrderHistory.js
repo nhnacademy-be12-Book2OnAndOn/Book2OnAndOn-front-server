@@ -42,10 +42,26 @@ let currentOrderDetail = null;
 let memberOrders = Array.isArray(window.INITIAL_ORDERS) ? window.INITIAL_ORDERS : [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeView();
-    setupEventListeners();
-    setupModalListeners();
-    initializeFilterForm();
+    try {
+        initializeView();
+    } catch (e) {
+        console.error('initializeView error', e);
+    }
+    try {
+        setupEventListeners();
+    } catch (e) {
+        console.error('setupEventListeners error', e);
+    }
+    try {
+        setupModalListeners();
+    } catch (e) {
+        console.error('setupModalListeners error', e);
+    }
+    try {
+        initializeFilterForm();
+    } catch (e) {
+        console.error('initializeFilterForm error', e);
+    }
 });
 
 // --- 초기화 및 UI 제어 ---
@@ -84,30 +100,7 @@ function setupEventListeners() {
 
     document.getElementById('orderFilterForm')?.addEventListener('submit', handleOrderFiltering);
     document.getElementById('filterResetButton')?.addEventListener('click', initializeFilterForm);
-
-    // 빠른 상태 필터
-    document.getElementById('quickFilterButtons')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('button[data-status]');
-        if (!btn) return;
-        document.querySelectorAll('#quickFilterButtons button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const status = btn.dataset.status || 'all';
-        const statusSelect = document.getElementById('filterStatus');
-        if (statusSelect) {
-            statusSelect.value = status;
-        }
-        document.getElementById('orderFilterForm')?.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
-    });
-
-    // 빠른 검색
-    document.getElementById('quickSearchButton')?.addEventListener('click', () => {
-        const keywordInput = document.getElementById('quickKeyword');
-        if (!keywordInput) return;
-        const keyword = keywordInput.value || '';
-        const searchInput = document.getElementById('searchKeyword');
-        if (searchInput) {
-            searchInput.value = keyword;
-        }
+    document.getElementById('inlineSearchButton')?.addEventListener('click', () => {
         document.getElementById('orderFilterForm')?.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
     });
 
@@ -349,9 +342,13 @@ function setupModalListeners() {
  */
 // 모든 섹션 숨기기 함수 수정
 function hideAllSections() {
-    document.getElementById('guestLookupSection').classList.add('hidden');
-    document.getElementById('memberHistorySection').classList.add('hidden');
-    document.getElementById('orderDetailSection').classList.add('hidden');
+    const guestLookupSection = document.getElementById('guestLookupSection');
+    const memberHistorySection = document.getElementById('memberHistorySection');
+    const orderDetailSection = document.getElementById('orderDetailSection');
+
+    guestLookupSection?.classList.add('hidden');
+    memberHistorySection?.classList.add('hidden');
+    orderDetailSection?.classList.add('hidden');
 
     // 가이드 섹션도 일단 전체 숨김.
     const guideSection = document.querySelector('.order-guide-section');
@@ -361,7 +358,8 @@ function hideAllSections() {
 // 비회원 조회 폼 보여주기
 function showGuestLookupForm() {
     hideAllSections();
-    document.getElementById('guestLookupSection').classList.remove('hidden');
+    const guestLookupSection = document.getElementById('guestLookupSection');
+    guestLookupSection?.classList.remove('hidden');
 
     // 가이드 표시
     const guideSection = document.querySelector('.order-guide-section');
@@ -371,7 +369,8 @@ function showGuestLookupForm() {
 // 회원 주문 목록 보여주기
 function showMemberHistory() {
     hideAllSections();
-    document.getElementById('memberHistorySection').classList.remove('hidden');
+    const memberHistorySection = document.getElementById('memberHistorySection');
+    memberHistorySection?.classList.remove('hidden');
 
     // 가이드 표시
     const guideSection = document.querySelector('.order-guide-section');
@@ -381,7 +380,8 @@ function showMemberHistory() {
 // 주문 상세 정보 보여주기 (여기서는 가이드 표시 x)
 function showOrderDetail() {
     hideAllSections();
-    document.getElementById('orderDetailSection').classList.remove('hidden');
+    const orderDetailSection = document.getElementById('orderDetailSection');
+    orderDetailSection?.classList.remove('hidden');
 
     // 상세 페이지에서는 가이드를 숨김
     const guideSection = document.querySelector('.order-guide-section');
@@ -396,7 +396,7 @@ function initializeFilterForm() {
     const filterYear = document.getElementById('filterYear');
     const filterMonth = document.getElementById('filterMonth');
     const filterStatus = document.getElementById('filterStatus');
-    if(!filterYear || !filterMonth) return;
+    if(!filterYear || !filterMonth || !filterStatus) return;
     filterYear.innerHTML = '<option value="all">전체보기</option>';
     for (let y = currentYear; y >= currentYear - 3; y--) filterYear.innerHTML += `<option value="${y}">${y}년</option>`;
     filterMonth.innerHTML = '<option value="all">전체보기</option>';
@@ -406,11 +406,7 @@ function initializeFilterForm() {
 }
 
 async function fetchMemberOrders() {
-    if (USE_SERVER_PAGING) {
-        // 서버 페이지네이션일 때는 서버 렌더링 결과를 그대로 사용
-        return;
-    }
-    // 서버에서 타임리프로 내려준 초기 데이터 사용
+    // 서버에서 타임리프로 내려준 초기 데이터 사용 (페이지네이션 여부와 무관하게 클라이언트 필터에 활용)
     memberOrders = Array.isArray(window.INITIAL_ORDERS) ? window.INITIAL_ORDERS : [];
     sortOrdersAndRender('latest', memberOrders);
 }

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko"
+      layout:decorate="~{layout/mypage-layout}"
+      th:with="sidebarActive='orders'"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title layout:fragment="title">주문 상세</title>
+    <th:block layout:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/OrderHistory.css}">
+        <style>
+            .order-detail-shell {
+                background: #fff;
+                border: 1px solid #e0e7e2;
+                border-radius: 18px;
+                padding: 18px 22px;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .order-detail-head {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .order-detail-head h2 {
+                margin: 0;
+            }
+
+            .pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: #eef5ef;
+                color: #1f4a30;
+                padding: 8px 12px;
+                border-radius: 999px;
+                font-weight: 700;
+            }
+
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 12px;
+            }
+
+            .info-card {
+                background: #f9fbf8;
+                border: 1px solid #d9e3d6;
+                border-radius: 12px;
+                padding: 12px 14px;
+            }
+
+            .info-card h4 {
+                margin: 0 0 8px;
+                color: #1f3a2c;
+            }
+
+            .items-list {
+                border: 1px solid #e6ede6;
+                border-radius: 14px;
+                overflow: hidden;
+            }
+
+            .items-list .item-row {
+                display: grid;
+                grid-template-columns: 2fr 1fr 1fr;
+                padding: 12px 14px;
+                border-bottom: 1px solid #eef2ed;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .items-list .item-row:last-child {
+                border-bottom: none;
+            }
+
+            .totals {
+                text-align: right;
+                font-weight: 800;
+                color: #1f3a2c;
+            }
+
+            .meta-line {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                color: #4f6658;
+            }
+
+            .muted {
+                color: #607463;
+            }
+
+            .actions-row {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<div class="mypage-content order-detail-shell" layout:fragment="content">
+    <div class="order-detail-head">
+        <div>
+            <h2>주문 상세</h2>
+            <div class="meta-line">
+                <span th:text="${order.orderDatetime != null ? #temporals.format(order.orderDatetime, 'yyyy-MM-dd HH:mm') : ''}">2025-01-01</span>
+                <span>·</span>
+                <span th:text="${order.orderNumber}">ORD-000000</span>
+            </div>
+        </div>
+        <span class="pill" th:text="${order.orderStatus != null ? order.orderStatus : '상태 미정'}">주문 상태</span>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-card">
+            <h4>수령 정보</h4>
+            <div th:text="${order.deliveryAddress != null ? order.deliveryAddress.recipient() : '-'}">수령인</div>
+            <div class="muted" th:text="${order.deliveryAddress != null ? order.deliveryAddress.deliveryAddress() : '-'}">주소</div>
+            <div class="muted" th:text="${order.deliveryAddress != null ? order.deliveryAddress.deliveryAddressDetail() : '-'}">상세주소</div>
+            <div class="muted" th:text="${order.deliveryAddress != null ? order.deliveryAddress.recipientPhoneNumber() : '-'}">연락처</div>
+            <div class="muted" th:text="${order.deliveryAddress != null ? order.deliveryAddress.deliveryMessage() : ''}">배송 메모</div>
+        </div>
+        <div class="info-card">
+            <h4>배송</h4>
+            <div>택배사: <span class="muted">등록 대기</span></div>
+            <div>운송장: <span class="muted">등록 대기</span></div>
+            <div th:text="${order.wantDeliveryDate != null ? order.wantDeliveryDate : '-'}">희망 배송일</div>
+        </div>
+        <div class="info-card">
+            <h4>결제</h4>
+            <div>상품 합계: <strong
+                    th:text="${order.totalItemAmount != null ? #numbers.formatInteger(order.totalItemAmount, 0, 'COMMA') + '원' : '-'}">0원</strong>
+            </div>
+            <div>배송비: <span
+                    th:text="${order.deliveryFee != null ? #numbers.formatInteger(order.deliveryFee, 0, 'COMMA') + '원' : '-'}">0원</span>
+            </div>
+            <div>할인: <span
+                    th:text="${order.totalDiscountAmount != null ? #numbers.formatInteger(order.totalDiscountAmount, 0, 'COMMA') + '원' : '0원'}">0원</span>
+            </div>
+            <div style="margin-top:8px;">총 결제: <strong
+                    th:text="${order.totalAmount != null ? #numbers.formatInteger(order.totalAmount, 0, 'COMMA') + '원' : '-'}">0원</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="items-list" th:if="${order.orderItems != null}">
+        <div class="item-row" style="background:#f4f8f4;font-weight:700;">
+            <div>상품명</div>
+            <div>수량</div>
+            <div>금액</div>
+        </div>
+        <div class="item-row" th:each="item : ${order.orderItems}">
+            <div>
+                <div th:text="${item.bookTitle}">도서명</div>
+                <div class="muted" th:if="${item.wrappingPaperId != null}">포장: 포장지 사용</div>
+            </div>
+            <div th:text="${item.orderItemQuantity}">1</div>
+            <div th:text="${item.unitPrice != null ? #numbers.formatInteger(item.unitPrice, 0, 'COMMA') + '원' : '-'}">0원</div>
+        </div>
+    </div>
+
+    <div class="totals">
+        결제 금액: <span
+            th:text="${order.totalAmount != null ? #numbers.formatInteger(order.totalAmount, 0, 'COMMA') + '원' : '-'}">0원</span>
+    </div>
+
+    <div class="actions-row">
+        <a class="btn-secondary" th:href="@{/users/me/orders}">목록으로</a>
+        <a class="btn-primary" style="text-decoration:none;"
+           th:href="@{'/orders/' + ${order.orderNumber} + '/cancel'}" th:if="${order.orderNumber != null}">취소/문의</a>
+    </div>
+</div>
+</body>
+</html>

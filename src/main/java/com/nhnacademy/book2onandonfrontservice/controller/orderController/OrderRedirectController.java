@@ -73,6 +73,12 @@ public class OrderRedirectController {
         return "orderpayment/OrderPayment";
     }
 
+    @GetMapping("/orders/guest/payment")
+    public String guestOrderPaymentPage() {
+        // 비회원 전용 결제/주문 작성 화면 (게스트는 장바구니/입력값 기반)
+        return "orderpayment/OrderPaymentGuest";
+    }
+
     @GetMapping("/orders/history")
     public String orderHistoryPage(HttpServletRequest request) {
         // 로그인 필요: 비로그인은 로그인 페이지로 유도

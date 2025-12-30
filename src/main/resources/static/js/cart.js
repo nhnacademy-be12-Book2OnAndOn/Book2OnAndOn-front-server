@@ -22,6 +22,7 @@ const DUMMY_ITEMS = [
 
 let cartItems = USE_DUMMY ? [...DUMMY_ITEMS] : [];
 let cartSummaryData = null;
+let cartMode = 'guest'; // user | guest | error
 
 // 동시 로드 보호 / merge 체크
 let mergeChecked = false;
@@ -160,12 +161,12 @@ async function loadCartFromServer() {
         const userOpts  = { method: 'GET', headers: buildAuthHeaders(baseHeaders),  credentials: 'include' };
         const guestOpts = { method: 'GET', headers: buildGuestHeaders(baseHeaders), credentials: 'include' };
 
-        const { res, mode } = await fetchUserThenGuest(
-            `${API_BASE}/user`,
-            `${API_BASE}/guest`,
-            userOpts,
-            guestOpts
-        );
+    const { res, mode } = await fetchUserThenGuest(
+        `${API_BASE}/user`,
+        `${API_BASE}/guest`,
+        userOpts,
+        guestOpts
+    );
 
         if (!res.ok) {
             console.error('장바구니 조회 실패', res.status);
@@ -177,6 +178,7 @@ async function loadCartFromServer() {
 
         cartSummaryData = data;
         cartItems = data.items || [];
+        cartMode = mode;
 
         renderCart();
         updateHeaderCartBadgeFromSummary();
@@ -583,8 +585,15 @@ function checkout() {
         0
     );
 
-    alert(`${selectedItems.length}개 상품 / 총 ${total.toLocaleString()}원\n주문 준비로 이동합니다.`);
-    submitOrderPrepare(selectedItems);
+    if (cartMode === 'guest') {
+        alert(`${selectedItems.length}개 상품 / 총 ${total.toLocaleString()}원\n비회원 결제 페이지로 이동합니다.`);
+        window.location.href = "/orders/guest/payment";
+    } else if (cartMode === 'user') {
+        alert(`${selectedItems.length}개 상품 / 총 ${total.toLocaleString()}원\n주문 준비로 이동합니다.`);
+        submitOrderPrepare(selectedItems);
+    } else {
+        alert('장바구니 상태를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    }
 }
 
 

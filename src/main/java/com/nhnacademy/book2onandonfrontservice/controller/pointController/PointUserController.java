@@ -1,7 +1,7 @@
 package com.nhnacademy.book2onandonfrontservice.controller.pointController;
 
 import com.nhnacademy.book2onandonfrontservice.client.PointUserClient;
-import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.PointReason;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.ExpiringPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryResponseDto;
@@ -12,10 +12,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -120,9 +120,36 @@ public class PointUserController {
                         h.getPointCreatedDate() != null ? h.getPointCreatedDate().format(formatter) : null,
                         h.getPointExpiredDate() != null ? h.getPointExpiredDate().format(formatter) : null,
                         h.getRemainingPoint(),
-                        h.getPointReason() != null ? h.getPointReason().name() : null
+                        translatePointReason(h.getPointReason())
                 ))
                 .collect(Collectors.toList());
+    }
+
+    private String translatePointReason(PointReason reason) {
+        if (reason == null) {
+            return null;
+        }
+        return switch (reason) {
+            case SIGNUP -> "회원가입 적립";
+            case REVIEW -> "리뷰 작성 적립";
+            case ORDER -> "주문 적립";
+            case USE -> "포인트 사용";
+            case REFUND -> "취소/반품 반환";
+            case EXPIRE -> "포인트 만료";
+            case FAILED -> "결제 실패";
+            case WITHDRAW -> "회원 탈퇴";
+            case ADMIN_ADJUST -> "관리자 조정";
+        };
+    }
+
+    private Map<String, Object> toPagePayload(Page<PointHistoryResponseDto> page) {
+        Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("content", page.getContent());
+        payload.put("totalPages", page.getTotalPages());
+        payload.put("totalElements", page.getTotalElements());
+        payload.put("number", page.getNumber());
+        payload.put("size", page.getSize());
+        return payload;
     }
 
     private record PointHistoryView(
@@ -134,15 +161,5 @@ public class PointUserController {
             Integer remainingPoint,
             String pointReason
     ) {
-    }
-
-    private Map<String, Object> toPagePayload(Page<PointHistoryResponseDto> page) {
-        Map<String, Object> payload = new java.util.HashMap<>();
-        payload.put("content", page.getContent());
-        payload.put("totalPages", page.getTotalPages());
-        payload.put("totalElements", page.getTotalElements());
-        payload.put("number", page.getNumber());
-        payload.put("size", page.getSize());
-        return payload;
     }
 }

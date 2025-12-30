@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko"
+      layout:decorate="~{layout/main-layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title layout:fragment="title">비회원 주문/결제</title>
+    <th:block layout:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/OrderPayment.css}">
+        <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+        <script src="https://js.tosspayments.com/v2/standard"></script>
+        <script>
+            // 게스트 페이지에서는 서버 선행 데이터 없이 클라이언트에서 장바구니/포인트를 가져옴.
+            window.__ORDER_PREPARE__ = null;
+        </script>
+    </th:block>
+</head>
+<body>
+<main layout:fragment="content">
+    <div class="container">
+        <!--        <section class="order-meta-banner">-->
+        <!--            <div class="pill accent">비회원 주문 · 이메일 없이 전화번호만 입력</div>-->
+        <!--            <div class="pill">장바구니 담긴 상품으로 바로 결제</div>-->
+        <!--        </section>-->
+
+        <header>
+            <h1 class="page-title">비회원 주문 및 결제</h1>
+            <p class="page-subtitle">로그인 없이 배송지와 결제 정보를 입력해 주문을 완료해보세요.</p>
+        </header>
+
+        <main class="order-layout">
+            <div class="main-form-area">
+                <form id="orderForm" onsubmit="return false;">
+                    <section class="order-section products-option-section">
+                        <h2>주문 상품 확인</h2>
+                        <div id="selectedProductList">
+                            <div class="order-item-detail placeholder">
+                                <div class="item-thumb skeleton"></div>
+                                <div class="item-info">
+                                    <div class="item-title">장바구니에서 상품을 불러오는 중...</div>
+                                    <div class="item-meta">잠시만 기다려주세요.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="order-section delivery-info-section">
+                        <h2>배송지 및 희망일 정보</h2>
+                        <div class="form-group"><label for="recipient">수령인</label><input id="recipient" name="recipient"
+                                                                                         placeholder="수령인 이름을 입력해주세요"
+                                                                                         required
+                                                                                         type="text">
+                        </div>
+                        <div class="form-group"><label for="recipientPhonenumber">연락처</label><input
+                                id="recipientPhonenumber"
+                                name="recipientPhonenumber"
+                                placeholder="01012345678 (숫자만)"
+                                required
+                                type="tel">
+                        </div>
+                        <div class="form-group">
+                            <label for="deliveryAddress">배송 주소</label>
+                            <div class="address-inputs">
+                                <input id="deliveryAddress" name="deliveryAddress" placeholder="기본 주소 (예: 서울시 강남구)"
+                                       required
+                                       type="text">
+                                <button class="btn-search-address btn-secondary" type="button">주소 검색</button>
+                            </div>
+                            <input id="deliveryAddressDetail" name="deliveryAddressDetail" placeholder="상세 주소 (예: 101호)"
+                                   type="text">
+                        </div>
+                        <div class="form-group">
+                            <label for="deliveryMessage">배송 메시지</label>
+                            <select id="deliveryMessage" name="deliveryMessage">
+                                <option value="">-- 배송 메시지 선택 --</option>
+                                <option value="문 앞에 놓아주세요">문 앞에 놓아주세요</option>
+                                <option value="경비실에 맡겨주세요">경비실에 맡겨주세요</option>
+                                <option value="본인(부재시문앞)">본인(부재시문앞)</option>
+                                <option value="direct_input">직접 입력</option>
+                            </select>
+                            <label class="sr-only" for="customDeliveryMessage">직접 입력 배송 메시지</label>
+                            <input id="customDeliveryMessage" placeholder="배송 메시지를 직접 입력해주세요."
+                                   style="display: none; margin-top: 10px;"
+                                   type="text">
+                        </div>
+                        <div class="form-group delivery-date-group">
+                            <label>배송 희망 날짜 (최대 7일 이내)</label>
+                            <div class="date-options-grid" id="deliveryDateOptions"></div>
+                            <input id="wantDeliveryDate" name="wantDeliveryDate" required type="hidden">
+                        </div>
+                    </section>
+                </form>
+
+                <section class="order-section payment-method-section">
+                    <h2>결제 수단</h2>
+                    <div class="payment-method-options">
+                        <label class="method-card">
+                            <input checked name="paymentMethod" type="radio" value="CARD">
+                            <span class="method-info">
+                                <span class="method-name">카드 결제</span>
+                                <span class="method-desc">신용/체크카드, 간편결제 지원</span>
+                            </span>
+                        </label>
+                        <label class="method-card">
+                            <input name="paymentMethod" type="radio" value="TRANSFER">
+                            <span class="method-info">
+                                <span class="method-name">계좌 이체</span>
+                                <span class="method-desc">실시간 이체/무통장 입금</span>
+                            </span>
+                        </label>
+                        <label class="method-card">
+                            <input name="paymentMethod" type="radio" value="VIRTUAL_ACCOUNT">
+                            <span class="method-info">
+                                <span class="method-name">가상 계좌</span>
+                                <span class="method-desc">입금 확인 후 자동 처리</span>
+                            </span>
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <div class="payment-summary-area">
+                <div class="order-section sticky-summary">
+                    <h2>최종 결제 금액</h2>
+
+                    <div class="price-breakdown">
+                        <div class="summary-line">
+                            <span>총 상품 금액</span>
+                            <span class="price" id="summaryTotalItemPrice">0원</span>
+                        </div>
+                        <div class="summary-line"><span>배송비</span> <span class="price fee" id="deliveryFee">0원</span>
+                        </div>
+                        <div class="summary-line"><span>포장비</span> <span class="price fee" id="wrappingFee">0원</span>
+                        </div>
+                        <div class="summary-line discount-row"><span>쿠폰 할인</span> <span class="price discount"
+                                                                                        id="couponDiscount">-0원</span>
+                        </div>
+                        <div class="summary-line discount-row"><span>포인트 사용</span> <span class="price discount"
+                                                                                         id="pointDiscount">-0원</span>
+                        </div>
+                    </div>
+
+                    <div class="final-total-row">
+                        <span>총 주문 금액 (VAT 포함)</span>
+                        <span id="finalPaymentAmount">0원</span>
+                    </div>
+
+                    <button class="btn-checkout-final" id="requestTossPayment" type="button">
+                        <span id="finalPaymentButtonText">0원 결제하기</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="wrappingModal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <div class="options-grid" id="wrappingOptions"></div>
+            <div class="modal-actions" style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-primary" disabled id="confirmWrapButton">선택 완료</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/OrderPayment.js}"></script>
+</body>
+</html>

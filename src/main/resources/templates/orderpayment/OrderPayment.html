@@ -188,9 +188,10 @@
                 <div class="form-group discount-field">
                     <label for="couponSelect">적용 가능한 쿠폰</label>
                     <select id="couponSelect" name="memberCouponId">
-                        <option value="0">쿠폰 미사용</option>
+                        <option value="0" data-discount="0">쿠폰 미사용</option>
                         <option th:each="c : ${coupons}"
                                 th:value="${c.memberCouponId}"
+                                th:data-discount="${c.discountValue}"
                                 th:text="|${c.couponName} (-${#numbers.formatInteger(c.discountValue, 0, 'COMMA')}원)|">쿠폰</option>
                     </select>
                 </div>
@@ -216,12 +217,30 @@
                 </div>
             </section>
 
-                <section class="order-section payment-method-section">
-                    <h2>결제 수단</h2>
+            <section class="order-section payment-method-section">
+                <h2>결제 수단</h2>
                 <div class="payment-method-options">
-                    <label><input type="radio" name="paymentMethod" value="CARD" checked> 카드 결제</label>
-                    <label><input type="radio" name="paymentMethod" value="TRANSFER"> 계좌 이체</label>
-                    <label><input type="radio" name="paymentMethod" value="CULTURE_GIFT_CERTIFICATE"> 문화상품권</label>
+                    <label class="method-card">
+                        <input type="radio" name="paymentMethod" value="CARD" checked>
+                        <div class="method-info">
+                            <span class="method-name">카드 결제</span>
+                            <span class="method-desc">신용/체크 카드</span>
+                        </div>
+                    </label>
+                    <label class="method-card">
+                        <input type="radio" name="paymentMethod" value="TRANSFER">
+                        <div class="method-info">
+                            <span class="method-name">계좌 이체</span>
+                            <span class="method-desc">즉시 이체</span>
+                        </div>
+                    </label>
+                    <label class="method-card">
+                        <input type="radio" name="paymentMethod" value="CULTURE_GIFT_CERTIFICATE">
+                        <div class="method-info">
+                            <span class="method-name">문화상품권</span>
+                            <span class="method-desc">기프티콘/상품권</span>
+                        </div>
+                    </label>
                 </div>
             </section>
 

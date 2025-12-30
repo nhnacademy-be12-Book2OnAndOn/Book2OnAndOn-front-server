@@ -36,8 +36,9 @@ public class PaymentController {
 
         CommonConfirmRequest req = new CommonConfirmRequest(orderId, paymentKey, amount);
 
-        paymentClient.confirmPayment(token, provider, req);
+        PaymentResponse response = paymentClient.confirmPayment(token, provider, req);
 
-        return "redirect:/";
+        // 결제 성공 시 주문 완료 페이지로 이동
+        return "redirect:/orders/complete/" + response.orderNumber();
     }
 }

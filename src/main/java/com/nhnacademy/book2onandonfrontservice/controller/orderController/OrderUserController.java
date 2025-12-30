@@ -61,7 +61,7 @@ public class OrderUserController {
 
         OrderPrepareResponseDto orderSheetResponseDto;
         try {
-            orderSheetResponseDto = orderUserClient.getOrderPrepare(token, req);
+            orderSheetResponseDto = orderUserClient.getOrderPrepare(token, null, null, req);
         } catch (Exception e) {
             log.warn("주문 준비 데이터 조회 실패", e);
             return "redirect:/cartpage?error=order_prepare_failed";
@@ -105,7 +105,7 @@ public class OrderUserController {
 
         String token = toBearer(accessToken);
 
-        OrderCreateResponseDto orderCreateResponseDto = orderUserClient.createPreOrder(token, req);
+        OrderCreateResponseDto orderCreateResponseDto = orderUserClient.createPreOrder(token, null, null, req);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(orderCreateResponseDto);
     }
@@ -147,24 +147,44 @@ public class OrderUserController {
     }
 
     @GetMapping("/{orderNumber}")
-    public String getOrderDetail(Model model,
-                                 @CookieValue(value = "accessToken", required = false) String accessToken,
-                                 @PathVariable("orderNumber") String orderNumber){
+    @ResponseBody
+    public OrderDetailResponseDto getOrderDetail(@CookieValue(value = "accessToken", required = false) String accessToken,
+                                                 @PathVariable("orderNumber") String orderNumber){
         log.info("GET /orders/{} 호출 : 주문 상세 데이터 반환" , orderNumber);
 
-        // TODO
         if(accessToken == null){
             return null;
         }
 
         String token = toBearer(accessToken);
 
-        OrderDetailResponseDto orderResponseDto = orderUserClient.getOrderDetail(token, null, orderNumber);
+        return orderUserClient.getOrderDetail(token, null, orderNumber);
+    }
 
-        model.addAttribute("orderInfo", orderResponseDto);
+    /**
+     * 주문 상세 개별 페이지 뷰 (리스트 내 인라인 상세와 별도)
+     */
+    @GetMapping("/{orderNumber}/page")
+    public String orderDetailPage(Model model,
+                                  @CookieValue(value = "accessToken", required = false) String accessToken,
+                                  @PathVariable("orderNumber") String orderNumber,
+                                  HttpServletRequest request) {
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+        String token = toBearer(accessToken);
+        OrderDetailResponseDto order = orderUserClient.getOrderDetail(token, null, orderNumber);
 
-        // TODO 주문 상세 내역 만들기
-        return "";
+        try {
+            model.addAttribute("user", userClient.getMyInfo(token));
+        } catch (Exception e) {
+            model.addAttribute("user", null);
+        }
+        Object cartCount = request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
+        model.addAttribute("cartCount", cartCount);
+        model.addAttribute("order", order);
+
+        return "orderpayment/OrderDetail";
     }
 
     @GetMapping("/complete/{orderNumber}")
