@@ -357,3 +357,83 @@ body {
 .price-breakdown {
     margin-bottom: 12px;
 }
+
+
+.saved-address-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+.saved-address-btn {
+    cursor: pointer;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    width: 100%;
+    font-weight: 700;
+}
+
+.saved-address-dropdown {
+    display: none; /* 기본 숨김 */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    z-index: 10;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.saved-address-item {
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.saved-address-item:hover {
+    background-color: #f0f8ff;
+}
+
+/* 배송 날짜 버튼 디자인 */
+.date-option-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.date-option-button .day-of-week {
+    font-size: 0.85rem;
+    color: #4f6658;
+}
+
+.date-option-button .date-text {
+    font-size: 0.95rem;
+    color: #1f3a2c;
+    margin-top: 4px;
+}
+
+.date-option-button:hover {
+    border-color: var(--accent);
+    background-color: #eef5ef;
+}
+
+.date-option-button.selected {
+    border-color: var(--accent);
+    background-color: #d9f0d9;
+    color: var(--text);
+    box-shadow: 0 4px 12px rgba(47, 98, 66, 0.2);
+}

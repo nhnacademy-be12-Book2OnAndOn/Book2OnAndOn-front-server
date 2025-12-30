@@ -84,10 +84,11 @@ function buildCartDataFromPrepare(orderItems) {
 
 // --- 1. 초기화 및 데이터 로드 ---
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("dom 완료")
+    setAddressList();
     setDeliveryDateOptions();
     await loadInitialData();
     setupEventListeners();
+    setDeliveryPolicies();
     calculateFinalAmount();
 });
 
@@ -95,6 +96,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 // =================================================================
 // I. ORDER LOGIC (주문 상품, 배송지, 포장지 관리)
 // =================================================================
+function setAddressList(){
+    const wrapper = document.querySelector('.saved-address-wrapper');
+    if (!wrapper) return;
+
+    const btn = wrapper.querySelector('.saved-address-btn');
+    const dropdown = wrapper.querySelector('.saved-address-dropdown');
+
+    // 버튼 클릭 시 드롭다운 토글
+    btn.addEventListener('click', () => {
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // 드롭다운 항목 클릭 시 input 채우기
+    dropdown.querySelectorAll('.saved-address-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.getElementById('recipient').value = item.dataset.recipient;
+            document.getElementById('recipientPhoneNumber').value = item.dataset.phone;
+            document.getElementById('deliveryAddress').value = item.dataset.address;
+            document.getElementById('deliveryAddressDetail').value = item.dataset.detail;
+            dropdown.style.display = 'none'; // 클릭 후 드롭다운 닫기
+        });
+    });
+
+    // wrapper 외부 클릭 시 드롭다운 닫기
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+}
+
+
 
 async function loadInitialData() {
     try {
@@ -210,7 +243,7 @@ function setupEventListeners() {
 
     const pointInput = document.getElementById('pointDiscountAmount');
     const currentPointValue = document.getElementById('currentPointValue');
-    console.log(currentPointValue);
+
     const maxPoint = Number(currentPointValue.dataset.currentPoint);
 
     pointInput.addEventListener('input', () => {
@@ -237,7 +270,7 @@ function setupEventListeners() {
             pointInput.value = '0';
             return;
         }
-        console.log("입력 값 : {}, 최대 포인트 : {}", inputPoint, maxPoint);
+
         // 보유 포인트 초과
         if (inputPoint > maxPoint) {
             alert(`사용 가능한 최대 포인트는 ${maxPoint.toLocaleString()}P 입니다.`);
@@ -262,6 +295,49 @@ function setupEventListeners() {
     //     }
     //     calculateFinalAmount();
     // });
+}
+
+
+function setDeliveryPolicies(){
+    const deliveryMethodContainer = document.getElementById('deliveryMethodContainer');
+
+// API 호출 (예: /api/delivery-policies)
+    fetch('/delivery-policies')
+        .then(response => {
+            if (!response.ok) throw new Error('배송 방식 불러오기 실패');
+            return response.json();
+        })
+        .then(pageData => {
+            // Page 객체 안에 content가 실제 리스트라 가정
+            const data = pageData.content || [];
+            deliveryMethodContainer.innerHTML = ''; // 초기 로딩 메시지 제거
+
+            console.log(data)
+            data.forEach(method => {
+                const label = document.createElement('label');
+                label.style.display = 'block';
+                label.style.marginBottom = '8px';
+
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'deliveryMethod';
+                radio.value = method.deliveryPolicyId; // ID 사용
+                radio.checked = method.default || false; // 기본값이 없으면 false 처리
+
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(
+                    ` ${method.deliveryPolicyName} (${method.deliveryFee.toLocaleString()}원)` +
+                    (method.freeDeliveryThreshold ? ` / ${method.freeDeliveryThreshold.toLocaleString()}원 이상 무료` : '')
+                ));
+
+                deliveryMethodContainer.appendChild(label);
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            // alert("배송 방식 불러오기 실패, " + err)
+        });
+
 }
 
 function renderProductList() {
@@ -466,7 +542,7 @@ function validateInputs(address, orderItems) {
     return true;
 }
 
-// 배송 희망날짜
+// 배송 희망날짜 설정
 function setDeliveryDateOptions() {
     const container = document.getElementById('deliveryDateOptions');
     if (!container) return;
@@ -481,11 +557,12 @@ function setDeliveryDateOptions() {
         if (hiddenInput) {
             hiddenInput.value = dateString;
             hiddenInput.dispatchEvent(new Event('change'));
+            console.log("선택된 배송 날짜:", dateString); // 콘솔 출력
         }
     };
 
     let generatedCount = 0;
-    let daysToAdd = 0;
+    let daysToAdd = 1; // 오늘 제외
 
     while (generatedCount < MAX_OPTIONS_TO_SHOW) {
         const currentDay = new Date(today);
@@ -493,24 +570,16 @@ function setDeliveryDateOptions() {
 
         const dayOfWeek = currentDay.getDay();
 
-        if (dayOfWeek !== 0) { // 일요일이 아니면 버튼 생성
-            const dateString = `${currentDay.getFullYear()}-${String(currentDay.getMonth() + 1).padStart(2, '0')}-${String(currentDay.getDate()).padStart(2, '0')}`;
-            const displayDay = days[dayOfWeek];
+        if (dayOfWeek !== 0) { // 일요일 제외
+            const dateString = `${currentDay.getFullYear()}-${String(currentDay.getMonth() + 1).padStart(2,'0')}-${String(currentDay.getDate()).padStart(2,'0')}`;
             const displayDate = `${currentDay.getMonth() + 1}/${currentDay.getDate()}`;
+            const displayDay = days[dayOfWeek];
 
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'date-option-button';
             button.setAttribute('data-date', dateString);
-
-            let dayTextDisplay = displayDay;
-            if (generatedCount === 0) {
-                dayTextDisplay = '오늘';
-            } else if (generatedCount === 1) {
-                dayTextDisplay = '내일';
-            }
-
-            button.innerHTML = `<span class="day-of-week">${dayTextDisplay} (${displayDay})</span><span class="date-text">${displayDate}</span>`;
+            button.innerHTML = `<span class="day-of-week">${displayDay}</span><span class="date-text">${displayDate}</span>`;
 
             button.addEventListener('click', () => {
                 document.querySelectorAll('.date-option-button').forEach(btn => btn.classList.remove('selected'));
@@ -525,7 +594,8 @@ function setDeliveryDateOptions() {
         daysToAdd++;
     }
 
-    const firstButton = document.querySelector('.date-option-button');
+    // 첫 번째 버튼 선택 상태로 초기화
+    const firstButton = container.querySelector('.date-option-button');
     if (firstButton) {
         firstButton.click();
     }
@@ -560,13 +630,14 @@ function calculateFinalAmount() {
     const couponDiscount = Number(document.getElementById('couponSelect')?.value) || 0;
     let pointDiscount = Number(document.getElementById('pointDiscountAmount')?.value) || 0;
 
-    pointDiscount = Math.min(pointDiscount, userPointBalance);
     const orderItems = collectOrderItems();
     const result = calculateFeesAndDiscounts(totalItemPrice, couponDiscount, pointDiscount, orderItems);
 
-    const deliveryFeeVal = Number((cartData.deliveryFee ?? result.deliveryFee) || 0);
-    const wrappingFeeVal = Number((cartData.wrappingFee ?? result.wrappingFee) || 0);
-    const finalAmountVal = Number((cartData.finalPaymentAmount ?? result.finalAmount) || 0);
+    const deliveryFeeVal = Number((result.deliveryFee) || 0);
+    const wrappingFeeVal = Number((result.wrappingFee) || 0);
+    const finalAmountVal = Number((result.finalAmount) || 0);
+
+
 
     document.getElementById('summaryTotalItemPrice').textContent = `${totalItemPrice.toLocaleString()}원`;
     document.getElementById('deliveryFee').textContent = `${deliveryFeeVal.toLocaleString()}원`;
@@ -580,8 +651,8 @@ function calculateFinalAmount() {
 }
 
 function calculateFeesAndDiscounts(totalItemPrice, coupon, point, items) {
-    const wrappingFee = items.reduce((sum, i) => sum + (i.isWrapped ? (i.wrappingPaperPrice * i.quantity) : 0), 0);
-    const deliveryFee = (totalItemPrice - coupon) >= FREE_DELIVERY_THRESHOLD ? 0 : FIXED_DELIVERY_FEE;
+    const wrappingFee = items.reduce((sum, i) => sum + (i.isWrapped ? i.wrappingPaperPrice : 0), 0);
+    const deliveryFee = (totalItemPrice + wrappingFee) > 15000 ? 0 : 3000;
     return {
         deliveryFee, wrappingFee,
         finalAmount: Math.max(0, totalItemPrice + deliveryFee + wrappingFee - coupon - point)
@@ -601,18 +672,6 @@ function getMemberCouponId(){
     return Number(couponId);
 }
 
-function getTomorrowString() {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-
-    return `${yyyy}-${mm}-${dd}`;
-}
-
-console.log(getTomorrowString());
 
 async function handleTossPaymentRequest() {
     const orderItems = collectOrderItems();
@@ -620,8 +679,7 @@ async function handleTossPaymentRequest() {
     if (!validateInputs(address, orderItems)) return;
     const deliveryPolicyId = getDeliveryPolicyId();
     const memberCouponId = getMemberCouponId();
-    const wantDeliveryDate = getTomorrowString();
-    console.log(wantDeliveryDate);
+    const wantDeliveryDate = document.getElementById('wantDeliveryDate')?.value;
 
     try {
         const headers = { 'Content-Type': 'application/json' };
