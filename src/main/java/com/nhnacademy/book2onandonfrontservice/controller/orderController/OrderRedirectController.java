@@ -80,7 +80,7 @@ public class OrderRedirectController {
         return "orderpayment/OrderPayment";
     }
 
-    @GetMapping("/orders/guest/payment")
+    @GetMapping("/orders/guest/prepare")
     public String guestOrderPaymentPage(Model model,
                                         @CookieValue(name = "GUEST_ID") String guestId,
                                         @ModelAttribute OrderPrepareRequestDto req) {
