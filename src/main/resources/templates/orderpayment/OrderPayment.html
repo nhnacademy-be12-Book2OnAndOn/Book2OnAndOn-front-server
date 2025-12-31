@@ -93,7 +93,7 @@
 
                                     <div class="item-price">
                                         가격:
-                                        <span th:text="|${#numbers.formatInteger(item.priceSales * item.quantity, 0, 'COMMA')}원|">0원</span>
+                                        <span th:text="|${#numbers.formatInteger((item.priceSales ?: 0) * (item.quantity ?: 1), 0, 'COMMA')}원|">0원</span>
                                     </div>
 
                                     <!-- 포장 옵션 -->

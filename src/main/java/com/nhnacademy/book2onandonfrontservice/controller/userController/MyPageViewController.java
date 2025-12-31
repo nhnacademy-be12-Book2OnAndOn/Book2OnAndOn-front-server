@@ -118,7 +118,7 @@ public class MyPageViewController {
             } catch (Exception e) {
                 log.warn("주문 요약 조회 실패", e);
                 model.addAttribute("orderCount", 0);
-                model.addAttribute("orderStatusSummary", new OrderStatusSummary(0, 0));
+                model.addAttribute("orderStatusSummary", new OrderStatusSummary(0, 0, 0));
                 model.addAttribute("recentOrders", List.of());
             }
             model.addAttribute("defaultAddress", resolveDefaultAddress(accessToken));
@@ -240,6 +240,7 @@ public class MyPageViewController {
     private OrderStatusSummary toOrderStatusSummary(List<OrderSimpleDto> orders) {
         long inTransit = 0;
         long delivered = 0;
+        long completed = 0;
         for (OrderSimpleDto o : orders) {
             OrderStatus status = o.getOrderStatus();
             if (status == null) {
@@ -247,11 +248,13 @@ public class MyPageViewController {
             }
             if (status == OrderStatus.SHIPPING || status == OrderStatus.PREPARING || status == OrderStatus.PENDING) {
                 inTransit++;
-            } else if (status == OrderStatus.DELIVERED || status == OrderStatus.COMPLETED) {
+            } else if (status == OrderStatus.DELIVERED) {
                 delivered++;
+            } else if (status == OrderStatus.COMPLETED) {
+                completed++;
             }
         }
-        return new OrderStatusSummary(inTransit, delivered);
+        return new OrderStatusSummary(inTransit, delivered, completed);
     }
 
     private List<RecentOrderView> toRecentOrders(List<OrderSimpleDto> orders) {
@@ -646,7 +649,7 @@ public class MyPageViewController {
         response.addCookie(cookie);
     }
 
-    private record OrderStatusSummary(long inTransit, long delivered) {
+    private record OrderStatusSummary(long inTransit, long delivered, long completed) {
     }
 
     private record RecentOrderView(

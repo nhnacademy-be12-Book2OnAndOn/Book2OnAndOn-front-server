@@ -3,8 +3,10 @@ package com.nhnacademy.book2onandonfrontservice.controller.orderController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.nhnacademy.book2onandonfrontservice.client.GuestOrderClient;
 import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.BookInfoDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreateResponseDto;
@@ -45,6 +47,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequiredArgsConstructor
 @RequestMapping("/orders")
 public class OrderUserController {
+    private final GuestOrderClient guestOrderClient;
     private final OrderUserClient orderUserClient;
     private final UserClient userClient;
     private final FrontTokenService frontTokenService;
@@ -57,20 +60,24 @@ public class OrderUserController {
                                   HttpServletRequest request) {
         log.info("POST /orders/prepare 호출");
 
-        // 비로그인 게스트는 회원 주문 준비를 호출하지 않고 게스트 결제 페이지로 보낸다.
-        if (accessToken == null || accessToken.isBlank()) {
-            return "redirect:/orders/guest/payment";
-        }
-
         String token = toBearer(accessToken);
         String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
         Long userId = resolveUserId(accessToken);
         Long userHeader = userId;
-        model.addAttribute("isGuest", false);
 
         OrderPrepareResponseDto orderSheetResponseDto;
         try {
-            orderSheetResponseDto = orderUserClient.getOrderPrepare(token, guestId, userHeader, req);
+            if (token == null) {
+                if (guestId == null || guestId.isBlank()) {
+                    guestId = CookieUtils.getCookieValue(request, "guestId");
+                }
+                if (guestId == null || guestId.isBlank()) {
+                    return "redirect:/cartpage?error=guest_id_missing";
+                }
+                orderSheetResponseDto = guestOrderClient.getOrderPrepare(null, guestId, req);
+            } else {
+                orderSheetResponseDto = orderUserClient.getOrderPrepare(token, guestId, userHeader, req);
+            }
         } catch (FeignException.Unauthorized e) {
             // 토큰이 만료/무효인 경우 게스트로 전환하여 다시 시도
             log.warn("주문 준비 401 -> 게스트로 재시도");
@@ -78,7 +85,10 @@ public class OrderUserController {
             token = null;
             userHeader = null;
             try {
-                orderSheetResponseDto = orderUserClient.getOrderPrepare(null, guestId, null, req);
+                if (guestId == null || guestId.isBlank()) {
+                    guestId = CookieUtils.getCookieValue(request, "guestId");
+                }
+                orderSheetResponseDto = guestOrderClient.getOrderPrepare(null, guestId, req);
             } catch (Exception ex) {
                 log.warn("주문 준비 게스트 재시도 실패", ex);
                 return "redirect:/cartpage?error=order_prepare_failed";
@@ -102,6 +112,9 @@ public class OrderUserController {
         model.addAttribute("cartCount",
                 request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null);
 
+        boolean isGuest = (token == null);
+        model.addAttribute("isGuest", isGuest);
+
         model.addAttribute("orderItems", orderSheetResponseDto.orderItems());
         model.addAttribute("addresses", orderSheetResponseDto.addresses());
         model.addAttribute("coupons", orderSheetResponseDto.coupons());
@@ -116,7 +129,7 @@ public class OrderUserController {
                         }).sum();
         model.addAttribute("itemTotal", itemTotal);
 
-        return token != null ? "orderpayment/OrderPayment" : "orderpayment/OrderPaymentGuest";
+        return "orderpayment/OrderPayment";
     }
 
     @PostMapping
