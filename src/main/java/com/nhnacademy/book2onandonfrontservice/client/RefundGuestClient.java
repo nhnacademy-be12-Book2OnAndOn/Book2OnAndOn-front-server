@@ -40,7 +40,7 @@ public interface RefundGuestClient {
     /**
      * 비회원 반품 신청 취소
      */
-    @PostMapping("/api/guest/orders/{orderId}/refunds/{refundId}")
+    @PostMapping("/api/guest/orders/{orderId}/refunds/{refundId}/cancel")
     RefundResponseDto cancelRefundForGuest(
             @RequestHeader(value = "Authorization", required = false) String accessToken,
             @PathVariable("orderId") Long orderId,

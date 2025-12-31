@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>반품 신청 - Book2OnAndOn</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        header {
+            background: #4A7C59; color: white; padding: 25px 30px;
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(74, 124, 89, 0.3);
+            margin-bottom: 20px;
+        }
+        header h1 { font-size: 1.8em; margin-bottom: 5px; }
+        header p { opacity: 0.9; font-size: 0.95em; }
+
+        .card {
+            background: white; border-radius: 15px; padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); margin-bottom: 20px;
+        }
+        .card h2 {
+            color: #4A7C59; margin-bottom: 18px; font-size: 1.4em;
+            border-bottom: 3px solid #4A7C59; padding-bottom: 10px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; color: #333; font-weight: 600;
+            margin-bottom: 8px; font-size: 0.95em;
+        }
+        .form-group label .required { color: #dc3545; margin-left: 3px; }
+
+        .form-group select, .form-group textarea {
+            width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0;
+            border-radius: 8px; font-size: 1em; transition: all 0.3s; font-family: inherit;
+        }
+        .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: #4A7C59; box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+        }
+        .form-group textarea { resize: vertical; min-height: 110px; }
+
+        .info-box {
+            background: #f8f9fa; border-left: 4px solid #4A7C59;
+            padding: 15px; margin-bottom: 18px; border-radius: 6px;
+        }
+        .info-box h3 { color: #4A7C59; font-size: 1em; margin-bottom: 10px; }
+        .info-box ul { margin-left: 20px; color: #666; line-height: 1.8; }
+
+        .order-items {
+            border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px;
+            margin-bottom: 12px; max-height: 420px; overflow-y: auto;
+        }
+
+        .item-checkbox {
+            display: flex; align-items: flex-start; padding: 15px; margin-bottom: 10px;
+            border: 2px solid #f0f0f0; border-radius: 10px; transition: all 0.25s; cursor: pointer;
+        }
+        .item-checkbox:hover { background: #f8f9fa; border-color: #4A7C59; }
+        .item-checkbox.selected { background: #f0f8f4; border-color: #4A7C59; }
+
+        .item-checkbox input[type="checkbox"] {
+            width: 20px; height: 20px; margin-right: 14px; cursor: pointer;
+            accent-color: #4A7C59; flex-shrink: 0; margin-top: 2px;
+        }
+
+        .item-details { flex: 1; }
+        .item-name { font-weight: 700; color: #333; margin-bottom: 6px; }
+        .item-info { font-size: 0.9em; color: #666; }
+        .item-price { font-weight: 800; color: #4A7C59; margin-top: 8px; }
+
+        .summary-box {
+            background: #f0f8f4; border: 2px solid rgba(74, 124, 89, 0.25);
+            border-radius: 12px; padding: 16px; margin-bottom: 20px;
+        }
+        .summary-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            gap: 10px; padding: 6px 0; color: #333;
+        }
+        .summary-row .label { font-weight: 700; }
+        .summary-row .value { font-weight: 800; }
+        .summary-row.muted { color: #666; font-weight: 600; }
+        .summary-row.negative .value { color: #c82333; }
+        .summary-divider { height: 1px; background: rgba(0,0,0,0.08); margin: 10px 0; }
+        .summary-row.total .label { color: #4A7C59; font-size: 1.05em; }
+        .summary-row.total .value { color: #4A7C59; font-size: 1.2em; }
+
+        .warning-box {
+            background: #d7e9dc; border-left: 4px solid #4A7C59;
+            padding: 15px; margin-bottom: 20px; border-radius: 6px;
+        }
+        .warning-box h3 { color: #4A7C59; font-size: 1em; margin-bottom: 10px; }
+        .warning-box ul { margin-left: 20px; color: #333; line-height: 1.8; }
+
+        .btn-group { display: flex; gap: 12px; margin-top: 22px; }
+        .btn {
+            flex: 1; background: #4A7C59; color: white; border: none;
+            padding: 15px 18px; border-radius: 10px; font-size: 1.05em;
+            font-weight: 800; cursor: pointer; transition: all 0.25s ease;
+        }
+        .btn:hover:not(:disabled) {
+            background: #3d6549; transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 124, 89, 0.25);
+        }
+        .btn:disabled { background: #cfcfcf; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
+
+        .alert {
+            padding: 14px 18px; border-radius: 10px; margin-bottom: 16px;
+            display: none; animation: slideDown 0.3s;
+        }
+        .alert.show { display: block; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        @media (max-width: 768px) {
+            .card { padding: 20px; }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📦 반품 신청</h1>
+        <p>선택한 상품에 따라 예상 환불 금액이 자동 계산됩니다</p>
+    </header>
+
+    <div id="alertBox" class="alert"></div>
+
+    <div class="card">
+        <h2>반품 신청</h2>
+
+        <form id="refundForm" onsubmit="submitRefund(event)">
+            <div class="info-box">
+                <h3>반품 가능 상품 선택</h3>
+                <ul>
+                    <li>반품할 상품을 선택해주세요 (선택 시 해당 상품은 ‘전체 수량’ 반품으로 처리됩니다)</li>
+                    <li>선택 변경 시 예상 환불 금액이 즉시 반영됩니다</li>
+                </ul>
+            </div>
+
+            <div class="form-group">
+                <label>반품 상품 선택 <span class="required">*</span></label>
+                <div class="order-items" id="itemsList"></div>
+
+                <div class="summary-box" id="summaryBox">
+                    <div class="summary-row muted">
+                        <div class="label" id="summaryCount">상품 0건 · 수량 0개</div>
+                        <div class="value"></div>
+                    </div>
+                    <div class="summary-row">
+                        <div class="label">선택 상품 금액</div>
+                        <div class="value" id="summarySelectedAmount">0원</div>
+                    </div>
+                    <div class="summary-row negative">
+                        <div class="label">예상 배송비 차감</div>
+                        <div class="value" id="summaryShippingDeduction">- 0원</div>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-row total">
+                        <div class="label">예상 환불 금액</div>
+                        <div class="value" id="summaryExpectedRefund">0원</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>반품 사유 <span class="required">*</span></label>
+                <select id="refundReason" required onchange="recalcSummary()">
+                    <option value="">선택해주세요</option>
+                    <option value="DEFECT">상품 불량</option>
+                    <option value="WRONG_ITEM">상품 오배송</option>
+                    <option value="CHANGE_OF_MIND">단순 변심</option>
+                    <option value="OTHER">기타</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>상세 사유 <span class="required">*</span></label>
+                <textarea id="detailReason" placeholder="반품 사유를 자세히 입력해주세요 (최소 10자)" required minlength="10"></textarea>
+            </div>
+
+            <div class="warning-box">
+                <h3>⚠️ 반품 안내사항</h3>
+                <ul>
+                    <li>반품은 상품 수령 후 7일 이내에 신청 가능합니다</li>
+                    <li>단순 변심의 경우 왕복 배송비가 발생할 수 있습니다</li>
+                    <li>상품 불량/오배송의 경우 배송비는 판매자 부담입니다</li>
+                    <li>사용 또는 훼손된 상품은 반품이 제한될 수 있습니다</li>
+                </ul>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="goBack()">취소</button>
+                <button type="submit" class="btn" id="submitBtn" disabled>반품 신청</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const POLICY = {
+        CHANGE_OF_MIND_ROUNDTRIP_FEE: 6000,
+        APPLY_FEE_REASON: 'CHANGE_OF_MIND',
+        FREE_FEE_MIN_AMOUNT: null
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // orderId가 없으면 데모모드로 강제 동작하도록 처리 (더미가 안 보이는 문제 방지)
+    const DEMO_MODE = !urlParams.get('orderId');
+    const orderId = urlParams.get('orderId') || 'DEMO_ORDER_1';
+    const userType = urlParams.get('type') || 'member';
+    const guestPassword = urlParams.get('password') || 'DEMO_PW';
+
+    let orderData = null;
+
+    window.onload = function() {
+        if (DEMO_MODE) {
+            showAlert('데모 모드로 실행 중입니다 (URL에 orderId가 없어 더미데이터를 표시합니다)', 'success');
+        }
+        loadRefundableItems();
+    };
+
+    async function loadRefundableItems() {
+        try {
+            // 실제 API 연결 시에는 DEMO_MODE가 false일 때만 fetch 호출하도록 구성하면 됨
+            if (!DEMO_MODE) {
+                // 여기에 실제 fetch 로직 연결
+            }
+
+            // 더미 데이터 (반품 수량 조절 제거: 체크 시 item.quantity 전수량 반품)
+            orderData = {
+                orderId: orderId,
+                items: [
+                    { orderItemId: 1, bookId: 101, name: '클린 코드', quantity: 2, price: 33000 },
+                    { orderItemId: 2, bookId: 102, name: '리팩터링', quantity: 1, price: 35000 },
+                    { orderItemId: 3, bookId: 103, name: '이펙티브 자바', quantity: 3, price: 36000 },
+                    { orderItemId: 4, bookId: 104, name: '이펙티브 자바1', quantity: 3, price: 36000 },
+                    { orderItemId: 5, bookId: 105, name: '이펙티브 자바2', quantity: 3, price: 36000 }
+                ]
+            };
+
+            renderItems();
+            recalcSummary();
+
+        } catch (error) {
+            showAlert('주문 정보를 불러오는데 실패했습니다', 'error');
+            console.error(error);
+        }
+    }
+
+    function renderItems() {
+        const itemsList = document.getElementById('itemsList');
+        itemsList.innerHTML = '';
+
+        if (!orderData?.items?.length) {
+            itemsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">반품 가능한 상품이 없습니다.</p>';
+            document.getElementById('submitBtn').disabled = true;
+            return;
+        }
+
+        orderData.items.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item-checkbox';
+            itemDiv.onclick = function() {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+                toggleRowUI(this, checkbox.checked);
+                recalcSummary();
+            };
+
+            const lineAmount = item.price * item.quantity;
+
+            itemDiv.innerHTML = `
+                <input type="checkbox"
+                       id="item_${item.orderItemId}"
+                       data-item-id="${item.orderItemId}"
+                       onclick="event.stopPropagation(); toggleFromCheckbox(${item.orderItemId});">
+                <div class="item-details">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-info">주문 수량: ${item.quantity}개</div>
+                    <div class="item-price">${lineAmount.toLocaleString()}원</div>
+                </div>
+            `;
+            itemsList.appendChild(itemDiv);
+        });
+    }
+
+    function toggleFromCheckbox(orderItemId) {
+        const checkbox = document.getElementById(`item_${orderItemId}`);
+        const wrapper = checkbox.closest('.item-checkbox');
+        toggleRowUI(wrapper, checkbox.checked);
+        recalcSummary();
+    }
+
+    function toggleRowUI(wrapperEl, isChecked) {
+        if (isChecked) wrapperEl.classList.add('selected');
+        else wrapperEl.classList.remove('selected');
+    }
+
+    function recalcSummary() {
+        let selectedItemCount = 0;
+        let selectedQtySum = 0;
+        let selectedAmount = 0;
+
+        orderData?.items?.forEach(item => {
+            const checkbox = document.getElementById(`item_${item.orderItemId}`);
+            if (checkbox?.checked) {
+                selectedItemCount++;
+                selectedQtySum += item.quantity;                 // 전수량 반품
+                selectedAmount += (item.price * item.quantity);  // 전수량 금액
+            }
+        });
+
+        const reason = document.getElementById('refundReason').value;
+        let shippingDeduction = 0;
+
+        if (selectedItemCount > 0 && reason === POLICY.APPLY_FEE_REASON) {
+            if (typeof POLICY.FREE_FEE_MIN_AMOUNT === 'number') {
+                shippingDeduction = (selectedAmount >= POLICY.FREE_FEE_MIN_AMOUNT) ? 0 : POLICY.CHANGE_OF_MIND_ROUNDTRIP_FEE;
+            } else {
+                shippingDeduction = POLICY.CHANGE_OF_MIND_ROUNDTRIP_FEE;
+            }
+        }
+
+        const expectedRefund = Math.max(0, selectedAmount - shippingDeduction);
+
+        document.getElementById('summaryCount').textContent = `상품 ${selectedItemCount}건 · 수량 ${selectedQtySum}개`;
+        document.getElementById('summarySelectedAmount').textContent = `${selectedAmount.toLocaleString()}원`;
+        document.getElementById('summaryShippingDeduction').textContent = `- ${shippingDeduction.toLocaleString()}원`;
+        document.getElementById('summaryExpectedRefund').textContent = `${expectedRefund.toLocaleString()}원`;
+
+        document.getElementById('submitBtn').disabled = selectedItemCount === 0;
+    }
+
+    async function submitRefund(event) {
+        event.preventDefault();
+
+        const selectedItems = [];
+        orderData.items.forEach(item => {
+            const checkbox = document.getElementById(`item_${item.orderItemId}`);
+            if (checkbox?.checked) {
+                selectedItems.push({
+                    orderItemId: item.orderItemId,
+                    bookId: item.bookId,
+                    quantity: item.quantity // 전수량 반품
+                });
+            }
+        });
+
+        if (selectedItems.length === 0) { showAlert('반품할 상품을 선택해주세요', 'error'); return; }
+
+        const reason = document.getElementById('refundReason').value;
+        const detailReason = document.getElementById('detailReason').value.trim();
+
+        if (!reason) { showAlert('반품 사유를 선택해주세요', 'error'); return; }
+        if (detailReason.length < 10) { showAlert('상세 사유를 10자 이상 입력해주세요', 'error'); return; }
+
+        const payload = { items: selectedItems, reason, detailReason };
+
+        try {
+            // 실제 API 연결 시 userType에 따라 fetch 분기
+            console.log('[submit payload]', { userType, orderId, guestPassword, payload });
+
+            showAlert('반품 신청이 완료되었습니다', 'success');
+            setTimeout(() => window.location.href = 'refund_mypage.html', 1200);
+
+        } catch (error) {
+            showAlert('반품 신청에 실패했습니다', 'error');
+            console.error(error);
+        }
+    }
+
+    function goBack() { window.history.back(); }
+
+    function showAlert(message, type) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.className = `alert alert-${type} show`;
+        alertBox.textContent = message;
+        setTimeout(() => alertBox.classList.remove('show'), 3000);
+    }
+</script>
+</body>
+</html>
