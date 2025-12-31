@@ -178,16 +178,24 @@ function renderOrderDetailUI(detail, mode) {
     if (topActionContainer) topActionContainer.innerHTML = '';
 
     let itemsHtml = '';
+    const statusKey = (detail.orderStatus || detail.status || '').toString();
+    const allowReview = statusKey === 'DELIVERED' || statusKey === 'COMPLETED';
     detail.items.forEach(item => {
         for (let i = 0; i < item.quantity; i++) {
             const isCheckable = [ORDER_STATUS.PENDING, ORDER_STATUS.SHIPPING, ORDER_STATUS.DELIVERED]
                 .includes(detail.status);
+            const hasBookId = item.bookId !== undefined && item.bookId !== null;
+            const reviewBtn = allowReview && hasBookId
+                ? `<a class="btn-secondary" style="margin-left:8px; white-space:nowrap;"
+                      href="/books/${item.bookId}?tab=reviews">리뷰 작성</a>`
+                : '';
             itemsHtml += `
                 <div class="order-item-detail" style="display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:10px; background:#fcfcfc; border-left:3px solid #ddd;">
                 ${isCheckable ?
                 `<input type="checkbox" class="item-checkbox" data-id="${item.orderItemId || item.id}" data-price="${item.price}" data-name="${item.name}">`
                 : ''}
-                <span>${item.name} (1권) - ${item.price.toLocaleString()}원 ${item.isWrapped ? `(포장 옵션: ${item.wrapName})` : ''}</span>
+                <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name} (1권) - ${item.price.toLocaleString()}원 ${item.isWrapped ? `(포장 옵션: ${item.wrapName})` : ''}</span>
+                ${reviewBtn}
             </div>`;
         }
     });

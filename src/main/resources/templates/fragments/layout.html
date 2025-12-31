@@ -111,6 +111,16 @@
         // 비회원 addToCart 요청 포맷”이 단일화
         function buildGuestAddOpts(payload) {
             const guestId = (typeof window.ensureGuestId === "function") ? window.ensureGuestId() : null;
+            // 선택 항목이 주문에 반영되도록 selected=true 보강
+            try {
+                const obj = JSON.parse(payload);
+                if (obj && typeof obj === 'object' && !('selected' in obj)) {
+                    obj.selected = true;
+                    payload = JSON.stringify(obj);
+                }
+            } catch (e) {
+                // ignore parse errors
+            }
             return {
                 method: "POST",
                 credentials: "include",

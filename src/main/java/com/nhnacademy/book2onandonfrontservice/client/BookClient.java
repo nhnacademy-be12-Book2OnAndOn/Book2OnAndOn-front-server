@@ -169,7 +169,8 @@ public interface BookClient {
     //리뷰 생성가능한지 체크하는 로직 (true:  리뷰생성 버튼 활성화 / false: 리뷰 생성 버튼 비활성화)
     /// TODO: 리뷰 버튼 생성을 활성화 할건지 비활성화 할건지에 대한 boolean값을 넘겨주니깐 잘 사용해 먹도로록....
     @GetMapping("/api/books/{bookId}/review/eligibility")
-    Boolean checkReviewEligibility(@PathVariable Long bookId);
+    Boolean checkReviewEligibility(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                                   @PathVariable Long bookId);
 
     /// --------------할인율 변경 및 가격 상태조회--------------- 할인율 변경 요청 (비동기 실행됨)
     @PostMapping("/api/admin/price/discount")

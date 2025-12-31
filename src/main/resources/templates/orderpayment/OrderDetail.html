@@ -212,6 +212,7 @@
                 <th>상품명</th>
                 <th style="width:120px;">수량</th>
                 <th style="width:160px;">금액</th>
+                <th style="width:160px;" th:if="${order.orderStatus == 'DELIVERED' or order.orderStatus == 'COMPLETED'}">리뷰</th>
             </tr>
             </thead>
             <tbody>
@@ -222,6 +223,9 @@
                 </td>
                 <td th:text="${item.orderItemQuantity}">1</td>
                 <td th:text="${item.unitPrice != null ? #numbers.formatInteger(item.unitPrice, 0, 'COMMA') + '원' : '-'}">0원</td>
+                <td th:if="${order.orderStatus == 'DELIVERED' or order.orderStatus == 'COMPLETED'}">
+                    <a class="btn-secondary" th:href="@{'/books/' + ${item.bookId} + '?tab=reviews'}">리뷰 작성</a>
+                </td>
             </tr>
             </tbody>
         </table>
