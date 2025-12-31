@@ -1,6 +1,5 @@
 package com.nhnacademy.book2onandonfrontservice.client;
 
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.OrderRollbackDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCancelResponseDto;
@@ -9,7 +8,6 @@ import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderDetail
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderSimpleDto;
 import com.nhnacademy.book2onandonfrontservice.client.OrderClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,8 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "gateway-service", contextId = "OrderUserClient", url = "${gateway.base-url}")
-public interface OrderUserClient {
+@FeignClient(name = "gateway-service", contextId = "OrderAdminClient", url = "${gateway.base-url}")
+public interface OrderAdminClient {
 
     /**
      * 장바구니 혹은 바로구매시 준비할 데이터 (책 정보, 회원 배송지 정보, 회원 사용 가능한 쿠폰, 회원 현재 포인트)
@@ -73,8 +71,4 @@ public interface OrderUserClient {
     @PatchMapping("/api/orders/{orderNumber}/cancel")
     void cancelOrder(@RequestHeader(value = "Authorization", required = false) String accessToken,
                      @PathVariable("orderNumber") String orderNumber);
-
-    @PatchMapping("/api/orders/rollback")
-    void rollbackOrder(@RequestHeader(value = "Authorization", required = false) String accessToken,
-                       @RequestBody OrderRollbackDto req);
 }

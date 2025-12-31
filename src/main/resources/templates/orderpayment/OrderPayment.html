@@ -301,6 +301,10 @@
     </div>
 </div>
 
+<script th:inline="javascript">
+    window.coupons = [[${coupons}]];
+</script>
+
 <span id="user-info"
       th:data-user-name="${user != null ? user.name : ''}"
       th:data-user-email="${user != null ? user.email : ''}">

@@ -1,5 +1,5 @@
 // --- 상수 및 전역 변수 영역 (Order & Payment 공통) ---
-var API_BASE = {
+const API_BASE = {
     CART: '/cart',
     ORDER: '/orders',
     WRAP: '/wrappapers',
@@ -717,6 +717,8 @@ function getMemberCouponId(){
 }
 
 
+let orderResult;
+
 async function handleTossPaymentRequest() {
     const orderItems = collectOrderItems();
     const address = collectDeliveryAddress();
@@ -750,18 +752,19 @@ async function handleTossPaymentRequest() {
             })
         });
 
-        const orderResult = await response.json();
+        orderResult = await response.json();
+
 
         if (!response.ok) {
             let message = "주문 생성 실패";
 
             try {
                 message = orderResult.message || message;
-            } catch {}
+            } catch {
+            }
 
             throw new Error(message);
         }
-
 
 
         //상품이 2건 이상이면 "제목 외 N건" , 1건이면 "제목"만 표시
@@ -780,9 +783,28 @@ async function handleTossPaymentRequest() {
             customerName,
             customerEmail
         );
+
     } catch (e) {
         console.error("결제 프로세스 오류:", e);
         alert("주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+
+        console.log(orderResult.orderNumber);
+
+        try {
+            const headers = {'Content-Type': 'application/json'};
+
+            // 1. 서버에 주문 생성
+            const response = await fetch("/orders/rollback", {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify({
+                    orderNumber: orderResult.orderNumber,
+                    memberCouponId: memberCouponId
+                })
+            });
+        } catch (e) {
+            alert("주문 처리중 오류 : " + e)
+        }
     }
 }
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.OrderRollbackDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreateResponseDto;
@@ -291,4 +292,25 @@ public class OrderUserController {
         }
         return new RestPage<>(content, pageable, total);
     }
+
+    // 주문 실패시
+    @PatchMapping("/rollback")
+    @ResponseBody
+    // orderNumber, memberCouponId, userId, point, orderId
+    public ResponseEntity<Void> rollbackResource(@CookieValue("accessToken") String accessToken,
+                                                 @RequestBody OrderRollbackDto req){
+
+        String token;
+
+        if(accessToken == null){
+            token = accessToken;
+        }
+
+        token = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+                orderUserClient.rollbackOrder(token, req);
+
+        return ResponseEntity.noContent().build();
+    }
+
+
 }
