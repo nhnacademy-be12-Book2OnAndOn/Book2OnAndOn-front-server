@@ -2,6 +2,7 @@ package com.nhnacademy.book2onandonfrontservice.client;
 
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.RefundAvailableItemResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.RefundResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundRequestDto;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
@@ -28,8 +29,8 @@ public interface RefundUserClient {
     @PostMapping("/api/orders/{orderId}/refunds")
     RefundResponseDto createRefund(
             @RequestHeader(value = "Authorization", required = false) String accessToken,
-            @PathVariable("orderId") String orderId,
-            @RequestBody RefundResponseDto requestDto
+            @PathVariable("orderId") Long orderId,
+            @RequestBody RefundRequestDto requestDto
     );
 
     /**
@@ -53,7 +54,7 @@ public interface RefundUserClient {
     /**
      * 회원 전체 반품 목록 조회
      */
-    @GetMapping("/orders/refunds/my-list")
+    @GetMapping("/api/orders/refunds/my-list")
     Page<RefundResponseDto> getMyRefunds(@RequestHeader(value = "Authorization", required = false) String accessToken,
                                          Pageable pageable);
 }
