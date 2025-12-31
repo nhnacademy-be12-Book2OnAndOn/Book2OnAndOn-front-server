@@ -10,7 +10,7 @@
 
     <th:block layout:fragment="extraHead">
         <link rel="stylesheet" href="/css/OrderPayment.css">
-        <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+        <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
         <script src="https://js.tosspayments.com/v2/standard"></script>
         <script th:src="@{/js/OrderPayment.js}" defer></script>
         <style>
@@ -40,260 +40,189 @@
 </head>
 <body>
 <main layout:fragment="content">
-<div class="container">
-    <th:block th:if="${orderItems != null}">
-        <script th:inline="javascript">
-            window.__ORDER_PREPARE__ = {
-                orderItems: /*[[${orderItems}]]*/ [],
-                addresses: /*[[${addresses}]]*/ [],
-                coupons: /*[[${coupons}]]*/ [],
-                currentPoint: /*[[${point}]]*/ null
-            };
-        </script>
-    </th:block>
-    <header>
-        <h1 class="page-title">통합 주문 및 결제</h1>
-        <p class="page-subtitle">주문 상품과 배송 정보를 확인하고 한 번에 결제하세요.</p>
-    </header>
+    <div class="container">
 
-    <main class="order-layout">
+        <th:block th:if="${orderItems != null}">
+            <script th:inline="javascript">
+                window.__ORDER_PREPARE__ = {
+                    orderItems: /*[[${orderItems}]]*/ [],
+                    addresses: /*[[${addresses}]]*/ [],
+                    coupons: /*[[${coupons}]]*/ [],
+                    currentPoint: /*[[${point}]]*/ null
+                };
+            </script>
+        </th:block>
 
-        <div class="main-form-area">
+        <header>
+            <h1 class="page-title">통합 주문 및 결제</h1>
+            <p class="page-subtitle">주문 상품과 배송 정보를 확인하고 한 번에 결제하세요.</p>
+        </header>
 
-            <form id="orderForm" onsubmit="return false;">
-                <section class="order-section products-option-section">
-                    <h2>주문 상품 및 옵션 확인</h2>
-                    <div id="selectedProductList">
-                        <!-- 주문 상품이 있을 때 -->
-                        <div th:if="${!#lists.isEmpty(orderItems)}">
+        <main class="order-layout">
+            <div class="main-form-area">
+                <form id="orderForm" onsubmit="return false;">
 
-                            <div class="order-item-detail"
-                                 th:each="item : ${orderItems}"
-                                 th:attr="data-book-id=${item.bookId}">
-
-                                <!-- 상품 이미지 -->
-                                <img th:src="${item.imageUrl}"
-                                     alt="상품 이미지"/>
-
-                                <!-- 상품 정보 -->
-                                <div class="item-info">
-                                    <div class="item-title"
-                                         th:text="${item.title + ' (' + item.quantity + '권)'}">
-                                        상품명 (1권)
-                                    </div>
-
-                                    <div class="item-price">
-                                        가격:
-                                        <span th:text="|${#numbers.formatInteger(item.priceSales * item.quantity, 0, 'COMMA')}원|">0원</span>
-                                    </div>
-
-                                    <!-- 포장 옵션 -->
-                                    <div class="item-wrap-option">
-                                        <div th:if="${item.packable}">
-                                            <label>
-                                                <input type="checkbox"
-                                                       class="wrap-toggle"
-                                                       th:attr="data-book-id=${item.bookId}">
-                                                포장 선택
-                                            </label>
-
-                                            <button type="button"
-                                                    class="btn-select-wrap"
-                                                    th:attr="data-book-id=${item.bookId}"
-                                                    disabled>
-                                                포장지 선택/변경
-                                            </button>
-                                        </div>
-
-                                        <div th:unless="${item.packable}">
-                                            <span class="non-packable">포장 불가</span>
+                    <section class="order-section products-option-section">
+                        <h2>주문 상품 및 옵션 확인</h2>
+                        <div id="selectedProductList">
+                            <div th:if="${!#lists.isEmpty(orderItems)}">
+                                <div class="order-item-detail" th:each="item : ${orderItems}" th:attr="data-book-id=${item.bookId}">
+                                    <img th:src="${item.imageUrl}" alt="상품 이미지"/>
+                                    <div class="item-info">
+                                        <div class="item-title" th:text="${item.title + ' (' + item.quantity + '권)'}">상품명</div>
+                                        <div class="item-price">가격: <span th:text="|${#numbers.formatInteger(item.priceSales * item.quantity, 0, 'COMMA')}원|">0원</span></div>
+                                        <div class="item-wrap-option">
+                                            <div th:if="${item.packable}">
+                                                <label><input type="checkbox" class="wrap-toggle" th:attr="data-book-id=${item.bookId}"> 포장 선택</label>
+                                                <button type="button" class="btn-select-wrap" th:attr="data-book-id=${item.bookId}" disabled>포장지 선택/변경</button>
+                                            </div>
+                                            <div th:unless="${item.packable}"><span class="non-packable">포장 불가</span></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
+                            <div th:if="${#lists.isEmpty(orderItems)}"><p>선택된 상품이 없습니다.</p></div>
                         </div>
+                    </section>
 
-                        <!-- 주문 상품이 없을 때 -->
-                        <div th:if="${#lists.isEmpty(orderItems)}">
-                            <p>선택된 상품이 없습니다.</p>
-                        </div>
-                    </div>
-
-
-                </section>
-
-                <section class="order-section delivery-info-section">
-                    <h2>배송지 및 희망일 정보</h2>
-
-                    <div class="saved-address-wrapper" th:if="${addresses != null && !#lists.isEmpty(addresses)}">
-                        <div class="saved-address-btn">등록된 배송지 선택 ▼</div>
-                        <div class="saved-address-dropdown">
-                            <div th:each="addr : ${addresses}"
-                                 class="saved-address-item"
-                                 th:data-recipient="${addr.recipient}"
-                                 th:data-phone="${addr.phone}"
-                                 th:data-address="${addr.userAddress}"
-                                 th:data-detail="${addr.userAddressDetail}"
-                                 th:text="${addr.userAddress} + ' ' + addr.userAddressDetail + ' / ' + addr.recipient + ' / ' + addr.phone">
-                                배송지 표시
+                    <section class="order-section delivery-info-section">
+                        <h2>배송지 및 희망일 정보</h2>
+                        <div class="saved-address-wrapper" th:if="${addresses != null && !#lists.isEmpty(addresses)}">
+                            <div class="saved-address-btn">등록된 배송지 선택 ▼</div>
+                            <div class="saved-address-dropdown">
+                                <div th:each="addr : ${addresses}" class="saved-address-item"
+                                     th:data-recipient="${addr.recipient}"
+                                     th:data-phone="${addr.phone}"
+                                     th:data-address="${addr.userAddress}"
+                                     th:data-detail="${addr.userAddressDetail}"
+                                     th:text="|${addr.userAddress} ${addr.userAddressDetail} / ${addr.recipient} / ${addr.phone}|">
+                                    배송지 표시
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-
-                    <div class="form-group"><label for="recipient">수령인</label><input type="text" id="recipient" name="recipient" required placeholder="수령인 이름을 입력해주세요"></div>
-                    <div class="form-group"><label for="recipientPhoneNumber">연락처</label><input type="tel" id="recipientPhoneNumber" name="recipientPhoneNumber" required placeholder="01012345678 (숫자만)"></div>
-                    <div class="form-group">
-                        <label for="deliveryAddress">배송 주소</label>
-                        <div class="address-inputs">
-                            <input type="text" id="deliveryAddress" name="deliveryAddress" required placeholder="기본 주소 (예: 서울시 강남구)">
-                            <button type="button" class="btn-search-address btn-secondary">주소 검색</button>
+                        <div class="form-group"><label for="recipient">수령인</label><input type="text" id="recipient" required placeholder="이름"></div>
+                        <div class="form-group"><label for="recipientPhoneNumber">연락처</label><input type="tel" id="recipientPhoneNumber" required placeholder="01012345678"></div>
+                        <div class="form-group">
+                            <label for="deliveryAddress">배송 주소</label>
+                            <div class="address-inputs">
+                                <input type="text" id="deliveryAddress" required placeholder="기본 주소">
+                                <button type="button" class="btn-search-address btn-secondary">주소 검색</button>
+                            </div>
+                            <input type="text" id="deliveryAddressDetail" placeholder="상세 주소">
                         </div>
-                        <input type="text" id="deliveryAddressDetail" name="deliveryAddressDetail" placeholder="상세 주소 (예: 101호)">
-                    </div>
-                    <div class="form-group">
-                        <label for="deliveryMessage">배송 메시지</label>
-                        <select id="deliveryMessage" name="deliveryMessage">
-                            <option value="">-- 배송 메시지 선택 --</option>
-                            <option value="문 앞에 놓아주세요">문 앞에 놓아주세요</option>
-                            <option value="경비실에 맡겨주세요">경비실에 맡겨주세요</option>
-                            <option value="본인(부재시문앞)">본인(부재시문앞)</option>
-                            <option value="direct_input">직접 입력</option>
-                        </select>
-                        <label for="customDeliveryMessage" class="sr-only">직접 입력 배송 메시지</label>
-                        <input type="text" id="customDeliveryMessage" placeholder="배송 메시지를 직접 입력해주세요." style="display: none; margin-top: 10px;">
-                    </div>
-                    <div class="form-group delivery-date-group">
-                        <label>배송 희망 날짜 (최대 7일 이내)</label>
-                        <div id="deliveryDateOptions" class="date-options-grid">
+                        <div class="form-group">
+                            <label for="deliveryMessage">배송 메시지</label>
+                            <select id="deliveryMessage">
+                                <option value="">-- 선택 --</option>
+                                <option value="문 앞에 놓아주세요">문 앞에 놓아주세요</option>
+                                <option value="경비실에 맡겨주세요">경비실에 맡겨주세요</option>
+                                <option value="본인(부재시문앞)">본인(부재시문앞)</option>
+                                <option value="direct_input">직접 입력</option>
+                            </select>
+                            <input type="text" id="customDeliveryMessage" placeholder="메시지 입력" style="display: none; margin-top: 10px;">
                         </div>
-                        <input type="hidden" id="wantDeliveryDate" name="wantDeliveryDate" required>
-                    </div>
-                </section>
+                        <div class="form-group delivery-date-group">
+                            <label>배송 희망 날짜</label>
+                            <div id="deliveryDateOptions" class="date-options-grid"></div>
+                            <input type="hidden" id="wantDeliveryDate" required>
+                        </div>
+                    </section>
 
-                <section class="order-section delivery-method-section">
-                    <h2>배송 방식 선택</h2>
-                    <div id="deliveryMethodOptions" class="delivery-method-options">
-                        <!-- JS에서 API 호출 후 radio 버튼으로 동적 추가 -->
-                        <p>배송 방식을 불러오는 중...</p>
-                    </div>
-                </section>
+                    <section class="order-section delivery-method-section">
+                        <h2>배송 방식 선택</h2>
+                        <div id="deliveryMethodContainer" class="delivery-method-options">
+                            <p>배송 방식을 불러오는 중...</p>
+                        </div>
+                    </section>
+                </form>
 
-
-            </form>
-
-            <section class="order-section discount-selection-section">
+                <section class="order-section discount-selection-section">
                     <h2>쿠폰 선택</h2>
-                <div class="form-group discount-field">
-                    <label for="couponSelect">적용 가능한 쿠폰</label>
-                    <select id="couponSelect" name="memberCouponId">
-                        <option value="0" data-discount="0">쿠폰 미사용</option>
-                        <option th:each="c : ${coupons}"
-                                th:value="${c.memberCouponId}"
-                                th:data-discount="${c.discountValue}"
-                                th:text="|${c.couponName} (-${#numbers.formatInteger(c.discountValue, 0, 'COMMA')}원)|">쿠폰</option>
-                    </select>
-                </div>
-            </section>
+                    <div class="form-group discount-field">
+                        <label for="couponSelect">적용 가능한 쿠폰</label>
+                        <select id="couponSelect" name="memberCouponId">
+                            <option value="0">쿠폰 미사용</option>
 
-            <section class="order-section point-usage-section">
-                <h2>포인트 사용</h2>
-                <div class="form-group discount-field">
-                    <span class="current-point">보유 포인트:
-                        <span id="currentPointValue"
-                              th:text="${point != null && point.currentPoint != null} ? ${#numbers.formatInteger(point.currentPoint, 3, 'COMMA')} + ' P' : '0 P'"
-                              th:data-current-point="${point != null && point.currentPoint != null ? point.currentPoint : 0}">
-                            0 P
-                        </span>
-                    </span>
-                    <label for="pointDiscountAmount">사용할 포인트</label>
-
-                    <input type="text"
-                           id="pointDiscountAmount"
-                           name="pointDiscountAmount"
-                           placeholder="0"
-                           autocomplete="off">
-                </div>
-            </section>
-
-            <section class="order-section payment-method-section">
-                <h2>결제 수단</h2>
-                <div class="payment-method-options">
-                    <label class="method-card">
-                        <input type="radio" name="paymentMethod" value="CARD" checked>
-                        <div class="method-info">
-                            <span class="method-name">카드 결제</span>
-                            <span class="method-desc">신용/체크 카드</span>
-                        </div>
-                    </label>
-                    <label class="method-card">
-                        <input type="radio" name="paymentMethod" value="TRANSFER">
-                        <div class="method-info">
-                            <span class="method-name">계좌 이체</span>
-                            <span class="method-desc">즉시 이체</span>
-                        </div>
-                    </label>
-                    <label class="method-card">
-                        <input type="radio" name="paymentMethod" value="CULTURE_GIFT_CERTIFICATE">
-                        <div class="method-info">
-                            <span class="method-name">문화상품권</span>
-                            <span class="method-desc">기프티콘/상품권</span>
-                        </div>
-                    </label>
-                </div>
-            </section>
-
-        </div>
-
-        <div class="payment-summary-area">
-            <div class="order-section sticky-summary">
-                <h2>최종 결제 금액</h2>
-
-                <div class="price-breakdown">
-                    <div class="summary-line">
-                        <span>총 상품 금액</span>
-                        <span id="summaryTotalItemPrice" class="price"
-                              th:text="|${#numbers.formatInteger(itemTotal ?: 0, 0, 'COMMA')}원|">0원</span>
+                            <option th:each="c : ${coupons}"
+                                    th:value="${c.memberCouponId}"
+                                    th:text="|${c.couponName} (${c.discountValue}${c.discountType == 'PERCENT' ? '%' : '원'} 할인)|">
+                            </option>
+                        </select>
                     </div>
-                    <div class="summary-line"><span>배송비</span> <span id="deliveryFee" class="price fee" th:text="|0원|">0원</span></div>
-                    <div class="summary-line"><span>포장비</span> <span id="wrappingFee" class="price fee" th:text="|0원|">0원</span></div>
-                    <div class="summary-line discount-row"><span>쿠폰 할인</span> <span id="couponDiscount" class="price discount" th:text="|-${#numbers.formatInteger(0,0,'COMMA')}원|">-0원</span></div>
-                    <div class="summary-line discount-row"><span>포인트 사용</span> <span id="pointDiscount" class="price discount" th:text="|-${#numbers.formatInteger(0,0,'COMMA')}원|">-0원</span></div>
-                </div>
+                </section>
 
-                <div class="final-total-row">
-                    <span>총 주문 금액 (VAT 포함)</span>
-                    <span id="finalPaymentAmount" th:text="|${#numbers.formatInteger(itemTotal ?: 0, 0, 'COMMA')}원|">0원</span>
-                </div>
+                <section class="order-section point-usage-section">
+                    <h2>포인트 사용</h2>
+                    <div class="form-group discount-field">
+                    <span class="current-point">보유:
+                        <span id="currentPointValue"
+                              th:text="${point != null && point.currentPoint != null} ? ${#numbers.formatInteger(point.currentPoint, 0, 'COMMA')} + ' P' : '0 P'"
+                              th:data-current-point="${point != null && point.currentPoint != null ? point.currentPoint : 0}">0 P</span>
+                    </span>
+                        <input type="text" id="pointDiscountAmount" placeholder="0" autocomplete="off">
+                    </div>
+                </section>
 
-                <button type="button" id="requestTossPayment" class="btn-checkout-final">
-                    <span id="finalPaymentButtonText" th:text="|${#numbers.formatInteger(itemTotal ?: 0, 0, 'COMMA')}원 결제하기|">0원 결제하기</span>
-                </button>
+                <section class="order-section payment-method-section">
+                    <h2>결제 수단</h2>
+                    <div class="payment-method-options">
+                        <label class="method-card">
+                            <input type="radio" name="paymentMethod" value="CARD" checked>
+                            <div class="method-info">
+                                <span class="method-name">카드 결제</span>
+                                <span class="method-desc">신용/체크 카드</span>
+                            </div>
+                        </label>
+                        <label class="method-card">
+                            <input type="radio" name="paymentMethod" value="TRANSFER">
+                            <div class="method-info">
+                                <span class="method-name">계좌 이체</span>
+                                <span class="method-desc">즉시 이체</span>
+                            </div>
+                        </label>
+                        <label class="method-card">
+                            <input type="radio" name="paymentMethod" value="CULTURE_GIFT_CERTIFICATE">
+                            <div class="method-info">
+                                <span class="method-name">문화상품권</span>
+                                <span class="method-desc">기프티콘/상품권</span>
+                            </div>
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <div class="payment-summary-area">
+                <div class="order-section sticky-summary">
+                    <h2>최종 결제 금액</h2>
+                    <div class="price-breakdown">
+                        <div class="summary-line"><span>총 상품 금액</span> <span id="summaryTotalItemPrice" class="price">0원</span></div>
+                        <div class="summary-line"><span>배송비</span> <span id="deliveryFee" class="price fee">0원</span></div>
+                        <div class="summary-line"><span>포장비</span> <span id="wrappingFee" class="price fee">0원</span></div>
+                        <div class="summary-line discount-row"><span>쿠폰 할인</span> <span id="couponDiscount" class="price discount">-0원</span></div>
+                        <div class="summary-line discount-row"><span>포인트 사용</span> <span id="pointDiscount" class="price discount">-0원</span></div>
+                    </div>
+                    <div class="final-total-row"><span>총 주문 금액</span> <span id="finalPaymentAmount">0원</span></div>
+                    <button type="button" id="requestTossPayment" class="btn-checkout-final">
+                        <span id="finalPaymentButtonText">결제하기</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="wrappingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">포장 선택</h2>
+            <div id="wrappingOptions" class="options-grid"></div>
+            <div class="modal-actions" style="margin-top: 20px; text-align: right;">
+                <button id="confirmWrapButton" class="btn btn-primary" disabled>선택 완료</button>
             </div>
         </div>
-    </main>
-</div>
-
-<div id="wrappingModal" class="modal">
-    <div class="modal-content">
-        <span class="close-button" onclick="closeModal()">&times;</span>
-        <h2 id="modalTitle"></h2>
-        <div id="wrappingOptions" class="options-grid">
-        </div>
-        <div class="modal-actions" style="margin-top: 20px; text-align: right;">
-            <button id="confirmWrapButton" class="btn btn-primary" disabled>선택 완료</button>
-        </div>
     </div>
-</div>
 
-<span id="user-info"
-      th:data-user-name="${user.name}"
-      th:data-user-email="${user.email}">
-</span>
-<span id="delivery-policy-id"
-      th:data-delivery-policy-id="1">
-</span>
+    <span id="user-info" th:if="${user != null}" th:data-user-name="${user.name}" th:data-user-email="${user.email}" style="display:none;"></span>
+
 </main>
 </body>
 </html>
