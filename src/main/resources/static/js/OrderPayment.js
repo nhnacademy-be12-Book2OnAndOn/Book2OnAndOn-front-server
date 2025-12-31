@@ -1,5 +1,5 @@
 // --- 상수 및 전역 변수 영역 (Order & Payment 공통) ---
-const API_BASE = {
+var API_BASE = {
     CART: '/cart',
     ORDER: '/orders',
     WRAP: '/wrappapers',
@@ -24,7 +24,12 @@ const ensureGuestId = () => {
     return gid;
 };
 const GUEST_ID = ensureGuestId();
-const IS_USER = !!getCookie('accessToken');
+const IS_USER = (typeof window.IS_USER_FROM_SERVER === 'boolean')
+    ? window.IS_USER_FROM_SERVER
+    : !!getCookie('accessToken');
+const IS_GUEST = (typeof window.IS_GUEST === 'boolean')
+    ? window.IS_GUEST
+    : !IS_USER;
 
 
 
@@ -148,10 +153,15 @@ async function loadInitialData() {
                 applyPrepareAddresses(PREPARE_DATA.addresses);
             }
         } else {
-            const cartEndpoint = IS_USER ? `${API_BASE.CART}/user/items/selected` : `${API_BASE.CART}/guest/selected`;
+            let cartEndpoint = IS_USER ? `${API_BASE.CART}/user/items/selected` : `${API_BASE.CART}/guest`;
 
-            const [cartRes, wrapRes, pointRes] = await Promise.all([
-                fetch(cartEndpoint, { headers }),
+            let cartRes = await fetch(cartEndpoint, { headers });
+            // 사용자 토큰 만료/401 시 게스트 장바구니로 폴백
+            if (!cartRes.ok && cartRes.status === 401) {
+                cartRes = await fetch(`${API_BASE.CART}/guest/selected`, { headers });
+            }
+
+            const [wrapRes, pointRes] = await Promise.all([
                 fetch(`${API_BASE.WRAP}`, { headers }),
                 IS_USER ? fetch(`/api/user/me/points/api/current`, { headers }) : Promise.resolve(null)
             ]);
@@ -299,10 +309,10 @@ function setupEventListeners() {
 
 
 function setDeliveryPolicies(){
-    const deliveryMethodContainer = document.getElementById('deliveryMethodContainer');
+    const deliveryMethodContainer = document.getElementById('deliveryMethodOptions');
 
 // API 호출 (예: /api/delivery-policies)
-    fetch('/delivery-policies')
+    fetch('/api/delivery-policies')
         .then(response => {
             if (!response.ok) throw new Error('배송 방식 불러오기 실패');
             return response.json();
@@ -335,7 +345,23 @@ function setDeliveryPolicies(){
         })
         .catch(err => {
             console.error(err);
-            // alert("배송 방식 불러오기 실패, " + err)
+            // API 실패 시 기본 배송정책 값으로 설정
+            const defaultPolicyEl = document.getElementById('delivery-policy-id');
+            const defaultId = defaultPolicyEl ? Number(defaultPolicyEl.dataset.deliveryPolicyId || 0) : 0;
+            deliveryMethodContainer.innerHTML = '';
+            if (defaultId) {
+                const label = document.createElement('label');
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'deliveryMethod';
+                radio.value = defaultId;
+                radio.checked = true;
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(' 기본 배송 (기본 정책 사용)'));
+                deliveryMethodContainer.appendChild(label);
+            } else {
+                deliveryMethodContainer.textContent = '배송 방식을 불러올 수 없습니다.';
+            }
         });
 
 }
@@ -508,6 +534,13 @@ function collectDeliveryAddress() {
     };
 }
 
+function collectGuestAuth() {
+    if (IS_USER) return {};
+    const password = document.getElementById('guestOrderPassword')?.value || '';
+    const passwordConfirm = document.getElementById('guestOrderPasswordConfirm')?.value || '';
+    return { password, passwordConfirm };
+}
+
 function validateInputs(address, orderItems) {
     if (!address.recipient) {
         alert("수령인을 입력해주세요");
@@ -527,6 +560,17 @@ function validateInputs(address, orderItems) {
     if(!document.getElementById('wantDeliveryDate')?.value){
         alert("배송 희망 날짜를 입력해주세요");
         return false;
+    }
+    if (!IS_USER) {
+        const { password, passwordConfirm } = collectGuestAuth();
+        if (!password || !passwordConfirm) {
+            alert("비회원 주문 비밀번호를 입력해주세요.");
+            return false;
+        }
+        if (password !== passwordConfirm) {
+            alert("비회원 주문 비밀번호가 일치하지 않습니다.");
+            return false;
+        }
     }
     const phoneRegex = /^\d{11}$/;
     if (!phoneRegex.test(address.recipientPhoneNumber)) {
@@ -683,6 +727,13 @@ async function handleTossPaymentRequest() {
 
     try {
         const headers = { 'Content-Type': 'application/json' };
+        if (!IS_USER) {
+            const gid = (typeof ensureGuestId === 'function') ? ensureGuestId() : null;
+            if (gid) {
+                headers['X-Guest-Id'] = gid;
+                headers['GUEST_ID'] = gid; // 서버에서 쿠키/헤더 둘 다 참고할 가능성 대비
+            }
+        }
 
         // 1. 서버에 주문 생성
         const response = await fetch(API_BASE.ORDER, {
@@ -694,7 +745,8 @@ async function handleTossPaymentRequest() {
                 deliveryPolicyId: deliveryPolicyId,
                 wantDeliveryDate: wantDeliveryDate,
                 memberCouponId: memberCouponId,
-                point: Number(document.getElementById('pointDiscountAmount').value)
+                point: Number(document.getElementById('pointDiscountAmount').value),
+                guestOrderPassword: IS_USER ? null : collectGuestAuth().password
             })
         });
 
@@ -716,6 +768,8 @@ async function handleTossPaymentRequest() {
         const orderName = orderResult.orderTitle;
 
         const userInfo = document.getElementById('user-info');
+        const customerName = (userInfo?.dataset.userName) || '비회원';
+        const customerEmail = (userInfo?.dataset.userEmail) || 'guest@example.com';
 
         // 2. 토스 결제창 열기
         await requestTossPaymentV2(
@@ -723,8 +777,8 @@ async function handleTossPaymentRequest() {
             orderResult.orderNumber,
             orderName,
             document.querySelector('input[name="paymentMethod"]:checked').value,
-            userInfo.dataset.userName,
-            userInfo.dataset.userEmail
+            customerName,
+            customerEmail
         );
     } catch (e) {
         console.error("결제 프로세스 오류:", e);

@@ -13,6 +13,10 @@
         <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
         <script src="https://js.tosspayments.com/v2/standard"></script>
         <script th:src="@{/js/OrderPayment.js}" defer></script>
+        <script th:inline="javascript">
+            window.IS_USER_FROM_SERVER = /*[[${user != null}]]*/ false;
+            window.IS_GUEST = /*[[${isGuest}]]*/ false;
+        </script>
         <style>
             .modal {
                 position: fixed; z-index: 1000; left: 0; top: 0;
@@ -49,6 +53,11 @@
                 coupons: /*[[${coupons}]]*/ [],
                 currentPoint: /*[[${point}]]*/ null
             };
+        </script>
+    </th:block>
+    <th:block th:unless="${orderItems != null}">
+        <script>
+            window.__ORDER_PREPARE__ = null;
         </script>
     </th:block>
     <header>
@@ -164,12 +173,17 @@
                         <label for="customDeliveryMessage" class="sr-only">직접 입력 배송 메시지</label>
                         <input type="text" id="customDeliveryMessage" placeholder="배송 메시지를 직접 입력해주세요." style="display: none; margin-top: 10px;">
                     </div>
-                    <div class="form-group delivery-date-group">
-                        <label>배송 희망 날짜 (최대 7일 이내)</label>
-                        <div id="deliveryDateOptions" class="date-options-grid">
+                        <div class="form-group delivery-date-group">
+                            <label>배송 희망 날짜 (최대 7일 이내)</label>
+                            <div id="deliveryDateOptions" class="date-options-grid">
+                            </div>
+                            <input type="hidden" id="wantDeliveryDate" name="wantDeliveryDate" required>
                         </div>
-                        <input type="hidden" id="wantDeliveryDate" name="wantDeliveryDate" required>
-                    </div>
+                        <div class="form-group" th:if="${isGuest == true}">
+                            <label for="guestOrderPassword">주문 비밀번호 (비회원)</label>
+                            <input type="password" id="guestOrderPassword" placeholder="주문조회에 사용할 비밀번호" required>
+                            <input type="password" id="guestOrderPasswordConfirm" placeholder="비밀번호 확인" style="margin-top: 8px;" required>
+                        </div>
                 </section>
 
                 <section class="order-section delivery-method-section">
@@ -288,8 +302,8 @@
 </div>
 
 <span id="user-info"
-      th:data-user-name="${user.name}"
-      th:data-user-email="${user.email}">
+      th:data-user-name="${user != null ? user.name : ''}"
+      th:data-user-email="${user != null ? user.email : ''}">
 </span>
 <span id="delivery-policy-id"
       th:data-delivery-policy-id="1">

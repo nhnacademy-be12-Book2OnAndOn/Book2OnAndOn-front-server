@@ -1,8 +1,11 @@
 package com.nhnacademy.book2onandonfrontservice.controller.orderController;
 
 import com.nhnacademy.book2onandonfrontservice.client.GuestOrderClient;
+import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.GuestLoginRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.GuestLoginResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class OrderRedirectController {
 
     private final GuestOrderClient guestOrderClient;
+    private final OrderUserClient orderUserClient;
 
     @GetMapping("/users/me/orders/view")
     public String redirectLegacyOrders() {
@@ -68,15 +74,23 @@ public class OrderRedirectController {
     }
 
     @GetMapping("/orders/payment")
-    public String orderPaymentPage() {
+    public String orderPaymentPage(Model model) {
         // 결제/주문 작성 화면
+        model.addAttribute("isGuest", false);
         return "orderpayment/OrderPayment";
     }
 
     @GetMapping("/orders/guest/payment")
-    public String guestOrderPaymentPage() {
-        // 비회원 전용 결제/주문 작성 화면 (게스트는 장바구니/입력값 기반)
-        return "orderpayment/OrderPaymentGuest";
+    public String guestOrderPaymentPage(Model model,
+                                        @CookieValue(name = "GUEST_ID") String guestId,
+                                        @ModelAttribute OrderPrepareRequestDto req) {
+
+        OrderPrepareResponseDto orderPrepareResponseDto = guestOrderClient.getOrderPrepare(null, guestId, req);
+
+        // 비회원 결제도 공통 템플릿 사용
+        model.addAttribute("orderItems", orderPrepareResponseDto.orderItems());
+        model.addAttribute("isGuest", true);
+        return "orderpayment/OrderPayment";
     }
 
     @GetMapping("/orders/history")

@@ -33,9 +33,17 @@ public class BookReviewController {
                                @ModelAttribute @Valid ReviewCreateRequest request,
                                @RequestParam(value = "images", required = false) List<MultipartFile> images,
                                HttpServletRequest servletRequest) {
-        String token = "Bearer " + CookieUtils.getCookieValue(servletRequest, "accessToken");
+        String accessToken = CookieUtils.getCookieValue(servletRequest, "accessToken");
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+        String token = "Bearer " + accessToken;
 
-
+        // 리뷰 작성 가능 여부 체크 (구매 + 배송/주문 완료 상태)
+        Boolean eligible = bookClient.checkReviewEligibility(token, bookId);
+        if (eligible == null || !eligible) {
+            return "redirect:/books/" + bookId + "?error=not_eligible_for_review";
+        }
         try {
             bookClient.createReview( token,bookId, request, images);
 

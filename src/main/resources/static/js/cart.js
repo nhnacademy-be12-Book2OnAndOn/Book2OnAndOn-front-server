@@ -87,7 +87,10 @@ function ensureGuestId() {
     let gid = localStorage.getItem('uuid') || getCookie('GUEST_ID') || getCookie('guestId');
     if (!gid) gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-    try { localStorage.setItem('uuid', gid); } catch (e) { /* ignore */ }
+    try {
+        localStorage.setItem('uuid', gid);
+    } catch (e) { /* ignore */
+    }
 
     setCookie('GUEST_ID', gid, 30);
     setCookie('guestId', gid, 30);
@@ -100,12 +103,12 @@ function buildAuthHeaders(base = {}) {
     const token = getCookie('accessToken');
     if (!token) return base;
     const auth = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-    return { ...base, 'Authorization': auth };
+    return {...base, 'Authorization': auth};
 }
 
 function buildGuestHeaders(base = {}) {
     const gid = ensureGuestId();
-    return { ...base, 'X-Guest-Id': gid };
+    return {...base, 'X-Guest-Id': gid};
 }
 
 
@@ -118,15 +121,15 @@ async function fetchUserThenGuest(userUrl, guestUrl, userOpts, guestOpts) {
 
     if (res.status === 401 || res.status === 403) {
         res = await fetch(guestUrl, guestOpts);
-        return { res, mode: 'guest' };
+        return {res, mode: 'guest'};
     }
 
     if (res.status >= 500) {
         alert('장바구니 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.');
-        return { res, mode: 'error' };
+        return {res, mode: 'error'};
     }
 
-    return { res, mode: 'user' };
+    return {res, mode: 'user'};
 }
 
 
@@ -156,17 +159,17 @@ async function loadCartFromServer() {
     const mySeq = ++loadSeq;
 
     try {
-        const baseHeaders = { 'Content-Type': 'application/json' };
+        const baseHeaders = {'Content-Type': 'application/json'};
 
-        const userOpts  = { method: 'GET', headers: buildAuthHeaders(baseHeaders),  credentials: 'include' };
-        const guestOpts = { method: 'GET', headers: buildGuestHeaders(baseHeaders), credentials: 'include' };
+        const userOpts = {method: 'GET', headers: buildAuthHeaders(baseHeaders), credentials: 'include'};
+        const guestOpts = {method: 'GET', headers: buildGuestHeaders(baseHeaders), credentials: 'include'};
 
-    const { res, mode } = await fetchUserThenGuest(
-        `${API_BASE}/user`,
-        `${API_BASE}/guest`,
-        userOpts,
-        guestOpts
-    );
+        const {res, mode} = await fetchUserThenGuest(
+            `${API_BASE}/user`,
+            `${API_BASE}/guest`,
+            userOpts,
+            guestOpts
+        );
 
         if (!res.ok) {
             console.error('장바구니 조회 실패', res.status);
@@ -264,12 +267,12 @@ function renderCart() {
                 onchange="toggleItem(${item.bookId})">
             </div>
 
-            <div class="item-image">
+            <a class="item-image item-link" href="/books/${item.bookId}" aria-label="${item.title} 상세로 이동">
               ${item.thumbnailUrl ? `<img src="${item.thumbnailUrl}" alt="${item.title}">` : '책 이미지'}
-            </div>
+            </a>
 
             <div class="item-details">
-              <div class="item-title">${item.title}</div>
+              <a class="item-title item-link" href="/books/${item.bookId}">${item.title}</a>
 
               <div class="item-meta">
                 ${isOutOfStock
@@ -330,13 +333,13 @@ async function toggleSelectAll() {
     }
     renderCart();
 
-    const body = JSON.stringify({ selected: selectAllChecked });
-    const baseHeaders = { 'Content-Type': 'application/json' };
+    const body = JSON.stringify({selected: selectAllChecked});
+    const baseHeaders = {'Content-Type': 'application/json'};
 
-    const userOpts  = { method: 'PATCH', headers: buildAuthHeaders(baseHeaders),  body, credentials: 'include' };
-    const guestOpts = { method: 'PATCH', headers: buildGuestHeaders(baseHeaders), body, credentials: 'include' };
+    const userOpts = {method: 'PATCH', headers: buildAuthHeaders(baseHeaders), body, credentials: 'include'};
+    const guestOpts = {method: 'PATCH', headers: buildGuestHeaders(baseHeaders), body, credentials: 'include'};
 
-    const { res } = await fetchUserThenGuest(
+    const {res} = await fetchUserThenGuest(
         `${API_BASE}/user/items/select-all`,
         `${API_BASE}/guest/items/select-all`,
         userOpts,
@@ -367,13 +370,13 @@ async function toggleItem(bookId) {
     item.selected = next;
     renderCart();
 
-    const body = JSON.stringify({ bookId, selected: next });
-    const baseHeaders = { 'Content-Type': 'application/json' };
+    const body = JSON.stringify({bookId, selected: next});
+    const baseHeaders = {'Content-Type': 'application/json'};
 
-    const userOpts  = { method: 'PATCH', headers: buildAuthHeaders(baseHeaders),  body, credentials: 'include' };
-    const guestOpts = { method: 'PATCH', headers: buildGuestHeaders(baseHeaders), body, credentials: 'include' };
+    const userOpts = {method: 'PATCH', headers: buildAuthHeaders(baseHeaders), body, credentials: 'include'};
+    const guestOpts = {method: 'PATCH', headers: buildGuestHeaders(baseHeaders), body, credentials: 'include'};
 
-    const { res } = await fetchUserThenGuest(
+    const {res} = await fetchUserThenGuest(
         `${API_BASE}/user/items/select`,
         `${API_BASE}/guest/items/select`,
         userOpts,
@@ -435,13 +438,13 @@ function updateQuantity(bookId, newQuantity) {
 }
 
 async function sendQuantityPatch(bookId, quantity, fallbackPrev) {
-    const body = JSON.stringify({ bookId, quantity });
-    const baseHeaders = { 'Content-Type': 'application/json' };
+    const body = JSON.stringify({bookId, quantity});
+    const baseHeaders = {'Content-Type': 'application/json'};
 
-    const userOpts  = { method: 'PATCH', headers: buildAuthHeaders(baseHeaders),  body, credentials: 'include' };
-    const guestOpts = { method: 'PATCH', headers: buildGuestHeaders(baseHeaders), body, credentials: 'include' };
+    const userOpts = {method: 'PATCH', headers: buildAuthHeaders(baseHeaders), body, credentials: 'include'};
+    const guestOpts = {method: 'PATCH', headers: buildGuestHeaders(baseHeaders), body, credentials: 'include'};
 
-    const { res } = await fetchUserThenGuest(
+    const {res} = await fetchUserThenGuest(
         `${API_BASE}/user/items/quantity`,
         `${API_BASE}/guest/items/quantity`,
         userOpts,
@@ -467,11 +470,11 @@ async function sendQuantityPatch(bookId, quantity, fallbackPrev) {
 async function removeItem(bookId) {
     if (!confirm('이 상품을 삭제하시겠습니까?')) return;
 
-    const baseHeaders = { 'Content-Type': 'application/json' };
-    const userOpts  = { method: 'DELETE', headers: buildAuthHeaders(baseHeaders),  credentials: 'include' };
-    const guestOpts = { method: 'DELETE', headers: buildGuestHeaders(baseHeaders), credentials: 'include' };
+    const baseHeaders = {'Content-Type': 'application/json'};
+    const userOpts = {method: 'DELETE', headers: buildAuthHeaders(baseHeaders), credentials: 'include'};
+    const guestOpts = {method: 'DELETE', headers: buildGuestHeaders(baseHeaders), credentials: 'include'};
 
-    const { res } = await fetchUserThenGuest(
+    const {res} = await fetchUserThenGuest(
         `${API_BASE}/user/items/${bookId}`,
         `${API_BASE}/guest/items/${bookId}`,
         userOpts,
@@ -495,11 +498,11 @@ async function deleteSelected() {
     }
     if (!confirm(`선택한 ${selectedItems.length}개 상품을 삭제하시겠습니까?`)) return;
 
-    const baseHeaders = { 'Content-Type': 'application/json' };
-    const userOpts  = { method: 'DELETE', headers: buildAuthHeaders(baseHeaders),  credentials: 'include' };
-    const guestOpts = { method: 'DELETE', headers: buildGuestHeaders(baseHeaders), credentials: 'include' };
+    const baseHeaders = {'Content-Type': 'application/json'};
+    const userOpts = {method: 'DELETE', headers: buildAuthHeaders(baseHeaders), credentials: 'include'};
+    const guestOpts = {method: 'DELETE', headers: buildGuestHeaders(baseHeaders), credentials: 'include'};
 
-    const { res } = await fetchUserThenGuest(
+    const {res} = await fetchUserThenGuest(
         `${API_BASE}/user/items/selected`,
         `${API_BASE}/guest/items/selected`,
         userOpts,
@@ -516,14 +519,17 @@ async function deleteSelected() {
 }
 
 async function clearCart() {
-    if (cartItems.length === 0) { alert('장바구니가 비어있습니다.'); return; }
+    if (cartItems.length === 0) {
+        alert('장바구니가 비어있습니다.');
+        return;
+    }
     if (!confirm('장바구니를 전체 삭제하시겠습니까?')) return;
 
-    const baseHeaders = { 'Content-Type': 'application/json' };
-    const userOpts  = { method: 'DELETE', headers: buildAuthHeaders(baseHeaders),  credentials: 'include' };
-    const guestOpts = { method: 'DELETE', headers: buildGuestHeaders(baseHeaders), credentials: 'include' };
+    const baseHeaders = {'Content-Type': 'application/json'};
+    const userOpts = {method: 'DELETE', headers: buildAuthHeaders(baseHeaders), credentials: 'include'};
+    const guestOpts = {method: 'DELETE', headers: buildGuestHeaders(baseHeaders), credentials: 'include'};
 
-    const { res } = await fetchUserThenGuest(
+    const {res} = await fetchUserThenGuest(
         `${API_BASE}/user/items`,
         `${API_BASE}/guest/items`,
         userOpts,
@@ -566,6 +572,21 @@ function submitOrderPrepare(selectedItems) {
     form.remove();
 }
 
+function submitGuestOrderPrepare(selectedItems) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/orders/guest/prepare";
+
+    selectedItems.forEach((item, idx) => {
+        form.appendChild(createHidden(`bookItems[${idx}].bookId`, item.bookId));
+        form.appendChild(createHidden(`bookItems[${idx}].quantity`, Number(item.quantity) || 0));
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+}
+
 function checkout() {
     const selectedItems = cartItems.filter(item =>
         item.selected &&
@@ -587,7 +608,7 @@ function checkout() {
 
     if (cartMode === 'guest') {
         alert(`${selectedItems.length}개 상품 / 총 ${total.toLocaleString()}원\n비회원 결제 페이지로 이동합니다.`);
-        window.location.href = "/orders/guest/payment";
+        submitGuestOrderPrepare(selectedItems)
     } else if (cartMode === 'user') {
         alert(`${selectedItems.length}개 상품 / 총 ${total.toLocaleString()}원\n주문 준비로 이동합니다.`);
         submitOrderPrepare(selectedItems);
@@ -612,7 +633,7 @@ async function mergeGuestCart(isAuto = false) {
     const gid = ensureGuestId();
     const res = await fetch('/cart/user/merge', {
         method: 'POST',
-        headers: { 'X-Guest-Id': gid },
+        headers: {'X-Guest-Id': gid},
         credentials: 'include'
     });
 
@@ -635,10 +656,9 @@ async function checkMergeStatusAndMaybeOpenModal(gid) {
 
         console.log('[merge-status] status=', res.status);
 
-        if (!res.ok) {
-            console.error('merge-status 조회 실패', res.status);
-            return;
-        }
+        // 백엔드가 머지 상태 없으면 404를 줄 수 있음 → 조용히 종료
+        if (res.status === 404) return;
+        if (!res.ok) return;
 
         const data = await res.json();
         console.log('[merge-status] data=', data);
