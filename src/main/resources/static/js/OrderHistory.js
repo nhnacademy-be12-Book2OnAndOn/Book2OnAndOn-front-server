@@ -11,14 +11,17 @@ const IS_MEMBER_LOGGED_IN =
     (typeof window !== 'undefined' && window.IS_MEMBER_LOGGED_IN !== undefined)
         ? Boolean(window.IS_MEMBER_LOGGED_IN) || Boolean(ACCESS_TOKEN)
         : Boolean(ACCESS_TOKEN);
-const USER_ID =
-    (typeof window !== 'undefined' && window.USER_ID !== undefined)
-        ? window.USER_ID
-        : null;
 const USE_SERVER_PAGING =
     (typeof window !== 'undefined' && window.USE_SERVER_PAGING !== undefined)
         ? Boolean(window.USE_SERVER_PAGING)
         : false;
+// const USER_ID =
+//     (typeof window !== 'undefined' && window.USER_ID !== undefined)
+//         ? window.USER_ID
+//         : null;
+function getUserId() {
+    return (typeof window !== 'undefined' && window.USER_ID !== undefined) ? window.USER_ID : null;
+}
 
 // 백엔드 Enum 및 UI 표시용 상태명
 const ORDER_STATUS = {

@@ -6,23 +6,41 @@ var API_BASE = {
     TOSS_CONFIRM: '/payment/TOSS/confirm'
 };
 
-const USER_ID = window.USER_ID || null;
-const ensureGuestId = () => {
-    // 공통 ensureGuestId가 있으면 그대로 사용
-    if (typeof window.ensureGuestId === 'function') {
-        return window.ensureGuestId();
-    }
-    // 로컬 저장소/쿠키에서 우선 조회
+// const USER_ID = window.USER_ID || null;
+window.USER_ID = window.USER_ID ?? null;   // 서버에서 넣었으면 유지, 없으면 null
+function getUserId() {
+    return window.USER_ID;
+}
+
+// const ensureGuestId = () => {
+//     // 공통 ensureGuestId가 있으면 그대로 사용
+//     if (typeof window.ensureGuestId === 'function') {
+//         return window.ensureGuestId();
+//     }
+//     // 로컬 저장소/쿠키에서 우선 조회
+//     let gid = localStorage.getItem('uuid') || getCookie('GUEST_ID') || getCookie('guestId');
+//     if (!gid) {
+//         gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+//     }
+//     // 저장 및 쿠키 설정
+//     try { localStorage.setItem('uuid', gid); } catch (e) { /* ignore */ }
+//     document.cookie = `GUEST_ID=${encodeURIComponent(gid)}; path=/; max-age=${60 * 60 * 24 * 30}`;
+//     document.cookie = `guestId=${encodeURIComponent(gid)}; path=/; max-age=${60 * 60 * 24 * 30}`;
+//     return gid;
+// };
+window.ensureGuestId = window.ensureGuestId || function ensureGuestId() {
     let gid = localStorage.getItem('uuid') || getCookie('GUEST_ID') || getCookie('guestId');
     if (!gid) {
         gid = `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
-    // 저장 및 쿠키 설정
-    try { localStorage.setItem('uuid', gid); } catch (e) { /* ignore */ }
+
+    try { localStorage.setItem('uuid', gid); } catch (e) {}
     document.cookie = `GUEST_ID=${encodeURIComponent(gid)}; path=/; max-age=${60 * 60 * 24 * 30}`;
     document.cookie = `guestId=${encodeURIComponent(gid)}; path=/; max-age=${60 * 60 * 24 * 30}`;
     return gid;
 };
+
+const ensureGuestId = window.ensureGuestId; // 파일 내부에서 쓸 때는 이렇게 참조만 한다 (재선언 위험 줄이기)
 const GUEST_ID = ensureGuestId();
 const IS_USER = (typeof window.IS_USER_FROM_SERVER === 'boolean')
     ? window.IS_USER_FROM_SERVER
@@ -771,6 +789,10 @@ async function handleTossPaymentRequest() {
         const customerName = (userInfo?.dataset.userName) || '비회원';
         const customerEmail = (userInfo?.dataset.userEmail) || 'guest@example.com';
 
+        console.log("[TOSS][orderName raw]", orderName);
+        console.log("[TOSS][orderName length]", orderName.length);
+        console.log("[TOSS][orderName chars]", [...orderName].length);
+
         // 2. 토스 결제창 열기
         await requestTossPaymentV2(
             orderResult.totalAmount,
@@ -789,7 +811,7 @@ async function handleTossPaymentRequest() {
 // [Toss Payment V2 Logic] V2 연쇄 호출 구조
 async function requestTossPaymentV2(amount, orderId, orderName, method, customerName, customerEmail) {
     const toss = TossPayments(TOSS_CLIENT_KEY);
-    const payment = toss.payment({ customerKey: IS_USER ? String(USER_ID) : TossPayments.ANONYMOUS });
+    const payment = toss.payment({ customerKey: IS_USER ? String(getUserId()) : TossPayments.ANONYMOUS });
     await payment.requestPayment({
         method: method,
         amount: { currency: "KRW", value: amount },
