@@ -76,36 +76,55 @@ public class BookAdminController {
     @GetMapping("/books")
     public String listBooks(@ModelAttribute BookSearchCondition condition,
                             @PageableDefault(size = 10) Pageable pageable,
+                            HttpServletRequest request,
                             Model model) {
+        condition.setStatusFilter(null);
         Page<BookDto> result = Page.empty(pageable);
         try {
-            result = bookClient.searchBooks(null, condition, pageable);
+            // 1. 토큰 추출
+            String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+            String bearerToken = (accessToken != null) ? "Bearer " + accessToken : null;
+
+            // 2. 검색 API 호출 (필터 없이 요청 -> 전체 조회)
+            result = bookClient.searchBooks(bearerToken, condition, pageable);
+
         } catch (Exception e) {
             log.error("관리자 도서 목록 조회 실패", e);
+            // 필요 시 에러 메시지 추가
+            model.addAttribute("searchError", "목록을 불러오는 중 오류가 발생했습니다.");
         }
+        List<CategoryDto> categories = bookClient.getCategories();
+        model.addAttribute("categories", categories);
+
         model.addAttribute("page", result);
         model.addAttribute("books", result.getContent());
         model.addAttribute("condition", condition);
+
         return "admin/books/list";
     }
 
     @PostMapping("/books/reindex/all")
-    public String reindexAll(RedirectAttributes redirectAttributes) {
+    public String reindexAll(RedirectAttributes redirectAttributes,HttpServletRequest servletRequest) {
+        String token = "Bearer " + CookieUtils.getCookieValue(servletRequest, "accessToken");
+
         try {
-            bookReindexClient.reindexAll();
             redirectAttributes.addFlashAttribute("reindexMessage", "전체 재인덱싱을 요청했습니다.");
+            bookReindexClient.reindexAll(token);
         } catch (Exception e) {
-            log.error("전체 재인덱싱 요청 실패", e);
+            log.error("전체 재인덱싱 요청 실패. Class: {}, Message: {}", e.getClass().getName(), e.getMessage(), e);
+
             redirectAttributes.addFlashAttribute("reindexError", "전체 재인덱싱 요청에 실패했습니다.");
         }
         return "redirect:/admin/books";
     }
 
     @PostMapping("/books/reindex/category")
-    public String reindexCategory(@RequestParam Long categoryId, RedirectAttributes redirectAttributes) {
+    public String reindexCategory(@RequestParam Long categoryId, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
         try {
-            bookReindexClient.manualReindexCategory(categoryId);
             redirectAttributes.addFlashAttribute("reindexMessage", "카테고리 " + categoryId + " 재인덱싱을 요청했습니다.");
+            bookReindexClient.manualReindexCategory(token,categoryId);
         } catch (Exception e) {
             log.error("카테고리 재인덱싱 요청 실패: {}", categoryId, e);
             redirectAttributes.addFlashAttribute("reindexError", "카테고리 재인덱싱 요청에 실패했습니다.");
@@ -114,10 +133,12 @@ public class BookAdminController {
     }
 
     @PostMapping("/books/reindex/tag")
-    public String reindexTag(@RequestParam Long tagId, RedirectAttributes redirectAttributes) {
+    public String reindexTag(@RequestParam Long tagId, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+
         try {
-            bookReindexClient.manualReindexTag(tagId);
             redirectAttributes.addFlashAttribute("reindexMessage", "태그 " + tagId + " 재인덱싱을 요청했습니다.");
+            bookReindexClient.manualReindexTag(token, tagId);
         } catch (Exception e) {
             log.error("태그 재인덱싱 요청 실패: {}", tagId, e);
             redirectAttributes.addFlashAttribute("reindexError", "태그 재인덱싱 요청에 실패했습니다.");

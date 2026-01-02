@@ -19,6 +19,7 @@ public class BookDto {
     private Long priceStandard; // 도서 정가
     private Long priceSales; // 도서 판매가
     private Double rating; //평점
+    private BookStatus status;
 
     private LocalDate publisherDate;
     private List<String> contributorNames;  // 기여자 정보

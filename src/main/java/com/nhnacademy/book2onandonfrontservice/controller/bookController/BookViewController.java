@@ -4,7 +4,9 @@ import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.exception.NotFoundBookException;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -50,6 +52,7 @@ public class BookViewController {
         Page<BookDto> newBooks = Page.empty();
         try {
             newBooks = bookClient.getNewArrivals(bearer, null, page, DASHBOARD_SECTION_SIZE);
+            log.debug("신간도서 조회: {}", newBooks.getSize());
         } catch (Exception e) {
             log.error("신간 도서 조회 실패", e);
         }
@@ -58,6 +61,7 @@ public class BookViewController {
         Page<BookDto> likeBest = Page.empty();
         try {
             likeBest = bookClient.getPopularBooks(bearer, page, DASHBOARD_SECTION_SIZE);
+            log.debug("인기도서 조회: {}", likeBest.getSize());
         } catch (Exception e) {
             log.error("인기 도서 조회 실패", e);
         }
@@ -74,9 +78,12 @@ public class BookViewController {
     public String getBookDetail(@PathVariable Long bookId, HttpServletRequest request, Model model) {
         commonData(model);
         BookDetailResponse bookDetail = bookClient.getBookDetail(bookId);
-        if (bookDetail != null) {
-            model.addAttribute("bookDetail", bookDetail);
+
+        if (bookDetail == null || BookStatus.BOOK_DELETED.equals(bookDetail.getStatus())) {
+            throw new NotFoundBookException(bookId);
         }
+
+        model.addAttribute("bookDetail", bookDetail);
         String accessToken = CookieUtils.getCookieValue(request, "accessToken");
         boolean canReview = false;
 
@@ -100,7 +107,13 @@ public class BookViewController {
                               @PageableDefault(size = 12) Pageable pageable,
                               HttpServletRequest request,
                               Model model) {
+        condition.setStatusFilter(Set.of(
+                BookStatus.ON_SALE,
+                BookStatus.SOLD_OUT,
+                BookStatus.OUT_OF_STOCK
+        ));
         Page<BookDto> result = Page.empty(pageable);
+
         try {
             String accessToken = CookieUtils.getCookieValue(request, "accessToken");
             result = bookClient.searchBooks(toBearer(accessToken), condition, pageable);
