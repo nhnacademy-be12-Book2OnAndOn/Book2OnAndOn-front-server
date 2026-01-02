@@ -8,6 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+
 @RestController
 @RequestMapping(value = "/cart", produces = "application/json")
 @RequiredArgsConstructor
@@ -26,10 +30,19 @@ public class CartClientController {
     public ResponseEntity<CartItemsResponseDto> getUserCart(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(cartUserClient.getUserCart("Bearer " + accessToken));
+        try {
+            return ResponseEntity.ok(cartUserClient.getUserCart(token));
+        } catch (feign.FeignException.NotFound e) {
+            // 장바구니가 비어있으면 404가 내려올 수 있으므로 빈 객체로 응답
+            return ResponseEntity.ok(emptyCart());
+        } catch (Exception e) {
+            // 병합 체크 호출 시 404 등 예외로 전체 실패하지 않게 예방
+            return ResponseEntity.ok(emptyCart());
+        }
     }
 
     @PostMapping("/user/items")
@@ -37,10 +50,18 @@ public class CartClientController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @Valid @RequestBody CartItemRequestDto requestDto
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        cartUserClient.addItemToUserCart("Bearer " + accessToken, requestDto);
+        // 기본값: 담을 때는 선택 상태로
+        requestDto.setSelected(true);
+        try {
+            cartUserClient.addItemToUserCart(token, requestDto);
+        } catch (feign.FeignException.NotFound e) {
+            // 백엔드가 빈 카트에 대해 404를 주더라도 프론트는 성공으로 간주
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.noContent().build(); // 204
     }
 
@@ -49,10 +70,11 @@ public class CartClientController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @Valid @RequestBody CartItemQuantityUpdateRequestDto requestDto
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        cartUserClient.updateQuantityUserCartItem("Bearer " + accessToken, requestDto);
+        cartUserClient.updateQuantityUserCartItem(token, requestDto);
         return ResponseEntity.noContent().build();
     }
 
@@ -61,10 +83,11 @@ public class CartClientController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @PathVariable Long bookId
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        cartUserClient.deleteUserCartItem("Bearer " + accessToken, bookId);
+        cartUserClient.deleteUserCartItem(token, bookId);
         return ResponseEntity.noContent().build();
     }
 
@@ -72,10 +95,11 @@ public class CartClientController {
     public ResponseEntity<Void> clearUserCart(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        cartUserClient.clearUserCart("Bearer " + accessToken);
+        cartUserClient.clearUserCart(token);
         return ResponseEntity.noContent().build();
     }
 
@@ -83,10 +107,11 @@ public class CartClientController {
     public ResponseEntity<Void> deleteSelectedUserCartItems(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        cartUserClient.deleteSelectedUserCartItems("Bearer " + accessToken);
+        cartUserClient.deleteSelectedUserCartItems(token);
         return ResponseEntity.noContent().build();
     }
 
@@ -95,10 +120,11 @@ public class CartClientController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @Valid @RequestBody CartItemSelectRequestDto requestDto
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        cartUserClient.selectUserCartItem("Bearer " + accessToken, requestDto);
+        cartUserClient.selectUserCartItem(token, requestDto);
         return ResponseEntity.noContent().build();
     }
 
@@ -107,10 +133,11 @@ public class CartClientController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @Valid @RequestBody CartItemSelectAllRequestDto requestDto
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        cartUserClient.selectAllUserCartItems("Bearer " + accessToken, requestDto);
+        cartUserClient.selectAllUserCartItems(token, requestDto);
         return ResponseEntity.noContent().build();
     }
 
@@ -118,20 +145,34 @@ public class CartClientController {
     public ResponseEntity<CartItemCountResponseDto> getUserCartCount(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(cartUserClient.getUserCartCount("Bearer " + accessToken));
+        try {
+            return ResponseEntity.ok(cartUserClient.getUserCartCount(token));
+        } catch (feign.FeignException.NotFound e) {
+            return ResponseEntity.ok(new CartItemCountResponseDto(0, 0));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new CartItemCountResponseDto(0, 0));
+        }
     }
 
     @GetMapping("/user/selected")
     public ResponseEntity<CartItemsResponseDto> getUserSelectedCart(
             @CookieValue(value = "accessToken", required = false) String accessToken
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(cartUserClient.getUserSelectedCart("Bearer " + accessToken));
+        try {
+            return ResponseEntity.ok(cartUserClient.getUserSelectedCart(token));
+        } catch (feign.FeignException.NotFound e) {
+            return ResponseEntity.ok(emptyCart());
+        } catch (Exception e) {
+            return ResponseEntity.ok(emptyCart());
+        }
     }
 
     @PostMapping("/user/merge")
@@ -139,10 +180,15 @@ public class CartClientController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(cartUserClient.mergeGuestCartToUserCart("Bearer " + accessToken, uuid));
+        try {
+            return ResponseEntity.ok(cartUserClient.mergeGuestCartToUserCart(token, uuid));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).build();
+        }
     }
 
     @GetMapping("/user/merge-status")
@@ -150,10 +196,15 @@ public class CartClientController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
-        if (accessToken == null) {
+        String token = toBearer(accessToken);
+        if (token == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(cartUserClient.getMergeStatus("Bearer " + accessToken, uuid));
+        try {
+            return ResponseEntity.ok(cartUserClient.getMergeStatus(token, uuid));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).build();
+        }
     }
 
 
@@ -173,6 +224,8 @@ public class CartClientController {
             @RequestHeader(GUEST_ID_HEADER) String uuid,
             @Valid @RequestBody CartItemRequestDto requestDto
     ) {
+        // 기본값: 담을 때는 선택 상태로
+        requestDto.setSelected(true);
         cartGuestClient.addItemToGuestCart(uuid, requestDto);
         return ResponseEntity.noContent().build();
     }
@@ -241,5 +294,21 @@ public class CartClientController {
             @RequestHeader(GUEST_ID_HEADER) String uuid
     ) {
         return ResponseEntity.ok(cartGuestClient.getGuestSelectedCart(uuid));
+    }
+
+    private String toBearer(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return null;
+        }
+        String decoded = accessToken;
+        try {
+            decoded = URLDecoder.decode(accessToken, StandardCharsets.UTF_8);
+        } catch (Exception ignored) {
+        }
+        return decoded.startsWith("Bearer ") ? decoded : "Bearer " + decoded;
+    }
+
+    private CartItemsResponseDto emptyCart() {
+        return new CartItemsResponseDto(Collections.emptyList(), 0, 0, 0, 0, 0);
     }
 }

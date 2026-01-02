@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>반품 관리 - 관리자</title>
+
+    <!-- 정적 리소스 위치: /static/css/refund-adminpage.css -->
+    <link rel="stylesheet" th:href="@{/css/refund-adminpage.css}">
+</head>
+<body>
+
+<div class="header">
+    <h1>🛠️ 반품 관리</h1>
+    <p>관리자 페이지</p>
+</div>
+
+<div class="container">
+
+    <!-- 통계 카드 -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number" th:text="${stats != null ? stats.pending : 0}">0</div>
+            <div class="stat-label">처리 대기</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" th:text="${stats != null ? stats.approved : 0}">0</div>
+            <div class="stat-label">승인됨</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" th:text="${stats != null ? stats.rejected : 0}">0</div>
+            <div class="stat-label">거부됨</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" th:text="${stats != null ? stats.completed : 0}">0</div>
+            <div class="stat-label">처리 완료</div>
+        </div>
+    </div>
+
+    <!-- 필터(서버 렌더링: GET 요청으로 검색) -->
+    <div class="filters-card">
+        <h2>🔍 검색 필터</h2>
+
+        <form method="get" th:action="@{/admin/refunds}">
+            <div class="filters-grid">
+
+                <div class="filter-group">
+                    <label>상태</label>
+                    <select name="status">
+                        <option value="" th:selected="${condition == null || condition.status == null}">전체</option>
+                        <option value="0" th:selected="${condition != null && condition.status == 0}">처리 대기</option>
+                        <option value="1" th:selected="${condition != null && condition.status == 1}">승인됨</option>
+                        <option value="2" th:selected="${condition != null && condition.status == 2}">거부됨</option>
+                        <option value="3" th:selected="${condition != null && condition.status == 3}">처리 완료</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>시작일</label>
+                    <input type="date" name="startDate" th:value="${condition != null ? condition.startDate : ''}">
+                </div>
+
+                <div class="filter-group">
+                    <label>종료일</label>
+                    <input type="date" name="endDate" th:value="${condition != null ? condition.endDate : ''}">
+                </div>
+
+                <div class="filter-group">
+                    <label>주문번호</label>
+                    <input type="text" name="orderNumber" placeholder="주문번호 입력"
+                           th:value="${condition != null ? condition.orderNumber : ''}">
+                </div>
+
+                <div class="filter-group">
+                    <label>사용자 검색</label>
+                    <input type="text" name="userKeyword" placeholder="이름, ID 등"
+                           th:value="${condition != null ? condition.userKeyword : ''}">
+                </div>
+
+                <div class="filter-group">
+                    <label>비회원 포함</label>
+                    <select name="includeGuest">
+                        <option value="true"
+                                th:selected="${condition == null || condition.includeGuest == null || condition.includeGuest}">포함</option>
+                        <option value="false"
+                                th:selected="${condition != null && condition.includeGuest != null && !condition.includeGuest}">제외</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- 페이징 파라미터 유지 -->
+            <input type="hidden" name="page" th:value="0">
+            <input type="hidden" name="size" th:value="${page != null ? page.size : 20}">
+
+            <div class="filter-actions">
+                <button class="btn btn-primary" type="submit">검색</button>
+
+                <!-- 초기화: 필터 파라미터 제거한 기본 GET -->
+                <a class="btn btn-secondary" th:href="@{/admin/refunds}" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                    초기화
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- 반품 목록 테이블 -->
+    <div class="refund-table-container">
+        <h2>📋 반품 신청 목록</h2>
+
+        <table>
+            <thead>
+            <tr>
+                <th>반품 ID</th>
+                <th>주문번호</th>
+                <th>신청자</th>
+                <th>반품 상품</th>
+                <th>총 금액</th>
+                <th>사유</th>
+                <th>신청일</th>
+                <th>상태</th>
+                <th>작업</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <!-- empty 상태 -->
+            <tr th:if="${page == null || page.content == null || #lists.isEmpty(page.content)}">
+                <td colspan="9" style="text-align:center; padding:40px; color:#666;">
+                    조회된 반품 내역이 없습니다.
+                </td>
+            </tr>
+
+            <!-- rows -->
+            <tr th:each="it : ${page.content}">
+                <td th:text="${it.refundId}">1</td>
+                <td th:text="${it.orderNumber}">2025123456789</td>
+
+                <!-- 신청자 -->
+                <td>
+                    <span th:text="${it.userName != null ? it.userName : '비회원'}">홍길동</span>
+                    <br>
+                    <small style="color:#666;"
+                           th:text="${it.userType != null ? '(' + it.userType + ')' : ''}">(회원)</small>
+                </td>
+
+                <!-- 반품 상품: 첫 상품 + 외 N건 -->
+                <td>
+          <span th:if="${it.items != null && !#lists.isEmpty(it.items)}"
+                th:text="${#lists.size(it.items) > 1
+                         ? it.items[0].name + ' 외 ' + (#lists.size(it.items)-1) + '건'
+                         : it.items[0].name}">
+            클린 코드 외 1건
+          </span>
+                    <span th:if="${it.items == null || #lists.isEmpty(it.items)}">-</span>
+                </td>
+
+                <td>
+                    <strong th:text="${#numbers.formatInteger(it.totalAmount, 3, 'COMMA')} + '원'">101,000원</strong>
+                </td>
+
+                <td th:text="${it.reason}">상품 불량</td>
+
+                <!-- LocalDate/LocalDateTime 포맷 -->
+                <td th:text="${it.requestDate}">2024-12-15</td>
+
+                <!-- 상태 배지: status 값으로 class 결정 -->
+                <td>
+          <span class="status-badge"
+                th:classappend="${
+                  it.status == 0 ? ' status-pending' :
+                  it.status == 1 ? ' status-approved' :
+                  it.status == 2 ? ' status-rejected' :
+                  it.status == 3 ? ' status-completed' : ' status-pending'
+                }"
+                th:text="${it.statusText != null ? it.statusText :
+                          (it.status == 0 ? '처리 대기' :
+                           it.status == 1 ? '승인됨' :
+                           it.status == 2 ? '거부됨' :
+                           it.status == 3 ? '처리 완료' : '처리 대기')}">
+            처리 대기
+          </span>
+                </td>
+
+                <!-- 작업: 상세/승인/거부 -->
+                <td>
+                    <div class="action-buttons">
+
+                        <!-- 상세: 서버 상세 페이지로 이동(권장) -->
+                        <a class="btn btn-sm btn-info"
+                           th:href="@{/admin/refunds/{refundId}(refundId=${it.refundId})}"
+                           style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                            상세
+                        </a>
+
+                        <!-- 상태가 대기(0)일 때만 승인/거부 -->
+                        <form th:if="${it.status == 0}"
+                              method="post"
+                              th:action="@{/admin/refunds/{refundId}/approve(refundId=${it.refundId})}"
+                              style="display:inline;">
+                            <button class="btn btn-sm btn-success" type="submit">승인</button>
+                        </form>
+
+                        <form th:if="${it.status == 0}"
+                              method="post"
+                              th:action="@{/admin/refunds/{refundId}/reject(refundId=${it.refundId})}"
+                              style="display:inline;">
+                            <!-- 거부 사유를 prompt로 받으려면 JS로 바꿔야 함. 서버 렌더링이면 input으로 받는 게 안전 -->
+                            <input type="hidden" name="adminMemo" value="관리자 거부 처리">
+                            <button class="btn btn-sm btn-danger" type="submit">거부</button>
+                        </form>
+
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Pagination: page가 Spring Page일 때 -->
+        <div class="pagination" th:if="${page != null && page.totalPages > 0}">
+            <!-- 이전 -->
+            <a class="pagination-link"
+               th:classappend="${page.first} ? ' disabled' : ''"
+               th:href="${page.first} ? '#' : @{/admin/refunds(
+                status=${condition?.status},
+                startDate=${condition?.startDate},
+                endDate=${condition?.endDate},
+                orderNumber=${condition?.orderNumber},
+                userKeyword=${condition?.userKeyword},
+                includeGuest=${condition?.includeGuest},
+                page=${page.number - 1},
+                size=${page.size}
+              )}"
+               style="text-decoration:none;">
+                <button th:disabled="${page.first}">이전</button>
+            </a>
+
+            <span class="page-info">
+        <span th:text="${page.number + 1}">1</span> / <span th:text="${page.totalPages}">1</span>
+      </span>
+
+            <!-- 다음 -->
+            <a class="pagination-link"
+               th:classappend="${page.last} ? ' disabled' : ''"
+               th:href="${page.last} ? '#' : @{/admin/refunds(
+                status=${condition?.status},
+                startDate=${condition?.startDate},
+                endDate=${condition?.endDate},
+                orderNumber=${condition?.orderNumber},
+                userKeyword=${condition?.userKeyword},
+                includeGuest=${condition?.includeGuest},
+                page=${page.number + 1},
+                size=${page.size}
+              )}"
+               style="text-decoration:none;">
+                <button th:disabled="${page.last}">다음</button>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<!-- JS는 선택: 모달/confirm 처리하려면 사용. 서버 렌더링만이면 제거해도 됨 -->
+<script th:src="@{/js/refund-adminpage.js}"></script>
+</body>
+</html>

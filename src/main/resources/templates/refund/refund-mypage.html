@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 반품 내역 - Book2OnAndOn</title>
+
+  <!-- 정적 리소스 경로는 th:href 권장 -->
+  <link rel="stylesheet" th:href="@{/css/refund-mypage.css}">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📦 마이페이지</h1>
+    <p>나의 반품 내역을 확인하고 관리하세요</p>
+  </header>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>내 반품 내역</h2>
+      <!-- 반품 신청하기 버튼이 필요하면 주문내역 쪽으로 보내는 게 일반적 -->
+      <!-- <a th:href="@{/orders/my}" class="btn">+ 반품 신청</a> -->
+    </div>
+
+    <!-- 필터/검색: JS onchange 대신, GET 파라미터로 submit -->
+    <form class="filters" method="get" th:action="@{/refunds/my}">
+      <div class="filter-group">
+        <label>상태</label>
+        <select name="status" id="filterStatus" onchange="this.form.submit()">
+          <option value="" th:selected="${param.status == null || param.status[0] == ''}">전체</option>
+          <option value="0" th:selected="${param.status != null && param.status[0] == '0'}">처리중</option>
+          <option value="1" th:selected="${param.status != null && param.status[0] == '1'}">승인됨</option>
+          <option value="2" th:selected="${param.status != null && param.status[0] == '2'}">거부됨</option>
+          <option value="3" th:selected="${param.status != null && param.status[0] == '3'}">완료</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>기간</label>
+        <select name="period" id="filterPeriod" onchange="this.form.submit()">
+          <option value="all" th:selected="${param.period == null || param.period[0] == 'all'}">전체</option>
+          <option value="1" th:selected="${param.period != null && param.period[0] == '1'}">1개월</option>
+          <option value="3" th:selected="${param.period != null && param.period[0] == '3'}">3개월</option>
+          <option value="6" th:selected="${param.period != null && param.period[0] == '6'}">6개월</option>
+          <option value="12" th:selected="${param.period != null && param.period[0] == '12'}">1년</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>주문번호 검색</label>
+        <input type="text"
+               name="orderNumber"
+               id="searchOrder"
+               placeholder="주문번호 입력"
+               th:value="${param.orderNumber != null ? param.orderNumber[0] : ''}">
+      </div>
+
+      <!-- 검색 버튼 (엔터/클릭 지원) -->
+      <div class="filter-group" style="min-width: 120px;">
+        <button type="submit" class="btn btn-sm">검색</button>
+      </div>
+
+      <!-- 페이지 이동 시 필터값 유지: page는 링크에서만 바뀌게 하고, form은 page=0 기본 -->
+      <input type="hidden" name="page" value="0">
+      <input type="hidden" name="size" th:value="${param.size != null ? param.size[0] : 10}">
+    </form>
+
+    <!-- 목록 -->
+    <div id="refundListContainer">
+      <!-- empty state -->
+      <div class="empty-state" th:if="${page == null || page.totalElements == 0}">
+        <div class="empty-state-icon">📭</div>
+        <h3>반품 내역이 없습니다.</h3>
+        <p>아직 반품 신청 내역이 없습니다.<br>주문 내역에서 반품을 신청하실 수 있습니다.</p>
+        <!-- 네 프로젝트 경로에 맞춰 수정 -->
+        <a th:href="@{/orders/my}" class="btn">주문 내역으로 이동</a>
+      </div>
+
+      <!-- list -->
+      <div class="refund-list" th:if="${page != null && page.totalElements > 0}">
+        <div class="refund-item" th:each="refund : ${page.content}">
+          <div class="refund-header">
+            <div>
+              <div class="refund-id" th:text="'반품 #' + ${refund.refundId}">반품 #1</div>
+              <div class="refund-date" th:text="'주문번호: ' + ${refund.orderNumber}">주문번호: 2025...</div>
+              <div class="refund-date" th:text="'신청일: ' + ${refund.requestDate}">신청일: 2025-12-24</div>
+            </div>
+
+            <!-- 상태 배지 -->
+            <span class="status-badge"
+                  th:classappend="${refund.status == 0 ? ' status-pending' :
+                                  refund.status == 1 ? ' status-approved' :
+                                  refund.status == 2 ? ' status-rejected' :
+                                  ' status-completed'}"
+                  th:text="${refund.statusText}">
+              처리중
+            </span>
+          </div>
+
+          <div class="refund-body">
+            <div class="info-item">
+              <span class="info-label">상품명</span>
+              <span class="info-value" th:text="${refund.productName}">클린 코드</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">수량</span>
+              <span class="info-value" th:text="${refund.quantity} + '개'">2개</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">반품 금액</span>
+              <span class="info-value"
+                    th:text="${#numbers.formatInteger(refund.amount, 3, 'COMMA')} + '원'">66,000원</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">반품 사유</span>
+              <span class="info-value" th:text="${refund.reason}">상품 불량</span>
+            </div>
+          </div>
+
+          <div class="refund-reason">
+            <span class="info-label">상세 사유</span>
+            <div class="info-value" th:text="${refund.detailReason}">책에 얼룩...</div>
+          </div>
+
+          <div class="action-buttons">
+            <!-- 상세보기: 모달 대신 상세 페이지로 -->
+            <a class="btn btn-sm btn-outline"
+               th:href="@{/refunds/orders/{orderId}/{refundId}(orderId=${refund.orderId}, refundId=${refund.refundId})}">
+              상세보기
+            </a>
+
+            <!-- 처리중(0)일 때만 취소 버튼 -->
+            <form th:if="${refund.status == 0}"
+                  th:action="@{/refunds/orders/{orderId}/{refundId}/cancel(orderId=${refund.orderId}, refundId=${refund.refundId})}"
+                  method="post" style="display:inline;">
+              <button type="submit" class="btn btn-sm btn-danger"
+                      onclick="return confirm('반품 신청을 취소하시겠습니까?');">
+                신청 취소
+              </button>
+            </form>
+
+            <!-- 거부(2)일 때만 거부사유 표시: 모달 대신 안내 박스 -->
+            <button th:if="${refund.status == 2 && refund.rejectedReason != null}"
+                    type="button"
+                    class="btn btn-sm btn-secondary"
+                    th:attr="data-reason=${refund.rejectedReason}"
+                    onclick="alert('거부 사유:\\n\\n' + this.dataset.reason);">
+              거부 사유
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div class="pagination" th:if="${page != null && page.totalPages > 1}">
+      <!-- prev -->
+      <a class="btn-sm"
+         th:classappend="${page.first} ? ' disabled' : ''"
+         th:href="@{/refunds/my(page=${page.number - 1}, size=${page.size},
+                    status=${param.status != null ? param.status[0] : ''},
+                    period=${param.period != null ? param.period[0] : 'all'},
+                    orderNumber=${param.orderNumber != null ? param.orderNumber[0] : ''})}"
+         th:if="${!page.first}">
+        이전
+      </a>
+      <button th:if="${page.first}" disabled>이전</button>
+
+      <span class="page-info">
+        <span th:text="${page.number + 1}">1</span> / <span th:text="${page.totalPages}">1</span>
+      </span>
+
+      <!-- next -->
+      <a class="btn-sm"
+         th:href="@{/refunds/my(page=${page.number + 1}, size=${page.size},
+                    status=${param.status != null ? param.status[0] : ''},
+                    period=${param.period != null ? param.period[0] : 'all'},
+                    orderNumber=${param.orderNumber != null ? param.orderNumber[0] : ''})}"
+         th:if="${!page.last}">
+        다음
+      </a>
+      <button th:if="${page.last}" disabled>다음</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- JS는 최소화: 필요하면 취소 confirm 정도만 (위에서 이미 inline confirm 사용) -->
+</body>
+</html>

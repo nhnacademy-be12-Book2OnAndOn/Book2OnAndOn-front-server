@@ -74,6 +74,11 @@
                     <div class="stat-value" th:text="${orderCount} + '건'">0건</div>
                 </div>
                 <div class="summary-pill">
+                    <span class="status-dot completed"></span>
+                    <span th:text="${orderStatusSummary != null ? orderStatusSummary.completed : 0} + '건'">0건</span>
+                    <span class="pill-text">주문 완료</span>
+                </div>
+                <div class="summary-pill">
                     <span class="status-dot in-transit"></span>
                     <span th:text="${orderStatusSummary != null ? orderStatusSummary.inTransit : 0} + '건'">0건</span>
                     <span class="pill-text">배송 중</span>

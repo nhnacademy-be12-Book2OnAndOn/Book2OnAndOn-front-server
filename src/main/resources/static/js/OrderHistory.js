@@ -11,14 +11,17 @@ const IS_MEMBER_LOGGED_IN =
     (typeof window !== 'undefined' && window.IS_MEMBER_LOGGED_IN !== undefined)
         ? Boolean(window.IS_MEMBER_LOGGED_IN) || Boolean(ACCESS_TOKEN)
         : Boolean(ACCESS_TOKEN);
-const USER_ID =
-    (typeof window !== 'undefined' && window.USER_ID !== undefined)
-        ? window.USER_ID
-        : null;
 const USE_SERVER_PAGING =
     (typeof window !== 'undefined' && window.USE_SERVER_PAGING !== undefined)
         ? Boolean(window.USE_SERVER_PAGING)
         : false;
+// const USER_ID =
+//     (typeof window !== 'undefined' && window.USER_ID !== undefined)
+//         ? window.USER_ID
+//         : null;
+function getUserId() {
+    return (typeof window !== 'undefined' && window.USER_ID !== undefined) ? window.USER_ID : null;
+}
 
 // 백엔드 Enum 및 UI 표시용 상태명
 const ORDER_STATUS = {
@@ -101,7 +104,10 @@ function setupEventListeners() {
     document.getElementById('orderFilterForm')?.addEventListener('submit', handleOrderFiltering);
     document.getElementById('filterResetButton')?.addEventListener('click', initializeFilterForm);
     document.getElementById('inlineSearchButton')?.addEventListener('click', () => {
-        document.getElementById('orderFilterForm')?.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+        document.getElementById('orderFilterForm')?.dispatchEvent(new Event('submit', {
+            cancelable: true,
+            bubbles: true
+        }));
     });
 
     // 상세페이지 체크박스 금액 실시간 업데이트
@@ -113,11 +119,16 @@ function setupEventListeners() {
 // --- 상태별 색상 반환 함수 ---
 function getStatusColor(status) {
     switch (status) {
-        case ORDER_STATUS.DELIVERED: return 'green';
-        case ORDER_STATUS.CANCELED: return 'red';
-        case ORDER_STATUS.RETURN_REQUESTED: return 'orange';
-        case ORDER_STATUS.SHIPPING: return '#333';
-        default: return '#333';
+        case ORDER_STATUS.DELIVERED:
+            return 'green';
+        case ORDER_STATUS.CANCELED:
+            return 'red';
+        case ORDER_STATUS.RETURN_REQUESTED:
+            return 'orange';
+        case ORDER_STATUS.SHIPPING:
+            return '#333';
+        default:
+            return '#333';
     }
 }
 
@@ -151,7 +162,7 @@ function renderOrderList(orders) {
  */
 async function fetchOrderDetail(orderId, mode) {
     try {
-        const headers = { 'Content-Type': 'application/json' };
+        const headers = {'Content-Type': 'application/json'};
         if (mode === 'MEMBER_MODE') {
             headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
         }
@@ -178,16 +189,32 @@ function renderOrderDetailUI(detail, mode) {
     if (topActionContainer) topActionContainer.innerHTML = '';
 
     let itemsHtml = '';
-    detail.items.forEach(item => {
-        for (let i = 0; i < item.quantity; i++) {
-            const isCheckable = [ORDER_STATUS.PENDING, ORDER_STATUS.SHIPPING, ORDER_STATUS.DELIVERED]
-                .includes(detail.status);
+    const statusKey = (detail.orderStatus || detail.status || '').toString();
+    const statusLabel = ORDER_STATUS[statusKey] || detail.status || detail.orderStatus || '';
+    const allowReview = statusKey === 'DELIVERED' || statusKey === 'COMPLETED'
+        || statusLabel === ORDER_STATUS.DELIVERED || statusLabel === ORDER_STATUS.COMPLETED;
+    const items = Array.isArray(detail.orderItems) ? detail.orderItems : (detail.items || []);
+    const isCheckable = [ORDER_STATUS.PENDING, ORDER_STATUS.SHIPPING, ORDER_STATUS.DELIVERED]
+        .includes(detail.status) || ['PENDING', 'SHIPPING', 'DELIVERED'].includes(statusKey);
+    items.forEach(item => {
+        const itemName = item.bookTitle || item.name || '상품';
+        const itemPrice = Number(item.unitPrice ?? item.price ?? 0);
+        const itemQuantity = Math.max(1, Number(item.orderItemQuantity ?? item.quantity ?? 1));
+        const itemId = item.orderItemId || item.id || '';
+        const hasBookId = item.bookId !== undefined && item.bookId !== null;
+        const reviewBtn = allowReview && hasBookId
+            ? `<a class="btn-secondary" style="margin-left:8px; white-space:nowrap;"
+                  href="/books/${item.bookId}?tab=reviews#reviewForm">리뷰 작성</a>`
+            : '';
+
+        for (let i = 0; i < itemQuantity; i++) {
             itemsHtml += `
                 <div class="order-item-detail" style="display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:10px; background:#fcfcfc; border-left:3px solid #ddd;">
                 ${isCheckable ?
                 `<input type="checkbox" class="item-checkbox" data-id="${item.orderItemId || item.id}" data-price="${item.price}" data-name="${item.name}">`
                 : ''}
-                <span>${item.name} (1권) - ${item.price.toLocaleString()}원 ${item.isWrapped ? `(포장 옵션: ${item.wrapName})` : ''}</span>
+                <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name} (1권) - ${item.price.toLocaleString()}원 ${item.isWrapped ? `(포장 옵션: ${item.wrapName})` : ''}</span>
+                ${reviewBtn}
             </div>`;
         }
     });
@@ -213,6 +240,10 @@ function renderOrderDetailUI(detail, mode) {
 
 function renderBottomButtons(detail, mode) {
     const section = document.getElementById('orderDetailSection');
+    const statusKey = (detail.orderStatus || detail.status || '').toString();
+    const isPending = statusKey === 'PENDING' || detail.status === ORDER_STATUS.PENDING;
+    const isDelivered = statusKey === 'DELIVERED' || detail.status === ORDER_STATUS.DELIVERED;
+    const isShipping = statusKey === 'SHIPPING' || detail.status === ORDER_STATUS.SHIPPING;
 
     // 기존에 생성된 하단 버튼 컨테이너가 있다면 제거 (중복 방지)
     const oldBtnContainer = document.querySelector('.detail-bottom-actions');
@@ -238,14 +269,14 @@ function renderBottomButtons(detail, mode) {
     btnContainer.appendChild(newBackBtn);
 
     // 2. 주문 상태에 따른 액션 버튼 추가 (오른쪽 배치)
-    if (detail.status === ORDER_STATUS.PENDING) {
+    if (isPending) {
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'btn-primary';
         cancelBtn.style.backgroundColor = '#e74c3c'; // 취소 버튼 강조색
         cancelBtn.textContent = '선택 항목 취소';
         cancelBtn.onclick = () => showModal('cancel', detail);
         btnContainer.appendChild(cancelBtn);
-    } else if (detail.status === ORDER_STATUS.DELIVERED || detail.status === ORDER_STATUS.SHIPPING) {
+    } else if (isDelivered || isShipping) {
         const returnBtn = document.createElement('button');
         returnBtn.className = 'btn-primary';
         returnBtn.textContent = '선택 항목 반품';
@@ -333,6 +364,7 @@ async function handleActionRequest(type, detail, amount) {
 function hideModal() {
     document.getElementById('actionModal').classList.add('hidden');
 }
+
 function setupModalListeners() {
     document.querySelector('#actionModal .close-button')?.addEventListener('click', hideModal);
 }
@@ -340,6 +372,7 @@ function setupModalListeners() {
 /*
  * --- 주문 내역에 가이드 추가 ---
  */
+
 // 모든 섹션 숨기기 함수 수정
 function hideAllSections() {
     const guestLookupSection = document.getElementById('guestLookupSection');
@@ -396,7 +429,7 @@ function initializeFilterForm() {
     const filterYear = document.getElementById('filterYear');
     const filterMonth = document.getElementById('filterMonth');
     const filterStatus = document.getElementById('filterStatus');
-    if(!filterYear || !filterMonth || !filterStatus) return;
+    if (!filterYear || !filterMonth || !filterStatus) return;
     filterYear.innerHTML = '<option value="all">전체보기</option>';
     for (let y = currentYear; y >= currentYear - 3; y--) filterYear.innerHTML += `<option value="${y}">${y}년</option>`;
     filterMonth.innerHTML = '<option value="all">전체보기</option>';
@@ -485,6 +518,7 @@ function formatDate(value) {
         return '';
     }
 }
+
 // 비회원이 주문 정보를 입력하고 조회 버튼 눌렀을때 실행
 async function handleGuestLookup(e) {
     e.preventDefault();
@@ -495,8 +529,8 @@ async function handleGuestLookup(e) {
     try {
         const response = await fetch(`${API_BASE}/guest/lookup`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderNumber, name, password })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({orderNumber, name, password})
         });
 
         if (!response.ok) throw new Error("주문 정보를 찾을 수 없습니다.");

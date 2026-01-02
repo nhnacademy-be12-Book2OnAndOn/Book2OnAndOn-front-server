@@ -165,7 +165,7 @@
             <div class="order-header-meta">
                 <span th:text="${order.orderDatetime != null ? #temporals.format(order.orderDatetime, 'yyyy-MM-dd HH:mm') : ''}">2025-01-01 12:00</span>
                 <span>·</span>
-                <span th:text="${order.orderNumber}">ORD-000000</span>
+                <span th:text="${order.orderNumber}">B2-000000000001</span>
             </div>
         </div>
         <span class="status-chip" th:text="${order.orderStatus != null ? order.orderStatus : '상태 미정'}">상태</span>
@@ -212,6 +212,7 @@
                 <th>상품명</th>
                 <th style="width:120px;">수량</th>
                 <th style="width:160px;">금액</th>
+                <th style="width:160px;" th:if="${order.orderStatus == '배송 완료'}">리뷰</th>
             </tr>
             </thead>
             <tbody>
@@ -222,6 +223,9 @@
                 </td>
                 <td th:text="${item.orderItemQuantity}">1</td>
                 <td th:text="${item.unitPrice != null ? #numbers.formatInteger(item.unitPrice, 0, 'COMMA') + '원' : '-'}">0원</td>
+                <td th:if="${order.orderStatus == '배송 완료'}">
+                    <a class="btn-secondary" th:href="@{'/books/' + ${item.bookId} + '?tab=reviews'}">리뷰 작성</a>
+                </td>
             </tr>
             </tbody>
         </table>
@@ -235,7 +239,8 @@
     <div class="actions-row">
         <a class="btn-secondary" th:href="@{/users/me/orders}">목록으로</a>
         <a class="btn-primary" style="text-decoration:none;"
-           th:href="@{'/orders/' + ${order.orderNumber} + '/cancel'}" th:if="${order.orderNumber != null}">취소/문의</a>
+           th:href="@{/refunds/form(orderId=${order.orderId})}" th:if="${order.orderId != null}">반품</a>
+<!--        th:href="@{'/orders/' + ${order.orderNumber} + '/cancel'}" th:if="${order.orderNumber != null}">취소/문의</a>-->
     </div>
 </div>
 </body>

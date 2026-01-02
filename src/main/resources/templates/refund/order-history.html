@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문 내역 확인 - Book2OnAndOn</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            background: #4A7C59;
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(74, 124, 89, 0.3);
+            margin-bottom: 30px;
+        }
+        header h1 { font-size: 1.8em; margin-bottom: 5px; }
+        header p { opacity: 0.9; font-size: 0.95em; }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            color: #4A7C59;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            border-bottom: 3px solid #4A7C59;
+            padding-bottom: 10px;
+        }
+        .card p { color: #666; line-height: 1.6; margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #4A7C59;
+            box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+        }
+
+        .btn {
+            background: #4A7C59;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .btn:hover {
+            background: #3d6549;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 124, 89, 0.3);
+        }
+
+        .order-list { display: grid; gap: 20px; }
+        .order-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            cursor: pointer;
+        }
+        .order-item:hover {
+            border-color: #4A7C59;
+            box-shadow: 0 5px 20px rgba(74, 124, 89, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-number { font-size: 1.2em; font-weight: bold; color: #4A7C59; }
+        .order-date { color: #666; font-size: 0.9em; margin-top: 5px; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-shipping { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-canceled { background: #f8d7da; color: #721c24; }
+        .status-return { background: #fff3cd; color: #856404; }
+
+        .order-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .info-item { display: flex; flex-direction: column; }
+        .info-label { font-size: 0.85em; color: #666; margin-bottom: 5px; }
+        .info-value { font-weight: 600; color: #333; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state-icon { font-size: 4em; margin-bottom: 20px; opacity: 0.3; }
+        .empty-state h3 { font-size: 1.3em; margin-bottom: 10px; color: #333; }
+
+        .link { color: #4A7C59; text-decoration: none; font-weight: 600; }
+        .link:hover { text-decoration: underline; }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 768px) {
+            .order-body { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📦 주문 내역 확인</h1>
+        <p>Book2OnAndOn에서 주문하신 내역을 확인하세요</p>
+    </header>
+
+    <!-- 비회원 주문 조회 -->
+    <section id="guestLookupSection" class="hidden">
+        <div class="card">
+            <h2>비회원 주문 조회</h2>
+            <p>주문 시 입력했던 정보로 조회할 수 있습니다.</p>
+
+            <form id="guestLookupForm">
+                <div class="form-group">
+                    <input type="text" id="guestOrderId" placeholder="주문 번호" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="guestOrderer" placeholder="주문자 이름" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="guestPassword" placeholder="주문 비밀번호 (또는 연락처 끝 4자리)" required>
+                </div>
+                <button type="submit" class="btn">주문 조회</button>
+            </form>
+
+            <p style="margin-top: 20px; text-align: center;">
+                혹은 <a href="#" id="memberLoginLink" class="link">로그인</a>하여 전체 주문 내역을 확인하세요.
+            </p>
+        </div>
+    </section>
+
+    <!-- 회원 주문 목록 -->
+    <section id="memberHistorySection" class="hidden">
+        <div class="card">
+            <h2>전체 주문 내역 (<span id="userNameDisplay">회원</span>님)</h2>
+            <div id="orderList" class="order-list"></div>
+
+            <div id="noOrdersMessage" class="empty-state hidden">
+                <div class="empty-state-icon">📭</div>
+                <h3>주문 내역이 없습니다</h3>
+                <p>아직 주문하신 상품이 없습니다.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // ===== 실제 연동 시 여기만 교체 =====
+    const API_BASE = '/orders';
+
+    // 데모/목업 값
+    const USER_ID = 10;
+    const USER_NAME = '회원';
+    const IS_MEMBER_LOGGED_IN = true; // 로그인 여부에 따라 분기
+
+    const ORDER_STATUS = {
+        PENDING: { text: "주문 대기", class: "status-pending" },
+        SHIPPING: { text: "배송중", class: "status-shipping" },
+        DELIVERED: { text: "배송 완료", class: "status-delivered" },
+        CANCELED: { text: "주문 취소", class: "status-canceled" },
+        COMPLETED: { text: "주문 완료", class: "status-delivered" },
+        RETURN_REQUESTED: { text: "반품 신청", class: "status-return" },
+        RETURN_COMPLETED: { text: "반품 완료", class: "status-canceled" }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('userNameDisplay').textContent = USER_NAME;
+        setupEventListeners();
+        initializeView();
+    });
+
+    function setupEventListeners() {
+        document.getElementById('guestLookupForm')?.addEventListener('submit', handleGuestLookup);
+
+        document.getElementById('memberLoginLink')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            // 실제 서비스에서는 로그인 페이지로 이동
+            alert('로그인 페이지로 이동(목업)');
+        });
+    }
+
+    function initializeView() {
+        // history 페이지에서는 mode 파라미터로 강제 guest 화면도 가능
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode'); // "guest"면 비회원 화면 강제
+        const forceGuestMode = mode === 'guest';
+
+        const isLoggedIn = IS_MEMBER_LOGGED_IN && !forceGuestMode;
+
+        if (isLoggedIn) {
+            showMemberHistory();
+            fetchMemberOrders(USER_ID);
+        } else {
+            showGuestLookupForm();
+        }
+    }
+
+    function hideAllSections() {
+        document.getElementById('guestLookupSection').classList.add('hidden');
+        document.getElementById('memberHistorySection').classList.add('hidden');
+    }
+
+    function showGuestLookupForm() {
+        hideAllSections();
+        document.getElementById('guestLookupSection').classList.remove('hidden');
+    }
+
+    function showMemberHistory() {
+        hideAllSections();
+        document.getElementById('memberHistorySection').classList.remove('hidden');
+    }
+
+    async function fetchMemberOrders(userId) {
+        // TODO: 실제 연동 시 아래 목업을 fetch로 교체
+        // const res = await fetch(`${API_BASE}/users/${userId}`, { headers: ... })
+        // const orders = await res.json();
+
+        const mockOrders = [
+            { orderId: 'M1001', date: '2025-12-10', total: 45000, status: 'PENDING', items: [{name: '클린 코드', count: 1}] },
+            { orderId: 'M1002', date: '2025-11-20', total: 72000, status: 'DELIVERED', items: [{name: '객체지향 설계', count: 2}] },
+            { orderId: 'M1003', date: '2025-11-01', total: 30000, status: 'SHIPPING', items: [{name: '알고리즘', count: 1}] },
+            { orderId: 'M1004', date: '2025-10-25', total: 50000, status: 'RETURN_REQUESTED', items: [{name: '자바의 정석', count: 1}] },
+            { orderId: 'M1005', date: '2025-10-20', total: 20000, status: 'CANCELED', items: [{name: '웹 개발', count: 1}] },
+        ];
+
+        renderOrderList(mockOrders);
+    }
+
+    function renderOrderList(orders) {
+        const listContainer = document.getElementById('orderList');
+        listContainer.innerHTML = '';
+
+        if (!orders || orders.length === 0) {
+            document.getElementById('noOrdersMessage').classList.remove('hidden');
+            return;
+        }
+        document.getElementById('noOrdersMessage').classList.add('hidden');
+
+        orders.forEach(order => {
+            const statusInfo = ORDER_STATUS[order.status] || { text: order.status, class: "status-pending" };
+
+            const orderDiv = document.createElement('div');
+            orderDiv.className = 'order-item';
+            orderDiv.onclick = () => {
+                // 상세 페이지로 이동
+                const params = new URLSearchParams({
+                    orderId: order.orderId,
+                    mode: 'MEMBER_MODE'
+                });
+                window.location.href = `order_detail.html?${params.toString()}`;
+            };
+
+            orderDiv.innerHTML = `
+        <div class="order-header">
+          <div>
+            <div class="order-number">주문번호: ${order.orderId}</div>
+            <div class="order-date">${order.date}</div>
+          </div>
+          <span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>
+        </div>
+        <div class="order-body">
+          <div class="info-item">
+            <span class="info-label">상품</span>
+            <span class="info-value">
+              ${order.items[0].name} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">총 금액</span>
+            <span class="info-value">${order.total.toLocaleString()}원</span>
+          </div>
+        </div>
+      `;
+
+            listContainer.appendChild(orderDiv);
+        });
+    }
+
+    async function handleGuestLookup(e) {
+        e.preventDefault();
+        const orderId = document.getElementById('guestOrderId').value;
+        const orderer = document.getElementById('guestOrderer').value;
+        const password = document.getElementById('guestPassword').value;
+
+        // TODO: 실제 연동 시 인증 API 호출로 변경
+        // const res = await fetch(`${API_BASE}/guest/lookup`, { ... })
+        // 성공 시 상세로 이동
+
+        // 목업 검증
+        if (orderId === 'G1001' && orderer === '비회원' && password === '1234') {
+            const params = new URLSearchParams({
+                orderId,
+                mode: 'GUEST_MODE'
+                // 비회원 password를 쿼리로 넘기는 건 보안상 권장되지 않음.
+                // 실제로는 서버 세션/토큰/일회성 인증키로 대체.
+            });
+            window.location.href = `order_detail.html?${params.toString()}`;
+        } else {
+            alert('주문 정보가 일치하지 않습니다.');
+        }
+    }
+</script>
+</body>
+</html>

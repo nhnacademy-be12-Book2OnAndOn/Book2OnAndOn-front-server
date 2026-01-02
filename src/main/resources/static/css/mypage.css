@@ -290,6 +290,11 @@
     box-shadow: 0 0 0 3px rgba(244, 183, 63, 0.25);
 }
 
+.status-dot.completed {
+    background: #2f6242;
+    box-shadow: 0 0 0 3px rgba(47, 98, 66, 0.2);
+}
+
 .status-dot.delivered {
     background: #2f8f4f;
     box-shadow: 0 0 0 3px rgba(47, 143, 79, 0.22);

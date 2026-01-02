@@ -200,7 +200,8 @@
             <div id="reviews" class="content-block tab-panel">
                 <div class="review-header">
                     <h3>고객 리뷰</h3>
-                    <a class="btn secondary sm" href="#reviewForm">리뷰 작성</a>
+                    <a class="btn secondary sm" href="#reviewForm" th:if="${currentUser != null}">리뷰 작성</a>
+                    <a class="btn secondary sm" href="/login" th:if="${currentUser == null}">로그인 후 리뷰 작성</a>
                 </div>
 
                 <div class="review-summary-card" th:data-rating="${bookDetail.rating}">
@@ -257,7 +258,10 @@
                                 <input id="reviewImages" type="file" name="images" accept="image/*" multiple>
                             </div>
                             <div class="form-actions">
-                                <button type="submit" class="btn primary sm">등록</button>
+                                <button type="submit" class="btn primary sm" id="reviewSubmitButton"
+                                        th:disabled="${reviewEligible == false}">등록</button>
+                                <button type="button" class="btn ghost sm" id="reviewCancelEditButton"
+                                        style="display:none;">취소</button>
                             </div>
                         </form>
                     </div>
@@ -288,7 +292,12 @@
                 </div>
 
                 <div class="review-list">
-                    <div class="review-item" th:each="review : ${bookDetail.reviews}" th:data-score="${review.score}">
+                    <div class="review-item" th:each="review : ${bookDetail.reviews}"
+                         th:data-score="${review.score}"
+                         th:data-review-id="${review.id}"
+                         th:data-review-title="${review.title}"
+                         th:data-review-content="${review.content}"
+                         th:data-review-user-id="${review.userId}">
                         <div class="review-meta">
                             <span class="reviewer" th:text="${review.writerName} ?: '익명'">사용자</span>
                             <span class="stars">
@@ -303,6 +312,10 @@
                                 <img th:src="${rImg.imagePath}" alt="리뷰 이미지"
                                      onclick="window.open(this.src)" title="크게 보기">
                             </div>
+                        </div>
+                        <div class="review-actions"
+                             th:if="${currentUser != null and review.userId == currentUser.userId}">
+                            <button type="button" class="btn ghost sm review-edit-btn">리뷰 수정</button>
                         </div>
                     </div>
                     <div class="empty-review" th:if="${bookDetail.reviews == null or bookDetail.reviews.isEmpty()}">
@@ -674,6 +687,31 @@
             });
         });
 
+        const activateTab = (targetId) => {
+            if (!targetId) return;
+            const targetTab = Array.from(tabs).find(tab => tab.dataset.tab === targetId);
+            if (!targetTab) return;
+            tabs.forEach(t => t.classList.toggle('active', t === targetTab));
+            panels.forEach(panel => panel.classList.toggle('active', panel.id === targetId));
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        const requestedTab = params.get('tab');
+        if (requestedTab) {
+            activateTab(requestedTab);
+        }
+
+        const hash = window.location.hash;
+        if (hash === '#reviews' || hash === '#reviewForm') {
+            activateTab('reviews');
+            if (hash === '#reviewForm') {
+                const formEl = document.getElementById('reviewForm');
+                if (formEl) {
+                    setTimeout(() => formEl.scrollIntoView({behavior: 'smooth', block: 'start'}), 0);
+                }
+            }
+        }
+
         if (summaryCard) {
             const ratingValue = Number(summaryCard.dataset.rating) || 0;
             const filled = Math.max(0, Math.min(5, Math.round(ratingValue)));
@@ -745,6 +783,62 @@
             });
 
             render(current);
+
+            const setStarValue = (val) => {
+                current = Number(val) || 0;
+                starInput.value = current;
+                render(current);
+            };
+
+            const reviewFormCard = document.getElementById('reviewForm');
+            const reviewForm = reviewFormCard ? reviewFormCard.querySelector('form') : null;
+            const reviewSubmitBtn = document.getElementById('reviewSubmitButton');
+            const reviewCancelBtn = document.getElementById('reviewCancelEditButton');
+            const reviewEligible = reviewFormCard ? reviewFormCard.dataset.reviewEligible === 'true' : false;
+            const defaultAction = reviewForm ? reviewForm.getAttribute('action') : null;
+
+            const exitEditMode = () => {
+                if (!reviewForm) return;
+                reviewForm.reset();
+                setStarValue(0);
+                if (defaultAction) reviewForm.setAttribute('action', defaultAction);
+                if (reviewSubmitBtn) {
+                    reviewSubmitBtn.textContent = '등록';
+                    reviewSubmitBtn.disabled = !reviewEligible;
+                }
+                if (reviewCancelBtn) reviewCancelBtn.style.display = 'none';
+            };
+
+            const enterEditMode = (review) => {
+                if (!reviewForm || !reviewSubmitBtn) return;
+                reviewForm.setAttribute('action', `/api/books/reviews/${review.reviewId}`);
+                document.getElementById('reviewTitle').value = review.title || '';
+                document.getElementById('reviewContent').value = review.content || '';
+                setStarValue(review.score);
+                reviewSubmitBtn.textContent = '수정';
+                reviewSubmitBtn.disabled = false;
+                if (reviewCancelBtn) reviewCancelBtn.style.display = 'inline-flex';
+            };
+
+            document.querySelectorAll('.review-edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const item = btn.closest('.review-item');
+                    if (!item) return;
+                    const reviewId = item.dataset.reviewId;
+                    if (!reviewId) return;
+                    enterEditMode({
+                        reviewId,
+                        title: item.dataset.reviewTitle || '',
+                        content: item.dataset.reviewContent || '',
+                        score: Number(item.dataset.score) || 0
+                    });
+                    reviewFormCard?.scrollIntoView({behavior: 'smooth', block: 'start'});
+                });
+            });
+
+            if (reviewCancelBtn) {
+                reviewCancelBtn.addEventListener('click', exitEditMode);
+            }
         }
     });
     /*]]>*/
