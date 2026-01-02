@@ -13,9 +13,10 @@ public class BookReviewResponseDto {
     private Long id;
     private Long bookId;
     private Long userId;
+    private String bookTitle;
     private String title;
     private String content;
-    private String score;
+    private Integer score;
     private LocalDate createdAt;
     private List<ReviewImageResponse> images;
 

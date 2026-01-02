@@ -137,9 +137,10 @@
 
             <div class="review-preview" th:each="review : ${recentReviews}">
                 <div class="review-title" th:text="${review.bookTitle}">도서 제목</div>
+                <div class="review-title" th:text="${review.title}">리뷰 제목</div>
                 <div class="review-content" th:text="${review.content}">리뷰 내용이 표시됩니다.</div>
                 <div class="review-meta">
-                    <span class="star" th:text="'★ ' + ${review.rating}">★ 0</span>
+                    <span class="star" th:text="'★ ' + ${review.score}">★ 0</span>
                 </div>
             </div>
         </a>
