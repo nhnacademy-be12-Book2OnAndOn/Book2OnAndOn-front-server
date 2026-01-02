@@ -1,85 +1,113 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>반품 관리 - 관리자</title>
+
+    <!-- 정적 리소스 위치: /static/css/refund-adminpage.css -->
     <link rel="stylesheet" th:href="@{/css/refund-adminpage.css}">
 </head>
 <body>
+
 <div class="header">
     <h1>🛠️ 반품 관리</h1>
     <p>관리자 페이지</p>
 </div>
 
 <div class="container">
+
     <!-- 통계 카드 -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-number" id="statPending">0</div>
+            <div class="stat-number" th:text="${stats != null ? stats.pending : 0}">0</div>
             <div class="stat-label">처리 대기</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="statApproved">0</div>
+            <div class="stat-number" th:text="${stats != null ? stats.approved : 0}">0</div>
             <div class="stat-label">승인됨</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="statRejected">0</div>
+            <div class="stat-number" th:text="${stats != null ? stats.rejected : 0}">0</div>
             <div class="stat-label">거부됨</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="statCompleted">0</div>
+            <div class="stat-number" th:text="${stats != null ? stats.completed : 0}">0</div>
             <div class="stat-label">처리 완료</div>
         </div>
     </div>
 
-    <!-- 필터 -->
+    <!-- 필터(서버 렌더링: GET 요청으로 검색) -->
     <div class="filters-card">
         <h2>🔍 검색 필터</h2>
-        <div class="filters-grid">
-            <div class="filter-group">
-                <label>상태</label>
-                <select id="filterStatus">
-                    <option value="">전체</option>
-                    <option value="0">처리 대기</option>
-                    <option value="1">승인됨</option>
-                    <option value="2">거부됨</option>
-                    <option value="3">처리 완료</option>
-                </select>
+
+        <form method="get" th:action="@{/admin/refunds}">
+            <div class="filters-grid">
+
+                <div class="filter-group">
+                    <label>상태</label>
+                    <select name="status">
+                        <option value="" th:selected="${condition == null || condition.status == null}">전체</option>
+                        <option value="0" th:selected="${condition != null && condition.status == 0}">처리 대기</option>
+                        <option value="1" th:selected="${condition != null && condition.status == 1}">승인됨</option>
+                        <option value="2" th:selected="${condition != null && condition.status == 2}">거부됨</option>
+                        <option value="3" th:selected="${condition != null && condition.status == 3}">처리 완료</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>시작일</label>
+                    <input type="date" name="startDate" th:value="${condition != null ? condition.startDate : ''}">
+                </div>
+
+                <div class="filter-group">
+                    <label>종료일</label>
+                    <input type="date" name="endDate" th:value="${condition != null ? condition.endDate : ''}">
+                </div>
+
+                <div class="filter-group">
+                    <label>주문번호</label>
+                    <input type="text" name="orderNumber" placeholder="주문번호 입력"
+                           th:value="${condition != null ? condition.orderNumber : ''}">
+                </div>
+
+                <div class="filter-group">
+                    <label>사용자 검색</label>
+                    <input type="text" name="userKeyword" placeholder="이름, ID 등"
+                           th:value="${condition != null ? condition.userKeyword : ''}">
+                </div>
+
+                <div class="filter-group">
+                    <label>비회원 포함</label>
+                    <select name="includeGuest">
+                        <option value="true"
+                                th:selected="${condition == null || condition.includeGuest == null || condition.includeGuest}">포함</option>
+                        <option value="false"
+                                th:selected="${condition != null && condition.includeGuest != null && !condition.includeGuest}">제외</option>
+                    </select>
+                </div>
+
             </div>
-            <div class="filter-group">
-                <label>시작일</label>
-                <input type="date" id="filterStartDate">
+
+            <!-- 페이징 파라미터 유지 -->
+            <input type="hidden" name="page" th:value="0">
+            <input type="hidden" name="size" th:value="${page != null ? page.size : 20}">
+
+            <div class="filter-actions">
+                <button class="btn btn-primary" type="submit">검색</button>
+
+                <!-- 초기화: 필터 파라미터 제거한 기본 GET -->
+                <a class="btn btn-secondary" th:href="@{/admin/refunds}" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                    초기화
+                </a>
             </div>
-            <div class="filter-group">
-                <label>종료일</label>
-                <input type="date" id="filterEndDate">
-            </div>
-            <div class="filter-group">
-                <label>주문번호</label>
-                <input type="text" id="filterOrderNumber" placeholder="주문번호 입력">
-            </div>
-            <div class="filter-group">
-                <label>사용자 검색</label>
-                <input type="text" id="filterUserKeyword" placeholder="이름, ID 등">
-            </div>
-            <div class="filter-group">
-                <label>비회원 포함</label>
-                <select id="filterIncludeGuest">
-                    <option value="true">포함</option>
-                    <option value="false">제외</option>
-                </select>
-            </div>
-        </div>
-        <div class="filter-actions">
-            <button class="btn btn-primary" onclick="searchRefunds()">검색</button>
-            <button class="btn btn-secondary" onclick="resetFilters()">초기화</button>
-        </div>
+        </form>
     </div>
 
     <!-- 반품 목록 테이블 -->
     <div class="refund-table-container">
         <h2>📋 반품 신청 목록</h2>
+
         <table>
             <thead>
             <tr>
@@ -94,417 +122,145 @@
                 <th>작업</th>
             </tr>
             </thead>
-            <tbody id="refundTableBody">
-            <!-- 동적으로 생성 -->
+
+            <tbody>
+            <!-- empty 상태 -->
+            <tr th:if="${page == null || page.content == null || #lists.isEmpty(page.content)}">
+                <td colspan="9" style="text-align:center; padding:40px; color:#666;">
+                    조회된 반품 내역이 없습니다.
+                </td>
+            </tr>
+
+            <!-- rows -->
+            <tr th:each="it : ${page.content}">
+                <td th:text="${it.refundId}">1</td>
+                <td th:text="${it.orderNumber}">2025123456789</td>
+
+                <!-- 신청자 -->
+                <td>
+                    <span th:text="${it.userName != null ? it.userName : '비회원'}">홍길동</span>
+                    <br>
+                    <small style="color:#666;"
+                           th:text="${it.userType != null ? '(' + it.userType + ')' : ''}">(회원)</small>
+                </td>
+
+                <!-- 반품 상품: 첫 상품 + 외 N건 -->
+                <td>
+          <span th:if="${it.items != null && !#lists.isEmpty(it.items)}"
+                th:text="${#lists.size(it.items) > 1
+                         ? it.items[0].name + ' 외 ' + (#lists.size(it.items)-1) + '건'
+                         : it.items[0].name}">
+            클린 코드 외 1건
+          </span>
+                    <span th:if="${it.items == null || #lists.isEmpty(it.items)}">-</span>
+                </td>
+
+                <td>
+                    <strong th:text="${#numbers.formatInteger(it.totalAmount, 3, 'COMMA')} + '원'">101,000원</strong>
+                </td>
+
+                <td th:text="${it.reason}">상품 불량</td>
+
+                <!-- LocalDate/LocalDateTime 포맷 -->
+                <td th:text="${it.requestDate}">2024-12-15</td>
+
+                <!-- 상태 배지: status 값으로 class 결정 -->
+                <td>
+          <span class="status-badge"
+                th:classappend="${
+                  it.status == 0 ? ' status-pending' :
+                  it.status == 1 ? ' status-approved' :
+                  it.status == 2 ? ' status-rejected' :
+                  it.status == 3 ? ' status-completed' : ' status-pending'
+                }"
+                th:text="${it.statusText != null ? it.statusText :
+                          (it.status == 0 ? '처리 대기' :
+                           it.status == 1 ? '승인됨' :
+                           it.status == 2 ? '거부됨' :
+                           it.status == 3 ? '처리 완료' : '처리 대기')}">
+            처리 대기
+          </span>
+                </td>
+
+                <!-- 작업: 상세/승인/거부 -->
+                <td>
+                    <div class="action-buttons">
+
+                        <!-- 상세: 서버 상세 페이지로 이동(권장) -->
+                        <a class="btn btn-sm btn-info"
+                           th:href="@{/admin/refunds/{refundId}(refundId=${it.refundId})}"
+                           style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                            상세
+                        </a>
+
+                        <!-- 상태가 대기(0)일 때만 승인/거부 -->
+                        <form th:if="${it.status == 0}"
+                              method="post"
+                              th:action="@{/admin/refunds/{refundId}/approve(refundId=${it.refundId})}"
+                              style="display:inline;">
+                            <button class="btn btn-sm btn-success" type="submit">승인</button>
+                        </form>
+
+                        <form th:if="${it.status == 0}"
+                              method="post"
+                              th:action="@{/admin/refunds/{refundId}/reject(refundId=${it.refundId})}"
+                              style="display:inline;">
+                            <!-- 거부 사유를 prompt로 받으려면 JS로 바꿔야 함. 서버 렌더링이면 input으로 받는 게 안전 -->
+                            <input type="hidden" name="adminMemo" value="관리자 거부 처리">
+                            <button class="btn btn-sm btn-danger" type="submit">거부</button>
+                        </form>
+
+                    </div>
+                </td>
+            </tr>
             </tbody>
         </table>
 
-        <div class="pagination">
-            <button id="btnPrev" onclick="changePage(-1)">이전</button>
+        <!-- Pagination: page가 Spring Page일 때 -->
+        <div class="pagination" th:if="${page != null && page.totalPages > 0}">
+            <!-- 이전 -->
+            <a class="pagination-link"
+               th:classappend="${page.first} ? ' disabled' : ''"
+               th:href="${page.first} ? '#' : @{/admin/refunds(
+                status=${condition?.status},
+                startDate=${condition?.startDate},
+                endDate=${condition?.endDate},
+                orderNumber=${condition?.orderNumber},
+                userKeyword=${condition?.userKeyword},
+                includeGuest=${condition?.includeGuest},
+                page=${page.number - 1},
+                size=${page.size}
+              )}"
+               style="text-decoration:none;">
+                <button th:disabled="${page.first}">이전</button>
+            </a>
+
             <span class="page-info">
-                    <span id="currentPage">1</span> / <span id="totalPages">1</span>
-                </span>
-            <button id="btnNext" onclick="changePage(1)">다음</button>
+        <span th:text="${page.number + 1}">1</span> / <span th:text="${page.totalPages}">1</span>
+      </span>
+
+            <!-- 다음 -->
+            <a class="pagination-link"
+               th:classappend="${page.last} ? ' disabled' : ''"
+               th:href="${page.last} ? '#' : @{/admin/refunds(
+                status=${condition?.status},
+                startDate=${condition?.startDate},
+                endDate=${condition?.endDate},
+                orderNumber=${condition?.orderNumber},
+                userKeyword=${condition?.userKeyword},
+                includeGuest=${condition?.includeGuest},
+                page=${page.number + 1},
+                size=${page.size}
+              )}"
+               style="text-decoration:none;">
+                <button th:disabled="${page.last}">다음</button>
+            </a>
         </div>
+
     </div>
 </div>
 
-<!-- 상세보기 모달 -->
-<div id="detailModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>반품 상세 정보</h3>
-            <button class="close-btn" onclick="closeModal()">&times;</button>
-        </div>
-
-        <div id="modalBody">
-            <!-- 동적으로 생성 -->
-        </div>
-    </div>
-</div>
-
-<script>
-    let currentPage = 0;
-    let totalPages = 1;
-    let pageSize = 20;
-    let refundData = [];
-
-    // 페이지 로드 시 초기화
-    window.onload = function() {
-        loadRefunds();
-        updateStats();
-    };
-
-    async function loadRefunds() {
-        try {
-            const params = new URLSearchParams({
-                status: document.getElementById('filterStatus').value,
-                startDate: document.getElementById('filterStartDate').value,
-                endDate: document.getElementById('filterEndDate').value,
-                orderNumber: document.getElementById('filterOrderNumber').value,
-                userKeyword: document.getElementById('filterUserKeyword').value,
-                includeGuest: document.getElementById('filterIncludeGuest').value,
-                page: currentPage,
-                size: pageSize
-            });
-
-            // API 호출 예시
-            // const response = await fetch(`/admin/refunds?${params}`, {
-            //     headers: {
-            //         'Authorization': 'Bearer ' + adminToken
-            //     }
-            // });
-            // const data = await response.json();
-            // refundData = data.content;
-            // totalPages = data.totalPages;
-
-            // 임시 데이터
-            refundData = [
-                {
-                    refundId: 1,
-                    orderNumber: '2025123456789',
-                    userName: '홍길동',
-                    userType: '회원',
-                    userId: 1,
-                    items: [
-                        { name: '클린 코드', quantity: 2, price: 33000 },
-                        { name: '리팩터링', quantity: 1, price: 35000 }
-                    ],
-                    totalAmount: 101000,
-                    reason: '상품 불량',
-                    detailReason: '책에 얼룩이 있습니다',
-                    requestDate: '2024-12-15',
-                    status: 0,
-                    statusText: '처리 대기'
-                },
-                {
-                    refundId: 2,
-                    orderNumber: '2025123456788',
-                    userName: '비회원',
-                    userType: '비회원',
-                    items: [
-                        { name: '이펙티브 자바', quantity: 1, price: 36000 }
-                    ],
-                    totalAmount: 36000,
-                    reason: '오배송',
-                    detailReason: '다른 상품이 왔습니다',
-                    requestDate: '2024-12-14',
-                    status: 1,
-                    statusText: '승인됨'
-                },
-                {
-                    refundId: 3,
-                    orderNumber: '2025123456787',
-                    userName: '김철수',
-                    userType: '회원',
-                    userId: 2,
-                    items: [
-                        { name: 'Design Patterns', quantity: 1, price: 40000 }
-                    ],
-                    totalAmount: 40000,
-                    reason: '단순 변심',
-                    detailReason: '필요 없어졌습니다',
-                    requestDate: '2024-12-13',
-                    status: 2,
-                    statusText: '거부됨',
-                    adminMemo: '반품 기한 초과'
-                }
-            ];
-
-            totalPages = 1; // 임시
-            renderTable();
-
-        } catch (error) {
-            console.error('데이터 로드 실패:', error);
-            alert('반품 목록을 불러오는데 실패했습니다.');
-        }
-    }
-
-    function renderTable() {
-        const tbody = document.getElementById('refundTableBody');
-        tbody.innerHTML = '';
-
-        if (refundData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #666;">조회된 반품 내역이 없습니다.</td></tr>';
-            return;
-        }
-
-        refundData.forEach(refund => {
-            const statusClass = getStatusClass(refund.status);
-            const itemsText = refund.items.length > 1
-                ? `${refund.items[0].name} 외 ${refund.items.length - 1}건`
-                : refund.items[0].name;
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                    <td>${refund.refundId}</td>
-                    <td>${refund.orderNumber}</td>
-                    <td>${refund.userName}<br><small style="color: #666;">(${refund.userType})</small></td>
-                    <td>${itemsText}</td>
-                    <td><strong>${refund.totalAmount.toLocaleString()}원</strong></td>
-                    <td>${refund.reason}</td>
-                    <td>${refund.requestDate}</td>
-                    <td><span class="status-badge ${statusClass}">${refund.statusText}</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-sm btn-info" onclick="viewDetail(${refund.refundId})">상세</button>
-                            ${refund.status === 0 ? `
-                                <button class="btn btn-sm btn-success" onclick="approveRefund(${refund.refundId})">승인</button>
-                                <button class="btn btn-sm btn-danger" onclick="rejectRefund(${refund.refundId})">거부</button>
-                            ` : ''}
-                        </div>
-                    </td>
-                `;
-            tbody.appendChild(row);
-        });
-
-        document.getElementById('currentPage').textContent = currentPage + 1;
-        document.getElementById('totalPages').textContent = totalPages;
-        document.getElementById('btnPrev').disabled = currentPage === 0;
-        document.getElementById('btnNext').disabled = currentPage === totalPages - 1;
-    }
-
-    function getStatusClass(status) {
-        const classes = {
-            0: 'status-pending',
-            1: 'status-approved',
-            2: 'status-rejected',
-            3: 'status-completed'
-        };
-        return classes[status] || 'status-pending';
-    }
-
-    async function updateStats() {
-        // 실제로는 API로 통계 조회
-        // const stats = await fetch('/admin/refunds/stats');
-        document.getElementById('statPending').textContent = '5';
-        document.getElementById('statApproved').textContent = '12';
-        document.getElementById('statRejected').textContent = '3';
-        document.getElementById('statCompleted').textContent = '8';
-    }
-
-    function searchRefunds() {
-        currentPage = 0;
-        loadRefunds();
-    }
-
-    function resetFilters() {
-        document.getElementById('filterStatus').value = '';
-        document.getElementById('filterStartDate').value = '';
-        document.getElementById('filterEndDate').value = '';
-        document.getElementById('filterOrderNumber').value = '';
-        document.getElementById('filterUserKeyword').value = '';
-        document.getElementById('filterIncludeGuest').value = 'true';
-        searchRefunds();
-    }
-
-    function changePage(delta) {
-        const newPage = currentPage + delta;
-        if (newPage >= 0 && newPage < totalPages) {
-            currentPage = newPage;
-            loadRefunds();
-        }
-    }
-
-    function viewDetail(refundId) {
-        const refund = refundData.find(r => r.refundId === refundId);
-        if (!refund) return;
-
-        const modalBody = document.getElementById('modalBody');
-        const itemsHtml = refund.items.map(item => `
-                <div class="item-card">
-                    <h5>${item.name}</h5>
-                    <div class="item-info-row">
-                        <span>수량: ${item.quantity}개</span>
-                        <span>단가: ${item.price.toLocaleString()}원</span>
-                        <span>소계: ${(item.price * item.quantity).toLocaleString()}원</span>
-                    </div>
-                </div>
-            `).join('');
-
-        modalBody.innerHTML = `
-                <div class="detail-section">
-                    <h4>기본 정보</h4>
-                    <div class="detail-grid">
-                        <div class="detail-item">
-                            <label>반품 ID</label>
-                            <span>${refund.refundId}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>주문번호</label>
-                            <span>${refund.orderNumber}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>신청자</label>
-                            <span>${refund.userName} (${refund.userType})</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>신청일</label>
-                            <span>${refund.requestDate}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>현재 상태</label>
-                            <span class="status-badge ${getStatusClass(refund.status)}">${refund.statusText}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="detail-section">
-                    <h4>반품 상품 목록</h4>
-                    <div class="items-list">
-                        ${itemsHtml}
-                    </div>
-                    <div class="detail-item" style="margin-top: 15px; background: #e8f5e9;">
-                        <label>총 반품 금액</label>
-                        <span style="color: #4A7C59; font-size: 1.2em;">${refund.totalAmount.toLocaleString()}원</span>
-                    </div>
-                </div>
-
-                <div class="detail-section">
-                    <h4>반품 사유</h4>
-                    <div class="detail-item">
-                        <label>사유 구분</label>
-                        <span>${refund.reason}</span>
-                    </div>
-                    <div class="detail-item" style="margin-top: 10px;">
-                        <label>상세 내용</label>
-                        <span>${refund.detailReason}</span>
-                    </div>
-                </div>
-
-                ${refund.adminMemo ? `
-                    <div class="detail-section">
-                        <h4>관리자 메모</h4>
-                        <div class="detail-item">
-                            <span>${refund.adminMemo}</span>
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${refund.status === 0 ? `
-                    <div class="status-update-form">
-                        <h4>상태 변경</h4>
-                        <form onsubmit="updateRefundStatus(event, ${refund.refundId})">
-                            <div class="form-group">
-                                <label>처리 상태</label>
-                                <select id="updateStatus" required>
-                                    <option value="">선택하세요</option>
-                                    <option value="1">승인</option>
-                                    <option value="2">거부</option>
-                                    <option value="3">완료</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>처리 메모</label>
-                                <textarea id="updateMemo" placeholder="처리 사유나 메모를 입력하세요 (선택사항)"></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary" style="width: 100%;">상태 변경</button>
-                        </form>
-                    </div>
-                ` : ''}
-            `;
-
-        document.getElementById('detailModal').classList.add('show');
-    }
-
-    function closeModal() {
-        document.getElementById('detailModal').classList.remove('show');
-    }
-
-    async function approveRefund(refundId) {
-        if (!confirm('이 반품을 승인하시겠습니까?')) return;
-
-        try {
-            // const response = await fetch(`/admin/refunds/${refundId}`, {
-            //     method: 'PATCH',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         'Authorization': 'Bearer ' + adminToken
-            //     },
-            //     body: JSON.stringify({
-            //         refundStatus: 1
-            //     })
-            // });
-
-            alert('반품이 승인되었습니다.');
-            loadRefunds();
-            updateStats();
-
-        } catch (error) {
-            alert('처리 중 오류가 발생했습니다.');
-            console.error(error);
-        }
-    }
-
-    async function rejectRefund(refundId) {
-        const reason = prompt('거부 사유를 입력해주세요:');
-        if (!reason || !reason.trim()) return;
-
-        try {
-            // const response = await fetch(`/admin/refunds/${refundId}`, {
-            //     method: 'PATCH',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         'Authorization': 'Bearer ' + adminToken
-            //     },
-            //     body: JSON.stringify({
-            //         refundStatus: 2,
-            //         adminMemo: reason
-            //     })
-            // });
-
-            alert('반품이 거부되었습니다.');
-            loadRefunds();
-            updateStats();
-
-        } catch (error) {
-            alert('처리 중 오류가 발생했습니다.');
-            console.error(error);
-        }
-    }
-
-    async function updateRefundStatus(event, refundId) {
-        event.preventDefault();
-
-        const status = document.getElementById('updateStatus').value;
-        const memo = document.getElementById('updateMemo').value;
-
-        if (!status) {
-            alert('처리 상태를 선택해주세요.');
-            return;
-        }
-
-        try {
-            // const response = await fetch(`/admin/refunds/${refundId}`, {
-            //     method: 'PATCH',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         'Authorization': 'Bearer ' + adminToken
-            //     },
-            //     body: JSON.stringify({
-            //         refundStatus: parseInt(status),
-            //         adminMemo: memo
-            //     })
-            // });
-
-            alert('상태가 변경되었습니다.');
-            closeModal();
-            loadRefunds();
-            updateStats();
-
-        } catch (error) {
-            alert('처리 중 오류가 발생했습니다.');
-            console.error(error);
-        }
-    }
-
-    // 모달 외부 클릭 시 닫기
-    window.onclick = function(event) {
-        const modal = document.getElementById('detailModal');
-        if (event.target === modal) {
-            closeModal();
-        }
-    }
-</script>
+<!-- JS는 선택: 모달/confirm 처리하려면 사용. 서버 렌더링만이면 제거해도 됨 -->
+<script th:src="@{/js/refund-adminpage.js}"></script>
 </body>
 </html>
