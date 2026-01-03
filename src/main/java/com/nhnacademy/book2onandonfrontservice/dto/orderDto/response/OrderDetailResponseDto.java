@@ -1,7 +1,6 @@
 package com.nhnacademy.book2onandonfrontservice.dto.orderDto.response;
 
 
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.status.OrderStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.paymentDto.response.PaymentResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
