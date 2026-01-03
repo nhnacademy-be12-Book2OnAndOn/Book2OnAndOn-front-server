@@ -1,9 +1,9 @@
 package com.nhnacademy.book2onandonfrontservice.controller.refundController;
 
 import com.nhnacademy.book2onandonfrontservice.client.RefundUserClient;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.RefundAvailableItemResponseDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.RefundResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundAvailableItemResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -20,7 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/refunds") // 프론트 URL prefix (예시)
+@RequestMapping("/refunds")
 public class RefundUserController {
 
     private final RefundUserClient refundUserClient;
@@ -33,11 +33,12 @@ public class RefundUserController {
     public String myRefunds(HttpServletRequest request,
                             @PageableDefault(size = 10) Pageable pageable,
                             Model model) {
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        String token = CookieUtils.getCookieValue(request, "accessToken");
+        if (token != null && !token.startsWith("Bearer ")) token = "Bearer " + token;
 
         Page<RefundResponseDto> page = Page.empty(pageable);
         try {
-            page = refundUserClient.getMyRefunds(token, pageable); // Feign 경로는 /api/... 로 수정된 상태 가정
+            page = refundUserClient.getMyRefunds(token, pageable);
         } catch (Exception e) {
             log.error("회원 반품 목록 조회 실패", e);
         }
@@ -56,14 +57,16 @@ public class RefundUserController {
                              HttpServletRequest request,
                              Model model,
                              RedirectAttributes ra) {
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        String token = CookieUtils.getCookieValue(request, "accessToken");
+        if (token != null && !token.startsWith("Bearer ")) token = "Bearer " + token;
 
         try {
             List<RefundAvailableItemResponseDto> items = refundUserClient.getRefundForm(token, orderId);
+            model.addAttribute("userType", "member");
             model.addAttribute("orderId", orderId);
             model.addAttribute("items", items);
             model.addAttribute("refundRequest", new RefundRequestDto());
-            return "refund/user/form";
+            return "refund/refund-form";
         } catch (Exception e) {
             log.error("회원 반품 폼 조회 실패. orderId={}", orderId, e);
             ra.addFlashAttribute("error", "반품 신청 폼을 불러오지 못했습니다.");
@@ -80,8 +83,8 @@ public class RefundUserController {
                                HttpServletRequest request,
                                @ModelAttribute RefundRequestDto refundRequestDto,
                                RedirectAttributes ra) {
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
-
+        String token = CookieUtils.getCookieValue(request, "accessToken");
+        if (token != null && !token.startsWith("Bearer ")) token = "Bearer " + token;
         try {
             RefundResponseDto created = refundUserClient.createRefund(token, orderId, refundRequestDto);
             ra.addFlashAttribute("message", "반품 신청이 접수되었습니다.");
@@ -103,7 +106,8 @@ public class RefundUserController {
                                HttpServletRequest request,
                                Model model,
                                RedirectAttributes ra) {
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        String token = CookieUtils.getCookieValue(request, "accessToken");
+        if (token != null && !token.startsWith("Bearer ")) token = "Bearer " + token;
 
         try {
             RefundResponseDto detail = refundUserClient.getRefundDetails(token, orderId, refundId);
@@ -125,7 +129,8 @@ public class RefundUserController {
                                @PathVariable Long refundId,
                                HttpServletRequest request,
                                RedirectAttributes ra) {
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        String token = CookieUtils.getCookieValue(request, "accessToken");
+        if (token != null && !token.startsWith("Bearer ")) token = "Bearer " + token;
 
         try {
             refundUserClient.cancelRefund(token, orderId, refundId);

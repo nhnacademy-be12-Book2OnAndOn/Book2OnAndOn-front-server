@@ -26,7 +26,7 @@ public interface RefundUserClient {
     );
 
     // 서버는 /orders/{orderId}/refund/{refundId} (refund 단수)
-    @GetMapping("/api/orders/{orderId}/refund/{refundId}")
+    @GetMapping("/api/orders/{orderId}/refunds/{refundId}")
     RefundResponseDto getRefundDetails(
             @RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable("orderId") Long orderId,
