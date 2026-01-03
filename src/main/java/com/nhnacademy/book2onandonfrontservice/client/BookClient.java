@@ -170,7 +170,7 @@ public interface BookClient {
     //리뷰 생성가능한지 체크하는 로직 (true:  리뷰생성 버튼 활성화 / false: 리뷰 생성 버튼 비활성화)
 
     @GetMapping("/api/books/{bookId}/review/eligibility")
-    Boolean checkReviewEligibility(@RequestHeader("Authorization", required = false) String accessToken, @PathVariable Long bookId);
+    Boolean checkReviewEligibility(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId);
 
     @GetMapping("/api/books/review/{reviewId}")
     ReviewDto getReview(@RequestHeader("Authorization") String accessToken, @PathVariable Long reviewId);
