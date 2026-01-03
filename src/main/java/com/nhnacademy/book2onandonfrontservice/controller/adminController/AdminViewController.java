@@ -1,10 +1,14 @@
 package com.nhnacademy.book2onandonfrontservice.controller.adminController;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.client.BookReindexClient;
 import com.nhnacademy.book2onandonfrontservice.client.CouponClient;
 import com.nhnacademy.book2onandonfrontservice.client.DeliveryClient;
 import com.nhnacademy.book2onandonfrontservice.client.DeliveryPolicyClient;
+import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.PointAdminClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserGradeClient;
@@ -14,6 +18,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryCompany;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryPolicyDto;
 import com.nhnacademy.book2onandonfrontservice.dto.deliveryDto.DeliveryWaybillUpdateDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderSimpleDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.status.OrderStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.CurrentPointResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.PointHistoryAdminAdjustRequestDto;
@@ -27,9 +32,12 @@ import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -55,6 +63,7 @@ public class AdminViewController {
     private final DeliveryClient deliveryClient;
     private final DeliveryPolicyClient deliveryPolicyClient;
     private final PointAdminClient pointAdminClient;
+    private final OrderUserClient orderUserClient;
 
 
     //관리자 대시보드
@@ -110,13 +119,89 @@ public class AdminViewController {
     }
 
     // 주문 관리 페이지
+//    @GetMapping("/orders")
+//    public String orderList(HttpServletRequest request, Model model,
+//                            @RequestParam(defaultValue = "0") int page,
+//                            @RequestParam(defaultValue = "10") int size) {
+//        // TODO: 주문 관리자 API 연동 후 페이지네이션 적용
+//        model.addAttribute("orders", java.util.List.of());
+//        model.addAttribute("page", null);
+//        return "admin/orders";
+//    }
     @GetMapping("/orders")
     public String orderList(HttpServletRequest request, Model model,
                             @RequestParam(defaultValue = "0") int page,
                             @RequestParam(defaultValue = "10") int size) {
-        // TODO: 주문 관리자 API 연동 후 페이지네이션 적용
-        model.addAttribute("orders", java.util.List.of());
-        model.addAttribute("page", null);
+
+        // 0) 진입 로그 (이게 안 찍히면 매핑이 다른 컨트롤러로 타는 겁니다)
+        log.info("[ADMIN-ORDERS] enter /admin/orders page={}, size={}", page, size);
+
+        // 1) 토큰 확인
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        if (accessToken == null || accessToken.isBlank()) {
+            log.warn("[ADMIN-ORDERS] no accessToken cookie -> redirect login");
+            return "redirect:/login";
+        }
+        String token = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+
+        // 2) 헤더에서 쓰는 값들
+        Object cartCount = request.getSession(false) != null
+                ? request.getSession(false).getAttribute("cartCount")
+                : null;
+        model.addAttribute("cartCount", cartCount);
+
+        try {
+            model.addAttribute("user", userClient.getMyInfo(token));
+        } catch (Exception e) {
+            log.warn("[ADMIN-ORDERS] /api/users/me failed (header user). continue.", e);
+            model.addAttribute("user", null);
+        }
+
+        // 3) page/size 안전화
+        page = Math.max(0, page);
+        size = (size <= 0) ? 10 : size;
+
+        try {
+            // 4) 주문 목록 호출 (기존 my-order 재사용)
+            var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "orderDateTime"));
+
+            // OrderUserClient가 Map 형태로 받는다고 가정 (toRestPage 없이 처리)
+            Map<String, Object> raw = orderUserClient.getOrderList(token, pageable);
+
+            log.info("[ADMIN-ORDERS] raw keys={}", raw != null ? raw.keySet() : null);
+
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+
+            // 5) content -> List<OrderSimpleDto>
+            List<OrderSimpleDto> orders = mapper.convertValue(
+                    raw.getOrDefault("content", List.of()),
+                    new TypeReference<List<OrderSimpleDto>>() {}
+            );
+
+            log.info("[ADMIN-ORDERS] orders size={}", orders != null ? orders.size() : null);
+
+            model.addAttribute("orders", orders);
+
+            // (선택) 페이지 정보도 같이 내려줌. 템플릿에서 안 쓰면 지워도 무방
+            Object totalPagesObj = raw.get("totalPages");
+            Object totalElementsObj = raw.get("totalElements");
+
+            int totalPages = (totalPagesObj instanceof Number n) ? n.intValue() : 0;
+            long totalElements = (totalElementsObj instanceof Number n) ? n.longValue() : (orders != null ? orders.size() : 0);
+
+            model.addAttribute("currentPage", page);
+            model.addAttribute("pageSize", size);
+            model.addAttribute("totalPages", totalPages);
+            model.addAttribute("totalElements", totalElements);
+
+        } catch (Exception e) {
+            // 여기로 오면 화면에 "error"가 떠야 정상
+            log.error("[ADMIN-ORDERS] load orders failed", e);
+            model.addAttribute("orders", List.of());
+            model.addAttribute("error", "주문 목록을 불러오지 못했습니다.");
+        }
+
         return "admin/orders";
     }
 

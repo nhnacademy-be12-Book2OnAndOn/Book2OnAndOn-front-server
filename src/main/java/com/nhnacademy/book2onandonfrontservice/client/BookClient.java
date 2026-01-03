@@ -10,6 +10,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatusUpdateReque
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewCreateRequest;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewUpdateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.TagDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.UpdateRequest;
@@ -62,8 +63,9 @@ public interface BookClient {
 
     /// 베스트셀러
     @GetMapping("/api/books/bestsellers")
-    List<BookDto> getBestsellers(@RequestHeader(value = "Authorization", required = false) String accessToken,
-                                 @RequestParam(value = "period", required = false) String period);
+    Page<BookDto> getBestsellers(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                                 @RequestParam(value = "period", required = false) String period,
+                                 @SpringQueryMap Pageable pageable);
 
     /// 인기도서 조회
     @GetMapping("/api/books/popular")
@@ -167,10 +169,13 @@ public interface BookClient {
                       @RequestPart(value = "images", required = false) List<MultipartFile> newImages);
 
     //리뷰 생성가능한지 체크하는 로직 (true:  리뷰생성 버튼 활성화 / false: 리뷰 생성 버튼 비활성화)
-    /// TODO: 리뷰 버튼 생성을 활성화 할건지 비활성화 할건지에 대한 boolean값을 넘겨주니깐 잘 사용해 먹도로록....
-    @GetMapping("/api/books/{bookId}/reviews/eligibility")
-    Boolean checkReviewEligibility(@RequestHeader(value = "Authorization", required = false) String accessToken,
-                                   @PathVariable Long bookId);
+
+    @GetMapping("/api/books/{bookId}/review/eligibility")
+    Boolean checkReviewEligibility(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId);
+
+    @GetMapping("/api/books/review/{reviewId}")
+    ReviewDto getReview(@RequestHeader("Authorization") String accessToken, @PathVariable Long reviewId);
+
 
     /// --------------할인율 변경 및 가격 상태조회--------------- 할인율 변경 요청 (비동기 실행됨)
     @PostMapping("/api/admin/price/discount")

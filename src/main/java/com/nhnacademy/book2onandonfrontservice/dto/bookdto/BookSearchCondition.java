@@ -1,5 +1,6 @@
 package com.nhnacademy.book2onandonfrontservice.dto.bookdto;
 
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,5 +28,7 @@ public class BookSearchCondition {
     // "RECENT", "PRICE_ASC", "PRICE_DESC", "LIKE_DESC"
     private String sort;
     private Boolean useAiSearch = false;
+
+    private Set<BookStatus> statusFilter;
 
 }

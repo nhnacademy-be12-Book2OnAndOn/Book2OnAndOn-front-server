@@ -8,13 +8,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * 회원 반품 신청 시 사용
+ * 비회원 반품 신청 시 사용
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RefundRequestDto {
+public class RefundGuestRequestDto {
 
     private Long orderId;
 
@@ -24,5 +24,14 @@ public class RefundRequestDto {
     private String refundReason;
 
     private String refundReasonDetail;
+
+    @NotBlank(message = "주문 비밀번호를 입력해주세요.")
+    private String guestPassword;
+
+    @NotBlank(message = "주문자 이름을 입력해주세요.")
+    private String guestName;
+
+    @NotBlank(message = "주문자 전화번호를 입력해주세요.")
+    private String guestPhoneNumber;
 
 }

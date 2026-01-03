@@ -8,6 +8,25 @@
     <link rel="stylesheet" th:href="@{/css/admin-books-form.css}">
     <link href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" rel="stylesheet">
 
+    <style>
+        .thumbnail-btn {
+            background-color: #ff9800; /* 주황색 */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .thumbnail-btn:hover {
+            background-color: #e68900;
+        }
+        .preview-chip {
+            align-items: center; /* 버튼 수직 정렬 */
+        }
+    </style>
+
     <th:block
             th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
 </head>
@@ -33,6 +52,10 @@
                 </div>
             </div>
 
+            <form id="bookDeleteForm" th:action="@{/admin/books/{id}(id=${book.id})}" method="post" style="display:none;">
+                <input type="hidden" name="_method" value="delete">
+            </form>
+
             <form class="admin-detail-card" enctype="multipart/form-data" id="bookEditForm" method="post"
                   th:action="@{/admin/books/{id}(id=${book.id})}">
                 <input type="hidden" name="_method" value="put">
@@ -44,10 +67,6 @@
                     <button class="btn-danger" type="button" onclick="confirmDeleteBook()">도서 삭제</button>
                     <button class="btn-primary" type="submit">저장</button>
                 </div>
-
-                <form id="bookDeleteForm" th:action="@{/admin/books/{id}(id=${book.id})}" method="post" style="display:none;">
-                    <input type="hidden" name="_method" value="delete">
-                </form>
 
                 <section class="form-section">
                     <h4>기본 정보</h4>
@@ -240,6 +259,9 @@
     let bookDescriptionEditor;
 
     document.addEventListener('DOMContentLoaded', function() {
+        // [추가됨] Book ID 가져오기
+        const currentBookId = /*[[${book != null ? book.id : null}]]*/ null;
+
         const form = document.getElementById('bookEditForm');
         const editorEl = document.getElementById('descriptionEditor');
         const hiddenField = document.getElementById('descriptionHtml');
@@ -270,7 +292,6 @@
                 ]
             });
         } else if (hiddenField) {
-            // 에디터 로드 실패 시 textarea로 노출
             hiddenField.style.display = 'block';
             hiddenField.style.minHeight = '300px';
         }
@@ -327,7 +348,6 @@
             });
 
             form?.addEventListener('submit', () => {
-                // 기존 hidden tagNames 제거
                 form.querySelectorAll('input[data-tag-hidden]').forEach(el => el.remove());
                 tags.forEach(tag => {
                     const hidden = document.createElement('input');
@@ -337,7 +357,6 @@
                     hidden.setAttribute('data-tag-hidden', 'true');
                     form.appendChild(hidden);
                 });
-                // controller에서 tags 파라미터를 기대하는 경우를 대비해 문자열도 넣어준다.
                 const tagStringField = document.createElement('input');
                 tagStringField.type = 'hidden';
                 tagStringField.name = 'tags';
@@ -345,12 +364,10 @@
                 tagStringField.setAttribute('data-tag-hidden', 'true');
                 form.appendChild(tagStringField);
 
-                // 에디터 내용 동기화
                 if(bookDescriptionEditor) {
                     hiddenField.value = bookDescriptionEditor.getHTML();
                 }
 
-                // 삭제할 이미지 ID 전달
                 deleteImageIds.forEach(id => {
                     const input = document.createElement('input');
                     input.type = 'hidden';
@@ -359,13 +376,11 @@
                     form.appendChild(input);
                 });
 
-                // 이미지 URL이 변경되지 않았다면 전송 생략하여 기존 이미지 유지
                 if (googleImageInput && googleImageInput.value === initialImageUrl) {
                     googleImageInput.removeAttribute('name');
                 }
             });
 
-            // 이미지 간단 프리뷰
             const imageInput = document.getElementById('images');
             const preview = document.getElementById('preview');
             const fileNameDisplay = document.getElementById('fileNameDisplay');
@@ -379,7 +394,7 @@
                 if (preview) preview.style.display = 'none';
             });
 
-            // 기존 이미지/URL 프리뷰 표시 (중복 URL 제거 + 삭제 버튼 공통 적용)
+            // [수정됨] 이미지 미리보기 + 썸네일 설정 버튼 추가
             const existingUrl = googleImageInput?.value;
             if (preview && (existingImages?.length || existingUrl)) {
                 preview.style.display = 'flex';
@@ -397,11 +412,39 @@
 
                     const label = document.createElement('span');
                     label.className = 'preview-chip-label';
-                    label.textContent = img.isUrlOnly ? '입력된 이미지 URL' : (idx === 0 ? '기존 이미지' : '추가 이미지');
+
+                    // 첫 번째 이미지를 대표 이미지라고 가정하고 표시 (필요시 수정)
+                    label.textContent = idx === 0 ? '[대표] ' : '';
+
+                    if (img.isUrlOnly) {
+                        label.textContent += 'URL 이미지';
+                    } else {
+                        label.textContent += (idx === 0 ? '기존 이미지' : '추가 이미지');
+                    }
 
                     const imageEl = document.createElement('img');
                     imageEl.src = img.url;
                     imageEl.alt = '이미지 미리보기';
+
+                    // [추가] 썸네일 설정 버튼 (ID가 있는 기존 이미지일 경우에만 표시)
+                    if (img.id && currentBookId) {
+                        const thumbBtn = document.createElement('button');
+                        thumbBtn.type = 'button';
+                        thumbBtn.className = 'thumbnail-btn';
+                        thumbBtn.textContent = '대표 설정';
+                        thumbBtn.title = '이 이미지를 대표 썸네일로 설정합니다';
+                        thumbBtn.onclick = () => {
+                            if (!confirm('이 이미지를 대표 이미지(썸네일)로 설정하시겠습니까?')) return;
+
+                            // POST 요청을 보내기 위한 동적 폼 생성 및 제출
+                            const thumbForm = document.createElement('form');
+                            thumbForm.method = 'post';
+                            thumbForm.action = `/admin/books/${currentBookId}/images/${img.id}/thumbnail`;
+                            document.body.appendChild(thumbForm);
+                            thumbForm.submit();
+                        };
+                        wrapper.appendChild(thumbBtn);
+                    }
 
                     const delBtn = document.createElement('button');
                     delBtn.type = 'button';
@@ -519,7 +562,6 @@
 
             level4?.addEventListener('change', updateHidden);
 
-            // 초기 로드
             fillOptions(level1, categories, '대분류 선택');
 
             if (preselectedId) {
@@ -552,7 +594,7 @@
             });
         })();
 
-        // [4] ISBN 검색 및 자동 입력 (기존 ISBN 기준 재조회)
+        // [4] ISBN 검색
         (function() {
             const searchBtn = document.getElementById('btnSearchIsbn');
             const loadingOverlay = document.getElementById('loading');
@@ -566,8 +608,6 @@
                         alert("ISBN이 비어 있습니다.");
                         return;
                     }
-
-                    // 로딩 표시
                     loadingOverlay.style.display = 'flex';
 
                     fetch(`/admin/books/search?isbn=${encodeURIComponent(isbnInput)}`, {
@@ -583,36 +623,21 @@
                             return response.json();
                         })
                         .then(data => {
-                            // 필드 매핑 헬퍼 함수
                             const setValue = (id, val) => {
                                 const el = document.getElementById(id);
                                 if(el) el.value = val || '';
                             };
-
-                            // 기본 정보
                             setValue('title', data.title);
                             setValue('volume', data.volume);
                             setValue('contributorName', data.contributorName);
-
-                            // 출판 정보
                             setValue('publisherName', data.publisherName);
                             setValue('priceStandard', data.priceStandard);
                             setValue('priceSales', data.priceSales);
-
-                            // 출판일 처리
-                            if (data.publishDate) {
-                                setValue('publishDate', data.publishDate);
-                            }
-
-                            // 목차
+                            if (data.publishDate) setValue('publishDate', data.publishDate);
                             setValue('chapter', data.chapter);
 
-                            // Google Books 이미지 URL (히든 필드)
                             if (data.imageUrl) {
-                                // 1. URL 입력칸에 주소를 꽂아줍니다
                                 setValue('googleImageUrl', data.imageUrl);
-
-                                // 2. 미리보기 영역에도 띄워줍니다
                                 const previewDiv = document.getElementById('preview');
                                 if (previewDiv) {
                                     previewDiv.style.display = 'flex';
@@ -627,27 +652,21 @@
                                 const imageInput = document.getElementById('googleImageUrl');
                                 if (imageInput) {
                                     imageInput.value = '';
-                                    imageInput.placeholder = '검색된 이미지가 없습니다. 직접 입력하거나 파일을 업로드하세요.';
+                                    imageInput.placeholder = '직접 입력하거나 파일을 업로드하세요.';
                                 }
                             }
-
-                            // 상세 설명 (Toast UI Editor)
                             if (bookDescriptionEditor && data.descriptionHtml) {
                                 bookDescriptionEditor.setHTML(data.descriptionHtml);
-                            } else if (data.descriptionHtml) {
-                                // 에디터 로드 실패 시 fallback
-                                if (hiddenField) {
-                                    hiddenField.value = data.descriptionHtml;
-                                }
+                            } else if (data.descriptionHtml && hiddenField) {
+                                hiddenField.value = data.descriptionHtml;
                             }
-                            alert("도서 정보를 불러왔습니다. 필요한 정보를 확인/수정 후 저장해주세요.");
+                            alert("도서 정보를 불러왔습니다.");
                         })
                         .catch(error => {
-                            console.error('ISBN 검색 오류:', error);
-                            alert("검색 실패: " + error.message + "\\n\\nISBN을 확인하거나 수동으로 입력해주세요.");
+                            console.error(error);
+                            alert("검색 실패: " + error.message);
                         })
                         .finally(() => {
-                            // 로딩 숨김
                             loadingOverlay.style.display = 'none';
                         });
                 });

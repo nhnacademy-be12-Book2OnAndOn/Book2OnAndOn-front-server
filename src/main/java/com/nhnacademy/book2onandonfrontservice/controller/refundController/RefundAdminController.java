@@ -1,9 +1,9 @@
 package com.nhnacademy.book2onandonfrontservice.controller.refundController;
 
 import com.nhnacademy.book2onandonfrontservice.client.RefundAdminClient;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.RefundStatusUpdateRequestDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.RefundResponseDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.RefundSearchCondition;
+import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundSearchCondition;
+import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundStatusUpdateRequestDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,20 +19,22 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/admin/refunds") // 프론트 URL
+@RequestMapping("/admin/refunds")
 public class RefundAdminController {
 
     private final RefundAdminClient refundAdminClient;
 
     // 관리자: 반품 목록(검색)
-    // GET /admin/refunds?... (프론트)
+    // GET /admin/refunds?...
     @GetMapping
     public String list(@ModelAttribute RefundSearchCondition condition,
                        @PageableDefault(size = 20) Pageable pageable,
                        HttpServletRequest request,
                        Model model) {
 
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+//        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        String token = CookieUtils.getCookieValue(request, "accessToken");
+        if (token != null && !token.startsWith("Bearer ")) token = "Bearer " + token;
 
         Page<RefundResponseDto> page = Page.empty(pageable);
         try {
@@ -54,7 +56,8 @@ public class RefundAdminController {
                          Model model,
                          RedirectAttributes ra) {
 
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        String token = CookieUtils.getCookieValue(request, "accessToken");
+        if (token != null && !token.startsWith("Bearer ")) token = "Bearer " + token;
 
         try {
             RefundResponseDto detail = refundAdminClient.findRefundDetails(token, refundId);
@@ -76,7 +79,8 @@ public class RefundAdminController {
                                HttpServletRequest request,
                                RedirectAttributes ra) {
 
-        String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
+        String token = CookieUtils.getCookieValue(request, "accessToken");
+        if (token != null && !token.startsWith("Bearer ")) token = "Bearer " + token;
 
         try {
             refundAdminClient.updateRefundStatus(token, refundId, requestDto);

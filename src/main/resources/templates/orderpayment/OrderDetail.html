@@ -239,7 +239,8 @@
     <div class="actions-row">
         <a class="btn-secondary" th:href="@{/users/me/orders}">목록으로</a>
         <a class="btn-primary" style="text-decoration:none;"
-           th:href="@{'/orders/' + ${order.orderNumber} + '/cancel'}" th:if="${order.orderNumber != null}">취소/문의</a>
+           th:href="@{/refunds/form(orderId=${order.orderId})}" th:if="${order.orderId != null}">반품</a>
+<!--        th:href="@{'/orders/' + ${order.orderNumber} + '/cancel'}" th:if="${order.orderNumber != null}">취소/문의</a>-->
     </div>
 </div>
 </body>

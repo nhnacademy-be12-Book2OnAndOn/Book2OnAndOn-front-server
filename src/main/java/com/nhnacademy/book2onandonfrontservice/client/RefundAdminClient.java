@@ -1,8 +1,8 @@
 package com.nhnacademy.book2onandonfrontservice.client;
 
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.RefundStatusUpdateRequestDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.RefundResponseDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.RefundSearchCondition;
+import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundSearchCondition;
+import com.nhnacademy.book2onandonfrontservice.dto.refundDto.RefundStatusUpdateRequestDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.data.domain.Page;

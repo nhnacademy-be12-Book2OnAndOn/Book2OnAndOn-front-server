@@ -14,11 +14,32 @@
 <main class="book-section">
 
     <div class="search-summary">
-        <div>
-            <span class="search-keyword">
-                "<span th:text="${condition.keyword}">자바</span>"
-            </span>
-            검색 결과
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <th:block th:if="${searchType == 'BESTSELLER'}">
+
+                <div class="bestseller-tabs">
+                    <a th:href="@{/books/bestsellers(period='DAILY')}"
+                       th:classappend="${period == 'DAILY'} ? 'active'"
+                       class="tab-btn">일간 (어제)</a>
+                    <a th:href="@{/books/bestsellers(period='WEEKLY')}"
+                       th:classappend="${period == 'WEEKLY'} ? 'active'"
+                       class="tab-btn">주간</a>
+                </div>
+            </th:block>
+
+            <th:block th:if="${condition.keyword != null and condition.keyword != ''}">
+                <span class="search-keyword">
+                    "<span th:text="${condition.keyword}">자바</span>"
+                </span>
+                검색 결과
+            </th:block>
+
+            <th:block th:unless="${condition.keyword != null and condition.keyword != ''}">
+                <span class="search-keyword" style="color: #222;" th:text="${pageTitle} ?: '도서 목록'">
+                    신간 도서
+                </span>
+            </th:block>
+
             <span class="search-count">
                 (총 <span th:text="${page.totalElements}">0</span>건)
             </span>
