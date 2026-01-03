@@ -5,6 +5,10 @@ const POLICY = {
 };
 
 window.onload = function () {
+    console.log("[REFUND_FORM_JS] loaded");
+    console.log("[REFUND_FORM_JS] checkbox count =", document.querySelectorAll('.item-check').length);
+    console.log("[REFUND_FORM_JS] itemsList html length =", document.getElementById('itemsList')?.innerHTML?.length);
+
     recalcSummary();
 };
 
@@ -38,7 +42,7 @@ function recalcSummary() {
         if (chk.checked) {
             selectedItemCount++;
             selectedQtySum += Number(chk.dataset.qty || 0);
-            selectedAmount += Number(chk.dataset.amount || 0);
+            selectedAmount += 0;
         }
     });
 
@@ -77,13 +81,11 @@ function rebuildHiddenInputs() {
         if (!chk.checked) return;
 
         const orderItemId = chk.dataset.orderItemId;
-        const bookId = chk.dataset.bookId;
         const qty = chk.dataset.qty;
 
         hiddenBox.insertAdjacentHTML('beforeend', `
-      <input type="hidden" name="items[${idx}].orderItemId" value="${orderItemId}">
-      <input type="hidden" name="items[${idx}].bookId" value="${bookId}">
-      <input type="hidden" name="items[${idx}].quantity" value="${qty}">
+      <input type="hidden" name="refundItems[${idx}].orderItemId" value="${orderItemId}">
+      <input type="hidden" name="refundItems[${idx}].refundQuantity" value="${qty}">
     `);
         idx++;
     });
