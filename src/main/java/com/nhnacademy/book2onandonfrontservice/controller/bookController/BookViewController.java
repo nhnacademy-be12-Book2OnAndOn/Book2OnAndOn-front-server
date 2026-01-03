@@ -6,12 +6,12 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.DashboardDataDto;
 import com.nhnacademy.book2onandonfrontservice.exception.NotFoundBookException;
+import com.nhnacademy.book2onandonfrontservice.service.BookMainService;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +40,7 @@ public class BookViewController {
     private static final int DASHBOARD_SECTION_SIZE = 20;
 
     private final BookClient bookClient;
+    private final BookMainService bookMainService;
 
     /// 메인 페이지 (대시보드)
     @GetMapping("/")
@@ -47,30 +48,73 @@ public class BookViewController {
                             HttpServletRequest request,
                             Model model) {
         commonData(model);
-        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
-        String bearer = toBearer(accessToken);
-        Page<BookDto> newBooks = Page.empty();
+        String bearer = toBearer(CookieUtils.getCookieValue(request, "accessToken"));
+
+        DashboardDataDto data = bookMainService.getDashboardDataParallel(bearer, page, DASHBOARD_SECTION_SIZE);
+        log.debug("bestsellers: {}", data.bestDaily().getSize());
+        model.addAttribute("newBooks", data.newBooks());
+        model.addAttribute("bestDaily", data.bestDaily());
+        model.addAttribute("bestWeek", data.bestWeek());
+        model.addAttribute("likeBest", data.likeBest());
+
+        return "dashboard";
+    }
+
+    @GetMapping("/books/bestsellers")
+    public String bestsellers(@RequestParam(defaultValue = "WEEKLY") String period,
+                              @PageableDefault(size = 20) Pageable pageable, // size 20 추천
+                              HttpServletRequest request,
+                              Model model) {
+        commonData(model);
+        String bearer = toBearer(CookieUtils.getCookieValue(request, "accessToken"));
+
+        Page<BookDto> result = Page.empty(pageable);
         try {
-            newBooks = bookClient.getNewArrivals(bearer, null, page, DASHBOARD_SECTION_SIZE);
-            log.debug("신간도서 조회: {}", newBooks.getSize());
+            result = bookClient.getBestsellers(bearer, period, pageable);
         } catch (Exception e) {
-            log.error("신간 도서 조회 실패", e);
-        }
-        List<BookDto> bestsellerDaily = Collections.emptyList();
-        List<BookDto> bestsellerWeek = Collections.emptyList();
-        Page<BookDto> likeBest = Page.empty();
-        try {
-            likeBest = bookClient.getPopularBooks(bearer, page, DASHBOARD_SECTION_SIZE);
-            log.debug("인기도서 조회: {}", likeBest.getSize());
-        } catch (Exception e) {
-            log.error("인기 도서 조회 실패", e);
+            log.error("베스트셀러 조회 실패", e);
+            model.addAttribute("searchError", "베스트셀러 목록을 불러오지 못했습니다.");
         }
 
-        model.addAttribute("newBooks", newBooks);
-        model.addAttribute("bestDaily", cleanBookList(bestsellerDaily));
-        model.addAttribute("bestWeek", cleanBookList(bestsellerWeek));
-        model.addAttribute("likeBest", likeBest != null ? likeBest : Page.empty());
-        return "dashboard";
+        String pageTitle = "WEEKLY".equalsIgnoreCase(period) ? "주간 베스트셀러" : "일간 베스트셀러";
+
+        model.addAttribute("books", result.getContent());
+        model.addAttribute("page", result);
+        model.addAttribute("pageTitle", pageTitle);
+
+        // 검색바/필터 UI가 깨지지 않도록 빈 조건 객체 전달
+        model.addAttribute("condition", new BookSearchCondition());
+        model.addAttribute("searchType", "BESTSELLER");
+        model.addAttribute("period", period);
+
+        return "books/search-result";
+    }
+
+    /**
+     * 신간 도서 전체보기 (페이징 지원)
+     * URL: /books/new?page=0
+     */
+    @GetMapping("/books/new")
+    public String newBooks(@PageableDefault(size = 20) Pageable pageable,
+                           HttpServletRequest request,
+                           Model model) {
+        commonData(model);
+        String bearer = toBearer(CookieUtils.getCookieValue(request, "accessToken"));
+
+        Page<BookDto> result = Page.empty(pageable);
+        try {
+            result = bookClient.getNewArrivals(bearer, null, pageable.getPageNumber(), pageable.getPageSize());
+        } catch (Exception e) {
+            log.error("신간 도서 조회 실패", e);
+            model.addAttribute("searchError", "신간 도서 목록을 불러오지 못했습니다.");
+        }
+
+        model.addAttribute("books", result.getContent());
+        model.addAttribute("page", result);
+        model.addAttribute("pageTitle", "신간 도서");
+        model.addAttribute("condition", new BookSearchCondition());
+
+        return "books/search-result";
     }
 
     /// 도서 상세조회
