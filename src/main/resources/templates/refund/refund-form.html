@@ -26,7 +26,7 @@
         <form id="refundForm"
               method="post"
               th:action="${userType} == 'guest'
-                    ? @{/refunds/guest/orders/{orderId}(orderId=${orderId})}
+                    ? @{/guest/refunds/orders/{orderId}(orderId=${orderId})}
                     : @{/refunds/orders/{orderId}(orderId=${orderId})}"
               th:object="${refundRequest}">
 
@@ -52,23 +52,29 @@
                     <div class="item-checkbox"
                          th:if="${items != null && !#lists.isEmpty(items)}"
                          th:each="it, stat : ${items}"
+                         th:classappend="${it.activeRefundExists} ? ' disabled' : ''"
                          onclick="toggleRow(this)">
                         <!-- 체크박스: 선택된 품목은 hidden field로 orderItemId, bookId, quantity를 같이 보냄 -->
                         <input type="checkbox"
                                class="item-check"
                                th:id="'item_' + ${it.orderItemId}"
+                               th:disabled="${it.activeRefundExists}"
                                th:attr="data-order-item-id=${it.orderItemId},
-                            data-book-id=${it.bookId},
-                            data-qty=${it.quantity},
-                            data-amount=${it.price} * ${it.quantity}"
+                                        data-qty=${it.returnableQuantity}"
                                onclick="event.stopPropagation(); toggleRowFromCheckbox(this)">
 
                         <div class="item-details">
-                            <div class="item-name" th:text="${it.name}">클린 코드</div>
-                            <div class="item-info" th:text="'주문 수량: ' + ${it.quantity} + '개'">주문 수량: 2개</div>
-                            <div class="item-price"
-                                 th:text="${#numbers.formatInteger(it.price * it.quantity, 3, 'COMMA')} + '원'">
-                                66,000원
+                            <div class="item-name" th:text="${it.bookTitle}">도서명</div>
+
+                            <div class="item-info"
+                                 th:text="'반품 가능 수량: ' + ${it.returnableQuantity} + '개 (주문: ' + ${it.orderedQuantity} + '개)'">
+                                반품 가능 수량: 1개 (주문: 2개)
+                            </div>
+
+                            <div class="item-info"
+                                 th:if="${it.activeRefundExists}"
+                                 style="color:#b44; font-weight:700;">
+                                이미 반품 진행 중인 상품입니다.
                             </div>
                         </div>
                     </div>
