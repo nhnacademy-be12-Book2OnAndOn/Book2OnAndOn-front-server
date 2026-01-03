@@ -6,8 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nhnacademy.book2onandonfrontservice.client.GuestOrderClient;
 import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.BookInfoDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateWrapperRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreateResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderDetailResponseDto;
@@ -15,13 +14,12 @@ import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepar
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderSimpleDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
 import com.nhnacademy.book2onandonfrontservice.service.FrontTokenService;
-import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import com.nhnacademy.book2onandonfrontservice.util.JwtUtils;
-import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,71 +54,75 @@ public class OrderUserController {
     @PostMapping("/prepare")
     public String getOrderPrepare(Model model,
                                   @CookieValue(value = "accessToken", required = false) String accessToken,
-                                  @ModelAttribute OrderPrepareRequestDto req,
-                                  HttpServletRequest request) {
+                                  @CookieValue(value = "GUEST_ID", required = false) String guestId, // 하나의 컨트롤러에서 처리하는 용도
+                                  @ModelAttribute OrderPrepareRequestDto req) {
         log.info("POST /orders/prepare 호출");
 
         String token = toBearer(accessToken);
-        String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
-        Long userId = resolveUserId(accessToken);
-        Long userHeader = userId;
 
-        OrderPrepareResponseDto orderSheetResponseDto;
-        try {
-            if (token == null) {
-                if (guestId == null || guestId.isBlank()) {
-                    guestId = CookieUtils.getCookieValue(request, "guestId");
-                }
-                if (guestId == null || guestId.isBlank()) {
-                    return "redirect:/cartpage?error=guest_id_missing";
-                }
-                orderSheetResponseDto = guestOrderClient.getOrderPrepare(null, guestId, req);
-            } else {
-                orderSheetResponseDto = orderUserClient.getOrderPrepare(token, guestId, userHeader, req);
-            }
-        } catch (FeignException.Unauthorized e) {
-            // 토큰이 만료/무효인 경우 게스트로 전환하여 다시 시도
-            log.warn("주문 준비 401 -> 게스트로 재시도");
-            frontTokenService.clearTokens();
-            token = null;
-            userHeader = null;
-            try {
-                if (guestId == null || guestId.isBlank()) {
-                    guestId = CookieUtils.getCookieValue(request, "guestId");
-                }
-                orderSheetResponseDto = guestOrderClient.getOrderPrepare(null, guestId, req);
-            } catch (Exception ex) {
-                log.warn("주문 준비 게스트 재시도 실패", ex);
-                return "redirect:/cartpage?error=order_prepare_failed";
-            }
-        } catch (Exception e) {
-            log.warn("주문 준비 데이터 조회 실패", e);
-            return "redirect:/cartpage?error=order_prepare_failed";
+        OrderPrepareResponseDto orderPrepareResponseDto = null;
+
+        if(accessToken != null){
+            orderPrepareResponseDto = orderUserClient.getOrderPrepare(token, req);
+        }else if(guestId != null){
+            orderPrepareResponseDto = guestOrderClient.getOrderPrepare(guestId, req);
         }
 
-        // 헤더/뷰 공통 데이터
-        if (token != null) {
-            try {
-                model.addAttribute("user", userClient.getMyInfo(token));
-            } catch (Exception e) {
-                model.addAttribute("user", null);
-                log.warn("사용자 정보 조회 실패: {}", e.getMessage());
-            }
-        } else {
-            model.addAttribute("user", null);
-        }
-        model.addAttribute("cartCount",
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null);
+//        try {
+//            if (token == null) {
+//                if (guestId == null || guestId.isBlank()) {
+//                    guestId = CookieUtils.getCookieValue(request, "guestId");
+//                }
+//                if (guestId == null || guestId.isBlank()) {
+//                    return "redirect:/cartpage?error=guest_id_missing";
+//                }
+//                orderPrepareResponseDto = guestOrderClient.getOrderPrepare(guestId, req);
+//            } else {
+//                orderPrepareResponseDto = orderUserClient.getOrderPrepare(token, guestId, userHeader, req);
+//            }
+//        } catch (FeignException.Unauthorized e) {
+//            // 토큰이 만료/무효인 경우 게스트로 전환하여 다시 시도
+//            log.warn("주문 준비 401 -> 게스트로 재시도");
+//            frontTokenService.clearTokens();
+//            token = null;
+//            userHeader = null;
+//            try {
+//                if (guestId == null || guestId.isBlank()) {
+//                    guestId = CookieUtils.getCookieValue(request, "guestId");
+//                }
+//                orderPrepareResponseDto = guestOrderClient.getOrderPrepare(guestId, req);
+//            } catch (Exception ex) {
+//                log.warn("주문 준비 게스트 재시도 실패", ex);
+//                return "redirect:/cartpage?error=order_prepare_failed";
+//            }
+//        } catch (Exception e) {
+//            log.warn("주문 준비 데이터 조회 실패", e);
+//            return "redirect:/cartpage?error=order_prepare_failed";
+//        }
+//
+//        // 헤더/뷰 공통 데이터
+//        if (token != null) {
+//            try {
+//                model.addAttribute("user", userClient.getMyInfo(token));
+//            } catch (Exception e) {
+//                model.addAttribute("user", null);
+//                log.warn("사용자 정보 조회 실패: {}", e.getMessage());
+//            }
+//        } else {
+//            model.addAttribute("user", null);
+//        }
+//        model.addAttribute("cartCount",
+//                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null);
 
         boolean isGuest = (token == null);
         model.addAttribute("isGuest", isGuest);
 
-        model.addAttribute("orderItems", orderSheetResponseDto.orderItems());
-        model.addAttribute("addresses", orderSheetResponseDto.addresses());
-        model.addAttribute("coupons", orderSheetResponseDto.coupons());
-        model.addAttribute("point", orderSheetResponseDto.currentPoint());
-        long itemTotal = orderSheetResponseDto.orderItems() == null ? 0L :
-                orderSheetResponseDto.orderItems().stream()
+        model.addAttribute("orderItems", orderPrepareResponseDto.orderItems());
+        model.addAttribute("addresses", orderPrepareResponseDto.addresses());
+        model.addAttribute("coupons", orderPrepareResponseDto.coupons());
+        model.addAttribute("point", orderPrepareResponseDto.currentPoint());
+        long itemTotal = orderPrepareResponseDto.orderItems() == null ? 0L :
+                orderPrepareResponseDto.orderItems().stream()
                         .mapToLong(i -> {
                             long price = i.getPriceSales() != null ? i.getPriceSales()
                                     : (i.getPriceStandard() != null ? i.getPriceStandard() : 0L);
@@ -137,14 +139,18 @@ public class OrderUserController {
     public ResponseEntity<OrderCreateResponseDto> createPreOrder(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @CookieValue(value = "GUEST_ID", required = false) String guestId,
-            @RequestBody OrderCreateRequestDto req) {
+            @RequestBody OrderCreateWrapperRequestDto req) {
         log.info("POST /orders 호출 : 사전 주문 데이터 생성");
 
         String token = toBearer(accessToken);
-        Long userId = resolveUserId(accessToken);
-        Long userHeader = userId != null ? userId : 0L;
 
-        OrderCreateResponseDto orderCreateResponseDto = orderUserClient.createPreOrder(token, guestId, userHeader, req);
+        OrderCreateResponseDto orderCreateResponseDto = null;
+
+        if(token == null || token.isEmpty()){
+            orderCreateResponseDto = guestOrderClient.createGuestOrder(guestId, req.guest());
+        }else{
+            orderCreateResponseDto = orderUserClient.createPreOrder(token, req.user());
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(orderCreateResponseDto);
     }
@@ -173,9 +179,9 @@ public class OrderUserController {
             model.addAttribute("user", null);
             log.warn("사용자 정보 조회 실패: {}", e.getMessage());
         }
-        Object cartCount =
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-        model.addAttribute("cartCount", cartCount);
+//        Object cartCount =
+//                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
+//        model.addAttribute("cartCount", cartCount);
         model.addAttribute("orderList", page);
         List<Integer> pageNumbers = page.getTotalPages() > 0
                 ? IntStream.rangeClosed(1, page.getTotalPages()).boxed().toList()
@@ -216,14 +222,14 @@ public class OrderUserController {
         String token = toBearer(accessToken);
         OrderDetailResponseDto order = orderUserClient.getOrderDetail(token, null, orderNumber);
 
-        try {
-            model.addAttribute("user", userClient.getMyInfo(token));
-        } catch (Exception e) {
-            model.addAttribute("user", null);
-        }
-        Object cartCount =
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-        model.addAttribute("cartCount", cartCount);
+//        try {
+//            model.addAttribute("user", userClient.getMyInfo(token));
+//        } catch (Exception e) {
+//            model.addAttribute("user", null);
+//        }
+//        Object cartCount =
+//                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
+//        model.addAttribute("cartCount", cartCount);
         model.addAttribute("order", order);
 
         return "orderpayment/OrderDetail";
@@ -289,11 +295,11 @@ public class OrderUserController {
         }
     }
 
-    private RestPage<OrderSimpleDto> toRestPage(java.util.Map<String, Object> raw, Pageable pageable) {
+    private RestPage<OrderSimpleDto> toRestPage(Map<String, Object> raw, Pageable pageable) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        var content = mapper.convertValue(raw.getOrDefault("content", java.util.List.of()),
-                new TypeReference<java.util.List<OrderSimpleDto>>() {
+        var content = mapper.convertValue(raw.getOrDefault("content", List.of()),
+                new TypeReference<List<OrderSimpleDto>>() {
                 });
         long total = 0;
         Object totalObj = raw.get("totalElements");
