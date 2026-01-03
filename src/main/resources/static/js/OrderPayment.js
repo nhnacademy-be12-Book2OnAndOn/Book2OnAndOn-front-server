@@ -43,9 +43,7 @@ window.ensureGuestId = window.ensureGuestId || function ensureGuestId() {
 
 const ensureGuestId = window.ensureGuestId; // 파일 내부에서 쓸 때는 이렇게 참조만 한다 (재선언 위험 줄이기)
 const GUEST_ID = ensureGuestId();
-const IS_USER = (typeof window.IS_USER_FROM_SERVER === 'boolean')
-    ? window.IS_USER_FROM_SERVER
-    : !!getCookie('accessToken');
+const IS_USER = document.getElementById('user-info').dataset.userId;
 const IS_GUEST = (typeof window.IS_GUEST === 'boolean')
     ? window.IS_GUEST
     : !IS_USER;
@@ -58,7 +56,7 @@ let cartData = null;
 let selectedWrapData = {};
 let currentBookId = null;
 let userPointBalance = 0;
-const PREPARE_DATA = typeof window !== 'undefined' ? window.__ORDER_PREPARE__ : null;
+// const PREPARE_DATA = typeof window !== 'undefined' ? window.__ORDER_PREPARE__ : null;
 
 function applyPrepareAddresses(addresses) {
     if (!Array.isArray(addresses) || addresses.length === 0) return;
@@ -109,9 +107,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     setAddressList();
     setDeliveryDateOptions();
     setDeliveryPolicies();
-    await loadInitialData();
+    // await loadInitialData();
     setupEventListeners();
-    calculateFinalAmount();
+    // calculateFinalAmount();
 });
 
 
@@ -151,73 +149,73 @@ function setAddressList(){
 
 
 
-async function loadInitialData() {
-    try {
-        const headers = { 'Content-Type': 'application/json' };
-        if (IS_USER) headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
-        else headers['X-Guest-Id'] = GUEST_ID;
+// async function loadInitialData() {
+//     try {
+//         const headers = { 'Content-Type': 'application/json' };
+//         if (IS_USER) headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
+//         else headers['X-Guest-Id'] = GUEST_ID;
+//
+//         // 우선 서버에서 내려준 준비 데이터가 있으면 사용
+//         if (PREPARE_DATA && PREPARE_DATA.orderItems) {
+//             cartData = buildCartDataFromPrepare(PREPARE_DATA.orderItems);
+//             if (PREPARE_DATA.coupons) {
+//                 renderCouponOptions(PREPARE_DATA.coupons);
+//             }
+//             if (PREPARE_DATA.currentPoint && typeof PREPARE_DATA.currentPoint.currentPoint === 'number') {
+//                 userPointBalance = PREPARE_DATA.currentPoint.currentPoint;
+//             }
+//             if (PREPARE_DATA.addresses) {
+//                 applyPrepareAddresses(PREPARE_DATA.addresses);
+//             }
+//         } else {
+//             let cartEndpoint = IS_USER ? `${API_BASE.CART}/user/items/selected` : `${API_BASE.CART}/guest`;
+//
+//             let cartRes = await fetch(cartEndpoint, { headers });
+//             // 사용자 토큰 만료/401 시 게스트 장바구니로 폴백
+//             if (!cartRes.ok && cartRes.status === 401) {
+//                 cartRes = await fetch(`${API_BASE.CART}/guest/selected`, { headers });
+//             }
+//
+//             const [wrapRes, pointRes] = await Promise.all([
+//                 fetch(`${API_BASE.WRAP}`, { headers }),
+//                 IS_USER ? fetch(`/api/user/me/points/api/current`, { headers }) : Promise.resolve(null)
+//             ]);
+//             const couponRes = IS_USER ? await fetch('/coupons/me', { headers }) : null;
+//             if (couponRes && couponRes.ok) {
+//                 const coupons = await couponRes.json();
+//                 renderCouponOptions(coupons);
+//             }
+//
+//             if (cartRes.ok) cartData = await cartRes.json();
+//             if (wrapRes.ok) wrapOptions = await wrapRes.json();
+//             if (pointRes && pointRes.ok) {
+//                 const pointData = await pointRes.json();
+//                 userPointBalance = pointData.currentPoint;
+//             }
+//         }
+//
+//         // renderProductList();
+//         updatePointUI();
+//         calculateFinalAmount();
+//     } catch (error) {
+//         console.error("데이터 로드 실패:", error);
+//     }
+// }
 
-        // 우선 서버에서 내려준 준비 데이터가 있으면 사용
-        if (PREPARE_DATA && PREPARE_DATA.orderItems) {
-            cartData = buildCartDataFromPrepare(PREPARE_DATA.orderItems);
-            if (PREPARE_DATA.coupons) {
-                renderCouponOptions(PREPARE_DATA.coupons);
-            }
-            if (PREPARE_DATA.currentPoint && typeof PREPARE_DATA.currentPoint.currentPoint === 'number') {
-                userPointBalance = PREPARE_DATA.currentPoint.currentPoint;
-            }
-            if (PREPARE_DATA.addresses) {
-                applyPrepareAddresses(PREPARE_DATA.addresses);
-            }
-        } else {
-            let cartEndpoint = IS_USER ? `${API_BASE.CART}/user/items/selected` : `${API_BASE.CART}/guest`;
-
-            let cartRes = await fetch(cartEndpoint, { headers });
-            // 사용자 토큰 만료/401 시 게스트 장바구니로 폴백
-            if (!cartRes.ok && cartRes.status === 401) {
-                cartRes = await fetch(`${API_BASE.CART}/guest/selected`, { headers });
-            }
-
-            const [wrapRes, pointRes] = await Promise.all([
-                fetch(`${API_BASE.WRAP}`, { headers }),
-                IS_USER ? fetch(`/api/user/me/points/api/current`, { headers }) : Promise.resolve(null)
-            ]);
-            const couponRes = IS_USER ? await fetch('/coupons/me', { headers }) : null;
-            if (couponRes && couponRes.ok) {
-                const coupons = await couponRes.json();
-                renderCouponOptions(coupons);
-            }
-
-            if (cartRes.ok) cartData = await cartRes.json();
-            if (wrapRes.ok) wrapOptions = await wrapRes.json();
-            if (pointRes && pointRes.ok) {
-                const pointData = await pointRes.json();
-                userPointBalance = pointData.currentPoint;
-            }
-        }
-
-        // renderProductList();
-        // updatePointUI();
-        calculateFinalAmount();
-    } catch (error) {
-        console.error("데이터 로드 실패:", error);
-    }
+function renderCouponOptions(coupons) {
+    const select = document.getElementById('couponSelect');
+    coupons.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.discountAmount;
+        opt.textContent = `${c.couponName} (-${c.discountAmount.toLocaleString()}원)`;
+        select.appendChild(opt);
+    });
 }
 
-// function renderCouponOptions(coupons) {
-//     const select = document.getElementById('couponSelect');
-//     coupons.forEach(c => {
-//         const opt = document.createElement('option');
-//         opt.value = c.discountAmount;
-//         opt.textContent = `${c.couponName} (-${c.discountAmount.toLocaleString()}원)`;
-//         select.appendChild(opt);
-//     });
-// }
-
-// function updatePointUI() {
-//     const el = document.getElementById('currentPointValue');
-//     if (el) el.textContent = `${userPointBalance.toLocaleString()} P`;
-// }
+function updatePointUI() {
+    const el = document.getElementById('currentPointValue');
+    if (el) el.textContent = `${userPointBalance.toLocaleString()} P`;
+}
 
 function setupEventListeners() {
 
@@ -363,6 +361,7 @@ function setDeliveryPolicies(){
 
                 deliveryMethodContainer.appendChild(label);
             });
+            calculateFinalAmount();
         })
         .catch(err => {
             console.error(err);
@@ -557,7 +556,7 @@ function collectDeliveryAddress() {
 
 function collectGuestAuth() {
     // 회원이면 비회원 정보 필요 없음
-    if (IS_USER) return null;
+    if (IS_USER) return true;
 
     const guestNameInput = document.getElementById('guestName');
     const guestPhoneInput = document.getElementById('guestPhoneNumber');
@@ -575,6 +574,8 @@ function collectGuestAuth() {
     const guestPhoneNumber = guestPhoneInput.value.trim();
     const guestPassword = guestPasswordInput.value;
     const guestPasswordConfirm = guestPasswordConfirmInput.value;
+
+    console.log(guestPassword);
 
     // 2. 빈 값 체크
     if (!guestName || !guestPhoneNumber || !guestPassword || !guestPasswordConfirm) {
@@ -597,7 +598,6 @@ function collectGuestAuth() {
         guestPasswordConfirmInput.focus();
         return false;
     }
-    console.log(guestPassword);
 
     // 5. 정상 반환
     return {
@@ -809,9 +809,14 @@ async function handleTossPaymentRequest() {
     const wantDeliveryDate = document.getElementById('wantDeliveryDate')?.value;
     const pointInput = document.getElementById('pointDiscountAmount');
     const usedPoint = pointInput ? Number(pointInput.value || 0) : 0;
-    const guestInfo = collectGuestAuth();
 
-    if(!guestInfo) return;
+
+
+    const guestInfo = collectGuestAuth();
+    console.log(guestInfo.guestPassword);
+    if(!guestInfo){
+        return;
+    }
 
     try {
         const headers = { 'Content-Type': 'application/json' };
@@ -843,6 +848,7 @@ async function handleTossPaymentRequest() {
             point: usedPoint,
         }
 
+        console.log('여기까지 왔나?');
         const response = await fetch(API_BASE.ORDER, {
             method: 'POST',
             headers,

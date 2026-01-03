@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -61,12 +62,17 @@ public class OrderUserController {
         String token = toBearer(accessToken);
 
         OrderPrepareResponseDto orderPrepareResponseDto = null;
-
-        if(accessToken != null){
-            orderPrepareResponseDto = orderUserClient.getOrderPrepare(token, req);
-        }else if(guestId != null){
-            orderPrepareResponseDto = guestOrderClient.getOrderPrepare(guestId, req);
+        try{
+            if(accessToken != null){
+                orderPrepareResponseDto = orderUserClient.getOrderPrepare(token, req);
+            }else if(guestId != null){
+                orderPrepareResponseDto = guestOrderClient.getOrderPrepare(guestId, req);
+            }
+        } catch (Exception e) {
+            log.error("주문 페이지 이동 실패 {}", e.getMessage());
+            return "redirect:/";
         }
+
 
 //        try {
 //            if (token == null) {
@@ -146,6 +152,8 @@ public class OrderUserController {
 
         OrderCreateResponseDto orderCreateResponseDto = null;
 
+        log.info("비밀번호 왜 안찌혀 : {}", req.guest().getGuestPassword());
+
         if(token == null || token.isEmpty()){
             orderCreateResponseDto = guestOrderClient.createGuestOrder(guestId, req.guest());
         }else{
@@ -222,14 +230,14 @@ public class OrderUserController {
         String token = toBearer(accessToken);
         OrderDetailResponseDto order = orderUserClient.getOrderDetail(token, null, orderNumber);
 
-//        try {
-//            model.addAttribute("user", userClient.getMyInfo(token));
-//        } catch (Exception e) {
-//            model.addAttribute("user", null);
-//        }
-//        Object cartCount =
-//                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-//        model.addAttribute("cartCount", cartCount);
+        try {
+            model.addAttribute("user", userClient.getMyInfo(token));
+        } catch (Exception e) {
+            model.addAttribute("user", null);
+        }
+        Object cartCount =
+                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
+        model.addAttribute("cartCount", cartCount);
         model.addAttribute("order", order);
 
         return "orderpayment/OrderDetail";
@@ -241,7 +249,7 @@ public class OrderUserController {
                                 @PathVariable("orderNumber") String orderNumber,
                                 HttpServletRequest request) {
         if (accessToken == null) {
-            return "redirect:/login";
+            return "redirect:/";
         }
         String token = toBearer(accessToken);
         OrderDetailResponseDto order = orderUserClient.getOrderDetail(token, null, orderNumber);
@@ -257,23 +265,27 @@ public class OrderUserController {
         return "orderpayment/OrderComplete";
     }
 
-    // 결제 후 바로 주문 취소하는 경우
-    @PatchMapping("/{orderNumber}/cancel")
-    public String cancelOrder(@CookieValue(value = "accessToken", required = false) String accessToken,
-                              @PathVariable("orderNumber") String orderNumber) {
-        log.info("PATCH /orders/{}/cancel 호출 : 주문 취소", orderNumber);
+    @GetMapping("/{orderNumber}/cancel")
+    public String cancelOrder(
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @RequestHeader(value = "X-Guest-Order-Token", required = false) String guestToken,
+            @PathVariable("orderNumber") String orderNumber
+    ) {
+        log.info("GET /orders/{}/cancel 호출 : 주문 취소", orderNumber);
 
-        // TODO
         if (accessToken == null) {
-            return null;
+            // 비회원
+            orderUserClient.cancelOrder(null, guestToken, orderNumber);
+        } else {
+            // 회원
+            String token = toBearer(accessToken);
+            orderUserClient.cancelOrder(token, null, orderNumber);
         }
 
-        String token = toBearer(accessToken);
-
-        orderUserClient.cancelOrder(token, orderNumber);
-
-        return "";
+        // redirect
+        return "redirect:/orders/" + orderNumber + "/page";
     }
+
 
     private String toBearer(String accessToken) {
         if (accessToken == null || accessToken.isBlank()) {

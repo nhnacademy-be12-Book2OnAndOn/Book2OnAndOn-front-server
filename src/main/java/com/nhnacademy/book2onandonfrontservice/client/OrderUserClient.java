@@ -67,5 +67,6 @@ public interface OrderUserClient {
      */
     @PatchMapping("/api/orders/{orderNumber}/cancel")
     void cancelOrder(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                     @RequestHeader(value = "X-Guest-Order-Token", required = false) String guestToken,
                      @PathVariable("orderNumber") String orderNumber);
 }
