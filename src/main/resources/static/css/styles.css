@@ -2047,4 +2047,22 @@ img {
         border-radius: 4px;
         cursor: pointer;
     }
+
+    .slider-viewport {
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .slider-track {
+        display: flex;
+        transition: transform 0.4s ease-in-out;
+        width: 100%;
+    }
+
+    .book-slide {
+        min-width: 100%;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+    }
 }

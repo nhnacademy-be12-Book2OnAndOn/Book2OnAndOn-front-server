@@ -63,8 +63,9 @@ public interface BookClient {
 
     /// 베스트셀러
     @GetMapping("/api/books/bestsellers")
-    List<BookDto> getBestsellers(@RequestHeader(value = "Authorization", required = false) String accessToken,
-                                 @RequestParam(value = "period", required = false) String period);
+    Page<BookDto> getBestsellers(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                                 @RequestParam(value = "period", required = false) String period,
+                                 @SpringQueryMap Pageable pageable);
 
     /// 인기도서 조회
     @GetMapping("/api/books/popular")

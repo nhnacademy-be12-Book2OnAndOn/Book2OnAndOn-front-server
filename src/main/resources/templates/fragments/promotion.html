@@ -1,4 +1,8 @@
-<section class="membership-cta">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<body>
+
+<section class="membership-cta" th:fragment="membership-cta">
     <div class="container cta-inner">
         <div>
             <p class="cta-eyebrow" th:text="${promotionTitle} ?: '회원 전용 혜택'">회원 전용 혜택</p>
@@ -14,3 +18,6 @@
         </button>
     </div>
 </section>
+
+</body>
+</html>

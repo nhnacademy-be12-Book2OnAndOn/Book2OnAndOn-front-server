@@ -17,15 +17,16 @@
                     Book2OnAndOn에서 다양한 장르의 도서를 만나보세요. <br> 베스트셀러부터 숨은 명작까지 모두 한 곳에서.
                 </p>
                 <div class="hero-actions">
-                    <a class="btn primary" th:href="@{/books/bestseller}">베스트셀러 보기</a>
+                    <a class="btn primary" th:href="@{/books/bestsellers}">베스트셀러 보기</a>
                     <a class="btn secondary" th:href="@{/books/new}">신간 도서</a>
                 </div>
             </div>
+
             <div class="hero-visual">
                 <div class="hero-card">
                     <div class="hero-image">
-                        <img alt="추천 도서" onerror="this.onerror=null; this.src='/images/no-image.png';" th:if="${promotion?.imageUrl != null}"
-                             th:src="${promotion.imageUrl}">
+                        <img alt="추천 도서" onerror="this.onerror=null; this.src='/images/no-image.png';"
+                             th:if="${promotion?.imageUrl != null}" th:src="${promotion.imageUrl}">
                         <img alt="기본 이미지"
                              src="https://images.unsplash.com/photo-1473755504818-b72b6dfdc226?auto=format&fit=crop&w=820&q=80"
                              th:if="${promotion?.imageUrl == null}">
@@ -40,71 +41,12 @@
                         </div>
                         <p class="discount" th:if="${promotion.discountRate != null}"
                            th:text="${promotion.discountRate} + '% 할인'">20% 할인</p>
-                        <button class="btn ghost" th:onclick="'addToCart(' + ${promotion.id} + ')'"><span>장바구니 담기</span>
-                        </button>
+                        <button class="btn ghost" th:onclick="'addToCart(' + ${promotion.id} + ')'"><span>장바구니 담기</span></button>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-
-    <th:block th:if="${sectionBlocks != null and !sectionBlocks.isEmpty()}">
-        <th:block th:each="block, iter : ${sectionBlocks}">
-            <section class="linked-section"
-                     th:classappend="${iter.index == 0} ? 'highlight' : ''"
-                     th:id="'section-' + (${block.id} ?: ${iter.index})">
-                <div class="container">
-                    <div class="section-header">
-                        <div>
-                            <p class="section-eyebrow" th:text="${block.subtitle} ?: '큐레이션'">큐레이션 소제목</p>
-                            <h2 th:text="${block.title} ?: '추천 도서'">추천 도서</h2>
-                        </div>
-                        <a class="view-all" th:href="${block.viewAllLink}" th:if="${block.viewAllLink != null}">전체보기
-                            →</a>
-                    </div>
-                    <div class="linked-grid" th:if="${block.books != null and !block.books.isEmpty()}">
-                        <article class="linked-card" th:each="book : ${block.books}">
-                            <a class="linked-thumb" th:href="@{/books/{id}(id=${book.id})}">
-                                <span class="linked-badge" th:if="${book.tagNames != null and !book.tagNames.isEmpty()}"
-                                      th:text="${book.tagNames[0]}">태그</span>
-                                <img th:alt="${book.title}" th:if="${book.thumbnail != null}"
-                                     th:src="${book.thumbnail}">
-                                <div class="thumb-fallback" th:unless="${book.thumbnail != null}">표지 준비중</div>
-                            </a>
-                            <div class="linked-info">
-                                <a class="no-deco" th:href="@{/books/{id}(id=${book.id})}">
-                                    <p class="linked-title" th:text="${book.title} ?: '제목 없음'">도서 제목</p>
-                                </a>
-                                <p class="linked-author"
-                                   th:text="${book.contributorNames != null and !book.contributorNames.isEmpty()} ? ${book.contributorNames[0]} : '저자 정보 없음'">
-                                    저자명</p>
-                                <div class="linked-meta">
-                                    <span class="linked-rating" th:if="${book.rating != null}">
-                                        ★ <span th:text="${book.rating}">0.0</span>
-                                    </span>
-                                    <div class="linked-price">
-                                        <span class="price"
-                                              th:text="${book.priceSales != null} ? ${#numbers.formatInteger(book.priceSales, 0, 'COMMA')} + '원' : '가격미정'">19,800원</span>
-                                    </div>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
-                                    <button class="like-btn"
-                                            th:classappend="${book.likedByCurrentUser} ? 'active' : ''"
-                                            th:attr="data-book-id=${book.id}, data-book-title=${book.title}, data-book-authors=${book.contributorNames != null ? #strings.listJoin(book.contributorNames, ', ') : ''}, data-book-thumb=${book.thumbnail}, data-book-price-sales=${book.priceSales}, data-book-price-standard=${book.priceStandard}"
-                                            th:onclick="'toggleLike(this, ' + ${book.id} + ')'"
-                                            type="button">
-                                        <span class="heart-icon"></span>
-                                        <span class="like-count" th:text="${book.likeCount}">0</span>
-                                    </button>
-                                </div>
-                                <button class="linked-cart" th:onclick="'addToCart(' + ${book.id} + ')'">장바구니</button>
-                            </div>
-                        </article>
-                    </div>
-                </div>
-            </section>
-        </th:block>
-    </th:block>
 
     <section class="book-collection" id="section-new" th:if="${newBooks != null}">
         <div class="container">
@@ -117,86 +59,11 @@
                     <a class="view-all" th:href="@{/books/new}">전체보기 →</a>
                 </div>
             </div>
-            <div th:if="${newBooks != null and !newBooks.isEmpty()}"
-                 th:replace="~{fragments/dashboard :: sliderSection('newSlider', ${newBooks.content}, 'NEW')}"></div>
-            <div class="book-grid" th:unless="${newBooks != null and !newBooks.isEmpty()}">
-                <div class="book-card placeholder">
-                    <div class="book-details">
-                        <p class="book-title">집계 중입니다</p>
-                        <p class="book-author">신간 데이터를 준비하고 있습니다.</p>
-                    </div>
-                </div>
-            </div>
+            <div th:replace="~{fragments/dashboard :: sliderSection('newSlider', ${newBooks}, 'NEW')}"></div>
         </div>
     </section>
 
-    <th:block th:if="${currentUser == null}">
-        <section class="membership-cta">
-            <div class="container cta-inner">
-                <div>
-                    <p class="cta-eyebrow">회원 전용 혜택</p>
-                    <h3>지금 가입하고 첫 구매 시 15% 할인을 받아보세요</h3>
-                </div>
-                <button class="btn primary" onclick="location.href='/signup'" type="button">회원가입하기</button>
-            </div>
-        </section>
-    </th:block>
-
-    <th:block th:if="${currentUser != null}">
-        <section class="member-promo">
-            <div class="container member-promo-inner">
-                <div class="promo-copy">
-                    <p class="cta-eyebrow">오늘의 추천</p>
-                    <h3 th:text="${promotion?.title} ?: '새로운 책을 만나보세요'">새로운 책을 만나보세요</h3>
-                    <p class="muted" th:text="${promotion?.subtitle} ?: '지금 가장 인기 있는 도서를 추천합니다.'">지금 가장 인기 있는 도서를
-                        추천합니다.</p>
-                    <div class="price-row" th:if="${promotion != null}">
-                        <span class="sale-price"
-                              th:text="${promotion.salePrice} != null ? '₩' + ${#numbers.formatInteger(promotion.salePrice, 0, 'COMMA')} : ''">₩19,800</span>
-                        <span class="original" th:if="${promotion.originalPrice != null}"
-                              th:text="'₩' + ${#numbers.formatInteger(promotion.originalPrice, 0, 'COMMA')}">₩22,000</span>
-                        <span class="discount" th:if="${promotion.discountRate != null}"
-                              th:text="${promotion.discountRate} + '% 할인'">10% 할인</span>
-                    </div>
-                    <div class="promo-actions" th:if="${promotion != null}">
-                        <button class="btn primary" onclick="goToPromoBook()" type="button">자세히 보기</button>
-                        <button class="btn secondary" th:onclick="'addToCart(' + ${promotion.id} + ')'">장바구니</button>
-                    </div>
-                </div>
-                <div class="promo-visual">
-                    <div class="promo-image" onclick="goToPromoBook()" role="button">
-                        <img alt="프로모션 도서" th:if="${promotion?.imageUrl != null}" th:src="${promotion.imageUrl}">
-                        <img alt="기본 도서 이미지"
-                             src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=760&q=80"
-                             th:if="${promotion?.imageUrl == null}">
-                    </div>
-                </div>
-            </div>
-        </section>
-        <script th:inline="javascript">
-            /*<![CDATA[*/
-            const promoData = {
-                id: /*[[${promotion != null ? promotion.id : 'null'}]]*/ null,
-                title: /*[[${promotion != null ? '\'' + promotion.title + '\'' : 'null'}]]*/ null
-            };
-
-            function goToPromoBook() {
-                if (promoData.id !== null) {
-                    window.location.href = `/books/${promoData.id}`;
-                    return;
-                }
-                if (promoData.title) {
-                    window.location.href = `/books/search?keyword=${encodeURIComponent(promoData.title)}`;
-                    return;
-                }
-                window.location.href = '/books';
-            }
-
-            /*]]>*/
-        </script>
-    </th:block>
-
-    <section class="book-collection" id="section-bestseller-week">
+    <section class="book-collection" id="section-bestseller-week" th:if="${bestWeek != null and !bestWeek.isEmpty()}">
         <div class="container">
             <div class="section-header">
                 <div>
@@ -204,22 +71,26 @@
                     <h2>이번주 베스트 셀러</h2>
                 </div>
             </div>
+            <div th:replace="~{fragments/dashboard :: sliderSection('bestWeekSlider', ${bestWeek}, 'WEEKLY BEST')}"></div>
+        </div>
+    </section>
 
-            <div th:if="${bestWeek != null and !bestWeek.isEmpty()}"
-                 th:replace="~{fragments/dashboard :: sliderSection('bestWeekSlider', bestWeek, 'WEEKLY BEST')}"></div>
-
-            <div class="book-grid" th:unless="${bestWeek != null and !bestWeek.isEmpty()}">
-                <div class="book-card placeholder">
-                    <div class="book-details">
-                        <p class="book-title">집계 중입니다</p>
-                        <p class="book-author">이번 주 베스트셀러 데이터를 준비하고 있습니다.</p>
-                    </div>
-                </div>
+    <section class="mid-promotion" style="padding: 60px 0; background-color: #e8f5e9; margin: 50px 0; border-radius: 12px;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="promo-text">
+                <span class="badge" style="background:#2e7d32; color:white; padding:4px 10px; border-radius:4px; font-size:0.8rem; margin-bottom:10px; display:inline-block; font-weight:500;">MD's Pick</span>
+                <h2 style="margin: 0 0 10px 0; color: #1b5e20; font-size: 1.8rem;">잠깐, 눈의 피로를 풀어보세요 🌿</h2>
+                <p style="margin: 0; color: #33691e; font-size: 1.1rem;">초록빛 표지만 모았다! 싱그러운 식물 & 힐링 에세이 특별전</p>
+            </div>
+            <div class="promo-action">
+                <a href="#" class="btn secondary" style="background:white; border:2px solid #2e7d32; color:#2e7d32; padding: 12px 28px; border-radius: 50px; text-decoration: none; font-weight: bold; transition: all 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    초록 에디션 보러가기 →
+                </a>
             </div>
         </div>
     </section>
 
-    <section class="book-collection" id="section-bestseller-yesterday" style="background-color: #f8f9fa;">
+    <section class="book-collection" id="section-bestseller-yesterday" style="background-color: #f8f9fa;" th:if="${bestDaily != null and !bestDaily.isEmpty()}">
         <div class="container">
             <div class="section-header">
                 <div>
@@ -227,18 +98,7 @@
                     <h2>어제 베스트 셀러</h2>
                 </div>
             </div>
-
-            <div th:if="${bestDaily != null and !bestDaily.isEmpty()}"
-                 th:replace="~{fragments/dashboard :: sliderSection('bestDailySlider', bestDaily, 'DAILY BEST')}"></div>
-
-            <div class="book-grid" th:unless="${bestDaily != null and !bestDaily.isEmpty()}">
-                <div class="book-card placeholder">
-                    <div class="book-details">
-                        <p class="book-title">집계 중입니다</p>
-                        <p class="book-author">어제 베스트셀러 데이터를 준비하고 있습니다.</p>
-                    </div>
-                </div>
-            </div>
+            <div th:replace="~{fragments/dashboard :: sliderSection('bestDailySlider', ${bestDaily}, 'DAILY BEST')}"></div>
         </div>
     </section>
 
@@ -250,171 +110,16 @@
                     <h2>인기 도서</h2>
                 </div>
             </div>
-
-            <div th:if="${!likeBest.isEmpty()}"
-                 th:replace="~{fragments/dashboard :: sliderSection('popularSlider', ${likeBest.content}, 'POPULAR')}"></div>
-
-            <div class="book-grid" th:unless="${!likeBest.isEmpty()}">
-                <div class="book-card placeholder">
-                    <div class="book-details">
-                        <p class="book-title">집계 중입니다</p>
-                        <p class="book-author">인기 도서 데이터를 준비하고 있습니다.</p>
-                    </div>
-                </div>
-            </div>
+            <div th:replace="~{fragments/dashboard :: sliderSection('popularSlider', ${likeBest}, 'POPULAR')}"></div>
         </div>
     </section>
 
+    <th:block th:replace="~{fragments/promotion :: membership-cta}"></th:block>
+
 </main>
 
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    const addToCart = window.addToCart;
-    const toggleLike = window.toggleLike;
-
-    // 슬라이더 초기화 (인기, 신간, 주간/일간 베스트 공용)
-    document.addEventListener('DOMContentLoaded', () => {
-        const sliders = document.querySelectorAll('.book-slider');
-
-        sliders.forEach(slider => {
-            const track = slider.querySelector('.slider-track');
-            const slides = Array.from(slider.querySelectorAll('.book-slide'));
-            const prevBtn = slider.querySelector('.slider-prev');
-            const nextBtn = slider.querySelector('.slider-next');
-            const viewport = slider.querySelector('.slider-viewport');
-            let index = 0;
-            let startX = 0;
-            let isDragging = false;
-            let dragDelta = 0;
-
-            if (!track || slides.length === 0 || !prevBtn || !nextBtn || !viewport) return;
-
-            const update = () => {
-                track.style.transform = `translateX(-${index * 100}%)`;
-                prevBtn.disabled = index === 0;
-                nextBtn.disabled = index >= slides.length - 1;
-            };
-
-            const movePrev = () => {
-                if (index > 0) {
-                    index -= 1;
-                    update();
-                }
-            };
-
-            const moveNext = () => {
-                if (index < slides.length - 1) {
-                    index += 1;
-                    update();
-                }
-            };
-
-            let wheelCooldown = false;
-            const wheelThreshold = 40;
-            const wheelCooldownMs = 220;
-
-            prevBtn.addEventListener('click', () => {
-                movePrev();
-            });
-
-            nextBtn.addEventListener('click', () => {
-                moveNext();
-            });
-
-            viewport.addEventListener('pointerdown', (event) => {
-                if (event.button !== 0) return;
-                if (event.target.closest('a, button, input, textarea, select, label')) return;
-                isDragging = true;
-                dragDelta = 0;
-                startX = event.clientX;
-                viewport.setPointerCapture(event.pointerId);
-            });
-
-            viewport.addEventListener('pointermove', (event) => {
-                if (!isDragging) return;
-                dragDelta = event.clientX - startX;
-            });
-
-            viewport.addEventListener('pointerup', (event) => {
-                if (!isDragging) return;
-                isDragging = false;
-                viewport.releasePointerCapture(event.pointerId);
-                const threshold = Math.min(80, viewport.clientWidth * 0.15);
-                if (dragDelta > threshold) {
-                    movePrev();
-                } else if (dragDelta < -threshold) {
-                    moveNext();
-                }
-            });
-
-            viewport.addEventListener('pointerleave', () => {
-                isDragging = false;
-            });
-
-            viewport.addEventListener('wheel', (event) => {
-                if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
-                event.preventDefault();
-                if (wheelCooldown) return;
-                if (Math.abs(event.deltaX) < wheelThreshold) return;
-                if (event.deltaX > 0) {
-                    moveNext();
-                } else {
-                    movePrev();
-                }
-                wheelCooldown = true;
-                setTimeout(() => {
-                    wheelCooldown = false;
-                }, wheelCooldownMs);
-            }, {passive: false});
-
-            update();
-        });
-    });
-
-    // 인기 도서 좋아요 카운트 주기 갱신
-    document.addEventListener('DOMContentLoaded', () => {
-        const refreshLikeCounts = async () => {
-            const likeButtons = document.querySelectorAll('#popularSlider .like-btn[data-book-id]');
-            if (likeButtons.length === 0) return;
-            try {
-                const res = await fetch('/front/books/popular?page=0&size=20', { credentials: 'include' });
-                if (!res.ok) return;
-                const data = await res.json();
-                const list = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
-                const map = new Map(list.map(item => [String(item.id), item.likeCount]));
-                likeButtons.forEach(btn => {
-                    const count = map.get(btn.dataset.bookId);
-                    const countSpan = btn.querySelector('.like-count');
-                    if (countSpan && typeof count === 'number') {
-                        countSpan.textContent = count;
-                    }
-                });
-            } catch (e) {
-                // ignore polling errors
-            }
-        };
-
-        refreshLikeCounts();
-        setInterval(refreshLikeCounts, 20000);
-    });
-
-    // 메인 페이지에서 사이드바 토글이 확실히 동작하도록 재바인딩
-    document.addEventListener('DOMContentLoaded', () => {
-        if (typeof window.toggleSidebar !== 'function') {
-            window.toggleSidebar = function () {
-                const sidebar = document.getElementById('categorySidebar');
-                const overlay = document.getElementById('sidebarOverlay');
-                if (!sidebar || !overlay) return;
-                sidebar.classList.toggle('open');
-                overlay.classList.toggle('active');
-            };
-        }
-        document.querySelectorAll('.hamburger, .close-sidebar, #sidebarOverlay')
-            .forEach(el => {
-                el.addEventListener('click', window.toggleSidebar);
-            });
-    });
-    /*]]>*/
-</script>
+<th:block layout:fragment="extraScript">
+    <script th:src="@{/js/dashboard.js}"></script>
+</th:block>
 </body>
 </html>
