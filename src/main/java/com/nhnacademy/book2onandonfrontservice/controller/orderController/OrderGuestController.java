@@ -33,7 +33,7 @@ public class OrderGuestController {
         model.addAttribute("orderInfo", orderResponseDto);
 
         // TODO 주문 상세 내역 만들기
-        return "";
+        return "user/guest/order-detail";
     }
 
 }

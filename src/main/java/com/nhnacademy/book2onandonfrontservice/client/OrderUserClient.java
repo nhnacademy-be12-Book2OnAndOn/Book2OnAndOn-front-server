@@ -55,6 +55,7 @@ public interface OrderUserClient {
     /**
      * 주문 상세 조회
      * GET /api/orders/{orderNumber}
+     * 회원, 비회원 공유
      */
 
     @GetMapping("/api/orders/{orderNumber}")
@@ -67,6 +68,7 @@ public interface OrderUserClient {
     /**
      * 결제 후 바로 주문 취소하는 경우
      * 백엔드가 204 no Content를 보내더라도 Dto를 리턴 타입으로 두면 null 들어옴 만약 백엔드에서 200을
+     * 회원, 비회원 공유
      */
     @PatchMapping("/api/orders/{orderNumber}/cancel")
     void cancelOrder(@RequestHeader(value = "Authorization", required = false) String accessToken,

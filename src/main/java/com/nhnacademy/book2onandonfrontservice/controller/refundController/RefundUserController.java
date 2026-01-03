@@ -59,7 +59,7 @@ public class RefundUserController {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
         try {
-            List<RefundAvailableItemResponseDto> items = refundUserClient.getRefundForm(token, orderId);
+            List<RefundAvailableItemResponseDto> items = refundUserClient.getRefundForm(token, null, orderId);
             model.addAttribute("orderId", orderId);
             model.addAttribute("items", items);
             model.addAttribute("refundRequest", new RefundRequestDto());
@@ -83,7 +83,7 @@ public class RefundUserController {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
         try {
-            RefundResponseDto created = refundUserClient.createRefund(token, orderId, refundRequestDto);
+            RefundResponseDto created = refundUserClient.createRefund(token, null, orderId, refundRequestDto);
             ra.addFlashAttribute("message", "반품 신청이 접수되었습니다.");
             return "redirect:/refunds/orders/" + orderId + "/" + created.getRefundId();
         } catch (Exception e) {
@@ -106,7 +106,7 @@ public class RefundUserController {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
         try {
-            RefundResponseDto detail = refundUserClient.getRefundDetails(token, orderId, refundId);
+            RefundResponseDto detail = refundUserClient.getRefundDetails(token, null, orderId, refundId);
             model.addAttribute("detail", detail);
             return "refund/user/detail";
         } catch (Exception e) {
@@ -128,7 +128,7 @@ public class RefundUserController {
         String token = "Bearer " + CookieUtils.getCookieValue(request, "accessToken");
 
         try {
-            refundUserClient.cancelRefund(token, orderId, refundId);
+            refundUserClient.cancelRefund(token, null, orderId, refundId);
             ra.addFlashAttribute("message", "반품 신청이 취소되었습니다.");
         } catch (Exception e) {
             log.error("회원 반품 취소 실패. orderId={}, refundId={}", orderId, refundId, e);

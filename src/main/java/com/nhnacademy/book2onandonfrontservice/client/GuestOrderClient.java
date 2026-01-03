@@ -15,7 +15,7 @@ public interface GuestOrderClient {
 
     String GUEST_ID_HEADER = "X-Guest-Id";
 
-    @PostMapping("/api/orders/guest/login")
+    @PostMapping("/api/guest/orders/login")
     ResponseEntity<GuestLoginResponseDto> loginGuest(@RequestBody GuestLoginRequestDto requestDto);
 
     @PostMapping("/api/guest/orders/prepare")

@@ -17,42 +17,47 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface RefundUserClient {
 
     /**
-     * 회원 반품 신청 폼 : 반품 가능 품목 조회
+     * 회원 반품 신청 폼 : 반품 가능 품목 조회 / 회원, 비회원 공유
      */
+
     @GetMapping("/api/orders/{orderId}/refunds/form")
     List<RefundAvailableItemResponseDto> getRefundForm(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                                                       @RequestHeader(value = "Guest-Order-Token", required = false) String guestOrderToken,
                                                        @PathVariable("orderId") Long orderId);
 
     /**
-     * 회원 반품 신청
+     * 회원 반품 신청 / 회원, 비회원 공유
      */
     @PostMapping("/api/orders/{orderId}/refunds")
     RefundResponseDto createRefund(
             @RequestHeader(value = "Authorization", required = false) String accessToken,
+            @RequestHeader(value = "Guest-Order-Token", required = false) String guestOrderToken,
             @PathVariable("orderId") Long orderId,
             @RequestBody RefundRequestDto requestDto
     );
 
     /**
-     * 회원 반품 상세 조회
+     * 회원 반품 상세 조회 / 회원, 비회원 공유
      */
     @GetMapping("/api/orders/{orderId}/refunds/{refundId}")
     RefundResponseDto getRefundDetails(
             @RequestHeader(value = "Authorization", required = false) String accessToken,
+            @RequestHeader(value = "Guest-Order-Token", required = false) String guestOrderToken,
             @PathVariable("orderId") Long orderId,
             @PathVariable("refundId") Long refundId
     );
 
     /**
-     * 회원 반품 신청 취소
+     * 회원 반품 신청 취소 / 회원, 비회원 공유
      */
     @PostMapping("/api/orders/{orderId}/refunds/{refundId}/cancel")
     RefundResponseDto cancelRefund(@RequestHeader(value = "Authorization", required = false) String accessToken,
+                                   @RequestHeader(value = "Guest-Order-Token", required = false) String guestOrderToken,
                                    @PathVariable("orderId")Long orderId,
                                    @PathVariable("refundId")Long refundId);
 
     /**
-     * 회원 전체 반품 목록 조회
+     * 회원 전체 반품 목록 조회 / 회원 전용
      */
     @GetMapping("/api/orders/refunds/my-list")
     Page<RefundResponseDto> getMyRefunds(@RequestHeader(value = "Authorization", required = false) String accessToken,
