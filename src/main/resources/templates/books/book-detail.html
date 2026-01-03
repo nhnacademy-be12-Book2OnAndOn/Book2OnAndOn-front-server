@@ -194,9 +194,7 @@
 
             <div id="toc" class="content-block tab-panel" th:if="${bookDetail.chapter != null}">
                 <h3>목차</h3>
-                <div class="toc-body" th:utext="${#strings.replace(bookDetail.chapter, '
-', '<br>')}">
-                </div>
+                <div class="toc-body" th:utext="${#strings.replace(bookDetail.chapter, '\n', '<br>')}"></div>
             </div>
 
             <div id="reviews" class="content-block tab-panel">
@@ -229,21 +227,11 @@
                     </div>
                 </div>
 
-                <div class="review-form-card" id="reviewForm"
-                     th:data-book-id="${bookDetail.id}"
-                     th:data-review-eligible="${reviewEligible}">
-                    <div class="form-card-inner" th:if="${currentUser != null}">
-<!--                        <div class="form-card-head">-->
-<!--                            <div>-->
-<!--                                <p class="eyebrow">리뷰 작성</p>-->
-<!--                                <h4>당신의 한 줄이 누군가의 선택이 됩니다</h4>-->
-<!--                            </div>-->
-<!--                        </div>-->
-                        <form th:action="@{'/api/books/' + ${bookDetail.id} + '/reviews'}" method="post" enctype="multipart/form-data">
-                            <input type="hidden" name="bookId" id="reviewBookId" th:value="${bookDetail.id}">
-                            <p class="muted" id="reviewEligibilityNote" th:if="${reviewEligible == false}">
-                                주문 완료/배송 완료 후 리뷰를 작성할 수 있습니다.
-                            </p>
+                <div class="review-form-card" id="reviewForm">
+
+                    <div class="form-card-inner"
+                         th:if="${currentUser != null and canReview}">
+                        <form th:action="@{/books/{id}/reviews(id=${bookDetail.id})}" method="post" enctype="multipart/form-data">
                             <div class="form-grid two-col">
                                 <div class="form-field">
                                     <label for="reviewTitle">제목</label>
@@ -277,7 +265,20 @@
                             </div>
                         </form>
                     </div>
-                    <div class="form-card-inner muted" th:if="${currentUser == null}">
+
+                    <div class="form-card-inner muted"
+                         th:if="${currentUser != null and !canReview}">
+                        <div class="form-card-head">
+                            <div>
+                                <p class="eyebrow">리뷰 권한 없음</p>
+                                <h4>리뷰는 해당 도서를 구매한 회원만 작성할 수 있습니다.</h4>
+                            </div>
+                        </div>
+                        <p style="margin: 0 0 1rem;">구매 후 배송이 완료되면 리뷰를 작성하실 수 있습니다.</p>
+                    </div>
+
+                    <div class="form-card-inner muted"
+                         th:if="${currentUser == null}">
                         <div class="form-card-head">
                             <div>
                                 <p class="eyebrow">로그인 필요</p>
@@ -287,6 +288,7 @@
                         <p style="margin: 0 0 1rem;">좋아한 책에 대해 이야기를 남기고 싶다면 로그인해 주세요.</p>
                         <a class="btn ghost" href="/login">로그인하기</a>
                     </div>
+
                 </div>
 
                 <div class="review-list">
@@ -302,11 +304,14 @@
                                 <span th:each="i : ${#numbers.sequence(1,5)}"
                                       th:text="${i <= review.score} ? '★' : '☆'">★</span>
                             </span>
-                            <span class="date" th:text="${#temporals.format(review.writeDate, 'yyyy.MM.dd')}">2024.01.01</span>
+                            <span class="date" th:text="${#temporals.format(review.writerDate, 'yyyy.MM.dd')}">2024.01.01</span>
                         </div>
                         <p class="review-content" th:text="${review.content}">리뷰 내용이 들어갑니다.</p>
-                        <div class="review-helpful">
-                            <button type="button" class="btn ghost sm" disabled>도움됨 <span th:text="${review.helpfulCount} ?: 0">0</span></button>
+                        <div class="review-gallery" th:if="${review.images != null and !review.images.isEmpty()}">
+                            <div class="review-thumb" th:each="rImg : ${review.images}">
+                                <img th:src="${rImg.imagePath}" alt="리뷰 이미지"
+                                     onclick="window.open(this.src)" title="크게 보기">
+                            </div>
                         </div>
                         <div class="review-actions"
                              th:if="${currentUser != null and review.userId == currentUser.userId}">

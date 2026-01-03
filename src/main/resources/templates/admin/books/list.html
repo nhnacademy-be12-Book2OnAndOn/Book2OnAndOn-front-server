@@ -5,6 +5,37 @@
     <title>도서 관리 | 관리자</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
+
+    <style>
+        /* 삭제된 행: 전체적으로 흐리게 처리 */
+        .deleted-row {
+            opacity: 0.5;
+            background-color: #f5f5f5;
+        }
+        /* 삭제된 행에 마우스를 올렸을 때 조금 더 잘 보이게 */
+        .deleted-row:hover {
+            opacity: 0.8;
+        }
+
+        /* 상태 배지 기본 스타일 */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            min-width: 60px;
+            line-height: 1;
+        }
+
+        /* 상태별 색상 매핑 */
+        .status-badge.on-sale { background-color: #28a745; }       /* 판매중 (초록) */
+        .status-badge.sold-out { background-color: #ffc107; color: #333; } /* 일시품절 (노랑) */
+        .status-badge.out-of-stock { background-color: #6c757d; }  /* 품절/절판 (회색) */
+        .status-badge.deleted { background-color: #dc3545; }       /* 삭제됨 (빨강) */
+    </style>
 </head>
 <body>
 <th:block th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}"></th:block>
@@ -20,7 +51,7 @@
             </div>
             <div class="chip-tabs" style="gap: 10px;">
                 <a class="chip-tab chip-ghost" th:href="@{/admin/books/create}">+ 도서 등록</a>
-                <form th:action="@{/admin/books/reindex/all}" method="post" style="display:inline;">
+                <form th:action="@{/admin/books/reindex/all}" method="post" style="display:inline;" onsubmit="return confirm('전체 도서를 재인덱싱 하시겠습니까? 시간이 오래 걸릴 수 있습니다.');">
                     <button type="submit" class="chip-tab chip-ghost">전체 재인덱싱</button>
                 </form>
             </div>
@@ -31,6 +62,9 @@
         </th:block>
         <th:block th:if="${reindexError != null}">
             <div class="alert danger" th:text="${reindexError}"></div>
+        </th:block>
+        <th:block th:if="${searchError != null}">
+            <div class="alert danger" th:text="${searchError}"></div>
         </th:block>
 
         <form class="admin-toolbar" method="get" th:action="@{/admin/books}" id="bookSearchForm" style="align-items: flex-end;">
@@ -48,16 +82,37 @@
             <input type="hidden" name="size" value="10">
         </form>
 
-        <div class="admin-toolbar reindex-toolbar">
-            <form th:action="@{/admin/books/reindex/category}" method="post" class="reindex-form">
-                <label class="reindex-label" for="categoryReindexInput">카테고리 ID</label>
-                <input id="categoryReindexInput" class="reindex-input" type="number" name="categoryId" placeholder="예: 10" required>
-                <button class="btn-ghost" type="submit">카테고리 재인덱싱</button>
+        <div class="admin-toolbar reindex-toolbar" style="align-items: flex-start; flex-direction: column; gap: 10px; background-color: #f8f9fa; border: 1px solid #eee;">
+
+            <form th:action="@{/admin/books/reindex/category}" method="post" class="reindex-form" id="categoryReindexForm" style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                <label class="reindex-label" style="min-width: 100px; font-weight: 600;">카테고리 갱신</label>
+
+                <div style="display: flex; gap: 5px; flex: 1;">
+                    <select class="form-control" id="catL1" style="min-width: 120px; padding: 6px;">
+                        <option value="">대분류</option>
+                    </select>
+                    <select class="form-control" id="catL2" style="min-width: 120px; padding: 6px;" disabled>
+                        <option value="">중분류</option>
+                    </select>
+                    <select class="form-control" id="catL3" style="min-width: 120px; padding: 6px;" disabled>
+                        <option value="">소분류</option>
+                    </select>
+                    <select class="form-control" id="catL4" style="min-width: 120px; padding: 6px;" disabled>
+                        <option value="">세분류</option>
+                    </select>
+                </div>
+
+                <input type="hidden" name="categoryId" id="finalCategoryId">
+
+                <button class="btn-ghost" type="submit">실행</button>
             </form>
-            <form th:action="@{/admin/books/reindex/tag}" method="post" class="reindex-form">
-                <label class="reindex-label" for="tagReindexInput">태그 ID</label>
-                <input id="tagReindexInput" class="reindex-input" type="number" name="tagId" placeholder="예: 5" required>
-                <button class="btn-ghost" type="submit">태그 재인덱싱</button>
+
+            <form th:action="@{/admin/books/reindex/tag}" method="post" class="reindex-form" style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                <label class="reindex-label" for="tagReindexInput" style="min-width: 100px; font-weight: 600;">태그 갱신</label>
+                <div style="flex: 1;">
+                    <input id="tagReindexInput" class="form-control" style="width: 150px;" type="number" name="tagId" placeholder="태그 ID 입력" required>
+                </div>
+                <button class="btn-ghost" type="submit">실행</button>
             </form>
         </div>
 
@@ -66,6 +121,7 @@
                 <thead>
                 <tr>
                     <th style="width: 8%">ID</th>
+                    <th style="width: 10%">상태</th>
                     <th>제목</th>
                     <th style="width: 20%">저자</th>
                     <th style="width: 15%">판매가</th>
@@ -74,12 +130,26 @@
                 </thead>
                 <tbody id="bookTableBody">
                 <tr th:if="${books == null || books.isEmpty()}">
-                    <td class="muted" colspan="5" style="text-align: center;">검색 결과가 없습니다.</td>
+                    <td class="muted" colspan="6" style="text-align: center;">검색 결과가 없습니다.</td>
                 </tr>
+
                 <tr th:each="book : ${books}"
                     th:onclick="|location.href='@{/admin/books/{id}/edit(id=${book.id})}'|"
+                    th:classappend="${book.status != null && book.status.name() == 'BOOK_DELETED'} ? 'deleted-row' : ''"
                     style="cursor: pointer;">
+
                     <td th:text="${book.id}">1</td>
+
+                    <td>
+                        <th:block th:if="${book.status != null}">
+                            <span th:if="${book.status.name() == 'ON_SALE'}" class="status-badge on-sale">판매중</span>
+                            <span th:if="${book.status.name() == 'SOLD_OUT'}" class="status-badge sold-out">일시품절</span>
+                            <span th:if="${book.status.name() == 'OUT_OF_STOCK'}" class="status-badge out-of-stock">품절</span>
+                            <span th:if="${book.status.name() == 'BOOK_DELETED'}" class="status-badge deleted">삭제됨</span>
+                        </th:block>
+                        <span th:if="${book.status == null}" class="status-badge out-of-stock">-</span>
+                    </td>
+
                     <td>
                         <div class="table-title" th:text="${book.title}">도서 제목</div>
                         <div class="muted" th:text="${book.tagNames != null ? #strings.listJoin(book.tagNames, ', ') : ''}"></div>
@@ -113,5 +183,108 @@
     </main>
 </div>
 <th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // 백엔드에서 넘겨준 categories 데이터
+        const categoriesRaw = /*[[${categories}]]*/ [];
+
+        // 데이터 정규화 함수 (JSON 파싱 안전 장치)
+        function normalizeCategories(raw) {
+            if (Array.isArray(raw)) return raw;
+            if (typeof raw === 'string') {
+                try { return JSON.parse(raw); } catch (e) { return []; }
+            }
+            return [];
+        }
+
+        const categories = normalizeCategories(categoriesRaw);
+        const l1 = document.getElementById('catL1');
+        const l2 = document.getElementById('catL2');
+        const l3 = document.getElementById('catL3');
+        const l4 = document.getElementById('catL4');
+        const hiddenInput = document.getElementById('finalCategoryId');
+        const form = document.getElementById('categoryReindexForm');
+
+        // 옵션 채우기 헬퍼
+        function fillOptions(select, list, placeholder) {
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            select.disabled = (!list || list.length === 0);
+
+            if (list && list.length > 0) {
+                list.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    // 하위 카테고리 데이터 저장
+                    opt.dataChildren = cat.children || [];
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        // 선택 변경 시 로직 (하위 레벨 초기화 및 Hidden 값 업데이트)
+        function handleSelectChange(level) {
+            // 현재 선택된 가장 하위의 ID를 찾아 hidden input에 넣음
+            const val4 = l4.value;
+            const val3 = l3.value;
+            const val2 = l2.value;
+            const val1 = l1.value;
+
+            // 4 -> 3 -> 2 -> 1 순서로 값이 있는 것을 선택 (상위 카테고리만 선택해서 재인덱싱 할 수도 있으므로)
+            hiddenInput.value = val4 || val3 || val2 || val1 || '';
+        }
+
+        // Level 1 변경
+        l1.addEventListener('change', function() {
+            const selectedOpt = l1.options[l1.selectedIndex];
+            const children = selectedOpt.dataChildren || [];
+
+            fillOptions(l2, children, '중분류');
+            fillOptions(l3, [], '소분류');
+            fillOptions(l4, [], '세분류');
+            handleSelectChange(1);
+        });
+
+        // Level 2 변경
+        l2.addEventListener('change', function() {
+            const selectedOpt = l2.options[l2.selectedIndex];
+            const children = selectedOpt.dataChildren || [];
+
+            fillOptions(l3, children, '소분류');
+            fillOptions(l4, [], '세분류');
+            handleSelectChange(2);
+        });
+
+        // Level 3 변경
+        l3.addEventListener('change', function() {
+            const selectedOpt = l3.options[l3.selectedIndex];
+            const children = selectedOpt.dataChildren || [];
+
+            fillOptions(l4, children, '세분류');
+            handleSelectChange(3);
+        });
+
+        // Level 4 변경
+        l4.addEventListener('change', function() {
+            handleSelectChange(4);
+        });
+
+        // 폼 제출 전 검증
+        form.addEventListener('submit', function(e) {
+            if (!hiddenInput.value) {
+                e.preventDefault();
+                alert('재인덱싱할 카테고리를 선택해주세요.');
+            } else {
+                if(!confirm(`선택한 카테고리(ID: ${hiddenInput.value})와 하위 도서들을 재인덱싱 하시겠습니까?`)) {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        // 초기화
+        fillOptions(l1, categories, '대분류');
+    });
+</script>
 </body>
 </html>

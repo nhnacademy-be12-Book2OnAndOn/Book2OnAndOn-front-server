@@ -4,7 +4,9 @@ import com.nhnacademy.book2onandonfrontservice.client.BookClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDetailResponse;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.exception.NotFoundBookException;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -50,6 +52,7 @@ public class BookViewController {
         Page<BookDto> newBooks = Page.empty();
         try {
             newBooks = bookClient.getNewArrivals(bearer, null, page, DASHBOARD_SECTION_SIZE);
+            log.debug("신간도서 조회: {}", newBooks.getSize());
         } catch (Exception e) {
             log.error("신간 도서 조회 실패", e);
         }
@@ -58,7 +61,7 @@ public class BookViewController {
         Page<BookDto> likeBest = Page.empty();
         try {
             likeBest = bookClient.getPopularBooks(bearer, page, DASHBOARD_SECTION_SIZE);
-//            log.info("인기도서 갯수: {}", likeBest.getSize());
+            log.debug("인기도서 조회: {}", likeBest.getSize());
         } catch (Exception e) {
             log.error("인기 도서 조회 실패", e);
         }
@@ -72,12 +75,29 @@ public class BookViewController {
 
     /// 도서 상세조회
     @GetMapping("/books/{bookId:[0-9]+}")
-    public String getBookDetail(@PathVariable Long bookId, Model model) {
+    public String getBookDetail(@PathVariable Long bookId, HttpServletRequest request, Model model) {
         commonData(model);
         BookDetailResponse bookDetail = bookClient.getBookDetail(bookId);
-        if (bookDetail != null) {
-            model.addAttribute("bookDetail", bookDetail);
+
+        if (bookDetail == null || BookStatus.BOOK_DELETED.equals(bookDetail.getStatus())) {
+            throw new NotFoundBookException(bookId);
         }
+
+        model.addAttribute("bookDetail", bookDetail);
+        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
+        boolean canReview = false;
+
+        if(accessToken != null){
+            try{
+                String bearer = toBearer(accessToken);
+                canReview = bookClient.checkReviewEligibility(bearer, bookId);
+            } catch (Exception e) {
+                log.warn("리뷰 권한 체크 실패: {}", e.getMessage());
+
+            }
+        }
+
+        model.addAttribute("canReview", canReview);
         return "books/book-detail";
     }
 
@@ -87,7 +107,13 @@ public class BookViewController {
                               @PageableDefault(size = 12) Pageable pageable,
                               HttpServletRequest request,
                               Model model) {
+        condition.setStatusFilter(Set.of(
+                BookStatus.ON_SALE,
+                BookStatus.SOLD_OUT,
+                BookStatus.OUT_OF_STOCK
+        ));
         Page<BookDto> result = Page.empty(pageable);
+
         try {
             String accessToken = CookieUtils.getCookieValue(request, "accessToken");
             result = bookClient.searchBooks(toBearer(accessToken), condition, pageable);
@@ -180,93 +206,6 @@ public class BookViewController {
             log.error("최근 본 도서 조회 실패", e);
             return ResponseEntity.ok(Collections.emptyList());
         }
-    }
-
-    private Page<BookDto> fetchNewArrivals(String accessToken) {
-        try {
-            return bookClient.getNewArrivals(toBearer(accessToken), null, 0, DASHBOARD_SECTION_SIZE);
-        } catch (Exception e) {
-            log.error("신간 도서 조회 실패", e);
-            return Page.empty();
-        }
-    }
-
-    private List<BookDto> fetchPopular(String accessToken, int page) {
-        try {
-            Page<BookDto> pageResult = bookClient.getPopularBooks(toBearer(accessToken), page, DASHBOARD_SECTION_SIZE);
-            return pageResult != null && pageResult.getContent() != null
-                    ? cleanBookList(pageResult.getContent())
-                    : Collections.emptyList();
-        } catch (Exception e) {
-            log.error("인기 도서 조회 실패", e);
-            return Collections.emptyList();
-        }
-    }
-
-    private List<BookDto> fetchBestsellers(String accessToken, String period) {
-        try {
-            return cleanBookList(bookClient.getBestsellers(toBearer(accessToken), period));
-        } catch (Exception e) {
-            log.error("{} 베스트셀러 조회 실패", period, e);
-            return Collections.emptyList();
-        }
-    }
-
-    private List<BookDto> selectBooks(List<BookDto> books, boolean randomize) {
-        if (books == null || books.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<BookDto> working = new ArrayList<>(books);
-        if (randomize) {
-            Collections.shuffle(working);
-        }
-        int toIndex = Math.min(DASHBOARD_SECTION_SIZE, working.size());
-        return new ArrayList<>(working.subList(0, toIndex));
-    }
-
-    private boolean haveSameIds(List<BookDto>... lists) {
-        Set<Long> base = null;
-        for (List<BookDto> list : lists) {
-            Set<Long> ids = extractIds(list);
-            if (ids.isEmpty()) {
-                return false;
-            }
-            if (base == null) {
-                base = ids;
-            } else if (!base.equals(ids)) {
-                return false;
-            }
-        }
-        return base != null;
-    }
-
-    private Set<Long> extractIds(List<BookDto> books) {
-        if (books == null) {
-            return Collections.emptySet();
-        }
-        return books.stream()
-                .map(BookDto::getId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-    }
-
-    private List<BookDto> mergeLists(List<BookDto>... lists) {
-        List<BookDto> merged = new ArrayList<>();
-        Set<Long> seen = new HashSet<>();
-        for (List<BookDto> list : lists) {
-            if (list == null) {
-                continue;
-            }
-            for (BookDto book : list) {
-                if (book == null || book.getId() == null) {
-                    continue;
-                }
-                if (seen.add(book.getId())) {
-                    merged.add(book);
-                }
-            }
-        }
-        return merged;
     }
 
     private List<BookDto> cleanBookList(List<?> books) {
