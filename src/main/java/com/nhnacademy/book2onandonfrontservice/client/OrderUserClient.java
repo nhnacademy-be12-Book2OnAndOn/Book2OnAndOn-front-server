@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(name = "gateway-service", contextId = "OrderUserClient", url = "${gateway.base-url}")
 public interface OrderUserClient {
 
+    String GUEST_ID_HEADER = "X-Guest-Id";
     /**
      * 장바구니 혹은 바로구매시 준비할 데이터 (책 정보, 회원 배송지 정보, 회원 사용 가능한 쿠폰, 회원 현재 포인트)
      * POST /api/orders/prepare
@@ -27,8 +28,6 @@ public interface OrderUserClient {
     @PostMapping("/api/orders/prepare")
     OrderPrepareResponseDto getOrderPrepare(
             @RequestHeader(value = "Authorization", required = false) String accessToken,
-            @RequestHeader(value = OrderClient.GUEST_ID_HEADER, required = false) String guestId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
             @RequestBody OrderPrepareRequestDto requestDto);
 
     /**
@@ -38,8 +37,6 @@ public interface OrderUserClient {
     @PostMapping("/api/orders")
     OrderCreateResponseDto createPreOrder(
             @RequestHeader(value = "Authorization", required = false) String accessToken,
-            @RequestHeader(value = OrderClient.GUEST_ID_HEADER, required = false) String guestId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
             @RequestBody OrderCreateRequestDto requestDto);
 
     /**
