@@ -6,7 +6,9 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookSearchCondition;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookStatus;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
+import com.nhnacademy.book2onandonfrontservice.dto.bookdto.DashboardDataDto;
 import com.nhnacademy.book2onandonfrontservice.exception.NotFoundBookException;
+import com.nhnacademy.book2onandonfrontservice.service.BookMainService;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -40,6 +42,7 @@ public class BookViewController {
     private static final int DASHBOARD_SECTION_SIZE = 20;
 
     private final BookClient bookClient;
+    private final BookMainService bookMainService;
 
     /// 메인 페이지 (대시보드)
     @GetMapping("/")
@@ -47,29 +50,16 @@ public class BookViewController {
                             HttpServletRequest request,
                             Model model) {
         commonData(model);
-        String accessToken = CookieUtils.getCookieValue(request, "accessToken");
-        String bearer = toBearer(accessToken);
-        Page<BookDto> newBooks = Page.empty();
-        try {
-            newBooks = bookClient.getNewArrivals(bearer, null, page, DASHBOARD_SECTION_SIZE);
-            log.debug("신간도서 조회: {}", newBooks.getSize());
-        } catch (Exception e) {
-            log.error("신간 도서 조회 실패", e);
-        }
-        List<BookDto> bestsellerDaily = Collections.emptyList();
-        List<BookDto> bestsellerWeek = Collections.emptyList();
-        Page<BookDto> likeBest = Page.empty();
-        try {
-            likeBest = bookClient.getPopularBooks(bearer, page, DASHBOARD_SECTION_SIZE);
-            log.debug("인기도서 조회: {}", likeBest.getSize());
-        } catch (Exception e) {
-            log.error("인기 도서 조회 실패", e);
-        }
 
-        model.addAttribute("newBooks", newBooks);
-        model.addAttribute("bestDaily", cleanBookList(bestsellerDaily));
-        model.addAttribute("bestWeek", cleanBookList(bestsellerWeek));
-        model.addAttribute("likeBest", likeBest != null ? likeBest : Page.empty());
+        String bearer = toBearer(CookieUtils.getCookieValue(request, "accessToken"));
+
+        DashboardDataDto data = bookMainService.getDashboardDataParallel(bearer, page, DASHBOARD_SECTION_SIZE);
+
+        model.addAttribute("newBooks", data.getNewBooks());
+        model.addAttribute("bestDaily", cleanBookList(data.getBestDaily()));
+        model.addAttribute("bestWeek", cleanBookList(data.getBestWeek()));
+        model.addAttribute("likeBest", data.getLikeBest());
+
         return "dashboard";
     }
 
