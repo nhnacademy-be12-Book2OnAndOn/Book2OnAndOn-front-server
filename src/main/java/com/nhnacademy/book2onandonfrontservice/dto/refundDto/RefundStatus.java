@@ -14,7 +14,7 @@ public enum RefundStatus {
     REQUEST_CANCELED(1, "반품 신청 취소"),
     IN_INSPECTION(4, "검수 중"),
     APPROVED(5, "반품 승인"),
-    REFUND_COMPLETED(6, "환불 완료"),
+    REFUND_COMPLETED(6, "반품 완료"),
     REJECTED(99, "반품 거부");
 
     private final int code;

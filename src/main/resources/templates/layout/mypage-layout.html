@@ -65,6 +65,11 @@
                         </li>
 
                         <li>
+                            <a th:classappend="${sidebarActive=='refunds'} ? 'active'"
+                               th:href="@{/users/me/refunds}">반품 내역</a>
+                        </li>
+
+                        <li>
                             <a class="password-link"
                                th:classappend="${sidebarActive=='password'} ? 'active'"
                                th:href="@{/users/me/password}">비밀번호 변경</a>

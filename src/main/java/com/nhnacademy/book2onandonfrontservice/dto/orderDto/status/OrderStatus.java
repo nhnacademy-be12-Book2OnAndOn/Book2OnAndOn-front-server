@@ -11,7 +11,7 @@ public enum OrderStatus {
     PARTIAL_RETURN(6, "부분 반품"),
     RETURN_COMPLETED(7, "반품 완료"),
     RETURN_REQUESTED(8, "반품 신청"),
-    PARTIAL_REFUND(9, "부분 환불");
+    PARTIAL_REFUND(9, "부분 반품");
 
     private final int code;
     private final String description;

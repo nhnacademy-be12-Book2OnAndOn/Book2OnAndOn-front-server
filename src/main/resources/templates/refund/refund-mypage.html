@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/mypage-layout}"
+      th:with="sidebarActive='refunds'">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,12 +14,8 @@
   <link rel="stylesheet" th:href="@{/css/refund-mypage.css}">
 </head>
 <body>
+<section layout:fragment="content">
 <div class="container">
-  <header>
-    <h1>📦 마이페이지</h1>
-    <p>나의 반품 내역을 확인하고 관리하세요</p>
-  </header>
-
   <div class="card">
     <div class="card-header">
       <h2>내 반품 내역</h2>
@@ -82,38 +83,41 @@
           <div class="refund-header">
             <div>
               <div class="refund-id" th:text="'반품 #' + ${refund.refundId}">반품 #1</div>
-              <div class="refund-date" th:text="'주문번호: ' + ${refund.orderNumber}">주문번호: 2025...</div>
-              <div class="refund-date" th:text="'신청일: ' + ${refund.requestDate}">신청일: 2025-12-24</div>
+              <div class="refund-date"
+                   th:text="'신청일: ' + (${refund.refundDatetime != null ? #temporals.format(refund.refundDatetime,'yyyy-MM-dd HH:mm') : '-'})">
+                신청일: 2025-12-24
+              </div>
             </div>
 
             <!-- 상태 배지 -->
+<!--            <span class="status-badge"-->
+<!--                  th:classappend="${refund.status == 0 ? ' status-pending' :-->
+<!--                                  refund.status == 1 ? ' status-approved' :-->
+<!--                                  refund.status == 2 ? ' status-rejected' :-->
+<!--                                  ' status-completed'}"-->
+<!--                  th:text="${refund.statusText}">-->
+<!--              처리중-->
+<!--            </span>-->
             <span class="status-badge"
-                  th:classappend="${refund.status == 0 ? ' status-pending' :
-                                  refund.status == 1 ? ' status-approved' :
-                                  refund.status == 2 ? ' status-rejected' :
-                                  ' status-completed'}"
-                  th:text="${refund.statusText}">
-              처리중
+                  th:text="${refund.refundStatus}">
+              상태
             </span>
           </div>
 
           <div class="refund-body">
             <div class="info-item">
-              <span class="info-label">상품명</span>
-              <span class="info-value" th:text="${refund.productName}">클린 코드</span>
+              <span class="info-label">사유</span>
+              <span class="info-value" th:text="${refund.refundReason}">CHANGE_OF_MIND</span>
             </div>
+
             <div class="info-item">
-              <span class="info-label">수량</span>
-              <span class="info-value" th:text="${refund.quantity} + '개'">2개</span>
+              <span class="info-label">상세사유</span>
+              <span class="info-value" th:text="${refund.refundReasonDetail}">...</span>
             </div>
+
             <div class="info-item">
-              <span class="info-label">반품 금액</span>
-              <span class="info-value"
-                    th:text="${#numbers.formatInteger(refund.amount, 3, 'COMMA')} + '원'">66,000원</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">반품 사유</span>
-              <span class="info-value" th:text="${refund.reason}">상품 불량</span>
+              <span class="info-label">주문 ID</span>
+              <span class="info-value" th:text="${refund.orderId}">123</span>
             </div>
           </div>
 
@@ -125,13 +129,12 @@
           <div class="action-buttons">
             <!-- 상세보기: 모달 대신 상세 페이지로 -->
             <a class="btn btn-sm btn-outline"
-               th:href="@{/refunds/orders/{orderId}/{refundId}(orderId=${refund.orderId}, refundId=${refund.refundId})}">
+               th:href="@{/users/me/refunds/{orderId}/{refundId}(orderId=${refund.orderId}, refundId=${refund.refundId})}">
               상세보기
             </a>
 
             <!-- 처리중(0)일 때만 취소 버튼 -->
-            <form th:if="${refund.status == 0}"
-                  th:action="@{/refunds/orders/{orderId}/{refundId}/cancel(orderId=${refund.orderId}, refundId=${refund.refundId})}"
+            <form th:action="@{/users/me/refunds/{orderId}/{refundId}/cancel(orderId=${refund.orderId}, refundId=${refund.refundId})}"
                   method="post" style="display:inline;">
               <button type="submit" class="btn btn-sm btn-danger"
                       onclick="return confirm('반품 신청을 취소하시겠습니까?');">
@@ -140,13 +143,13 @@
             </form>
 
             <!-- 거부(2)일 때만 거부사유 표시: 모달 대신 안내 박스 -->
-            <button th:if="${refund.status == 2 && refund.rejectedReason != null}"
-                    type="button"
-                    class="btn btn-sm btn-secondary"
-                    th:attr="data-reason=${refund.rejectedReason}"
-                    onclick="alert('거부 사유:\\n\\n' + this.dataset.reason);">
-              거부 사유
-            </button>
+<!--            <button th:if="${refund.status == 2 && refund.rejectedReason != null}"-->
+<!--                    type="button"-->
+<!--                    class="btn btn-sm btn-secondary"-->
+<!--                    th:attr="data-reason=${refund.rejectedReason}"-->
+<!--                    onclick="alert('거부 사유:\\n\\n' + this.dataset.reason);">-->
+<!--              거부 사유-->
+<!--            </button>-->
           </div>
         </div>
       </div>
@@ -157,7 +160,7 @@
       <!-- prev -->
       <a class="btn-sm"
          th:classappend="${page.first} ? ' disabled' : ''"
-         th:href="@{/refunds/my(page=${page.number - 1}, size=${page.size},
+         th:href="@{/users/me/refunds(page=${page.number - 1}, size=${page.size},
                     status=${param.status != null ? param.status[0] : ''},
                     period=${param.period != null ? param.period[0] : 'all'},
                     orderNumber=${param.orderNumber != null ? param.orderNumber[0] : ''})}"
@@ -186,5 +189,6 @@
 </div>
 
 <!-- JS는 최소화: 필요하면 취소 confirm 정도만 (위에서 이미 inline confirm 사용) -->
+</section>
 </body>
 </html>
