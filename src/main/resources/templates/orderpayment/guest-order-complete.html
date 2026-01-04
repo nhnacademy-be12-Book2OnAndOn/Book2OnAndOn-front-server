@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>비회원 주문 완료</title>
+    <link rel="stylesheet" th:href="@{/css/OrderComplete.css}">
+</head>
+
+<body>
+<main layout:fragment="content">
+    <div class="complete-container">
+
+        <!-- HERO -->
+        <section class="complete-hero">
+            <div class="icon">✔</div>
+            <h1>결제가 완료되었습니다!</h1>
+            <p class="muted">비회원 주문이 정상적으로 처리되었습니다.</p>
+
+            <div class="order-number">
+                주문번호
+                <strong th:text="${payment.orderNumber}">ORD-0000</strong>
+            </div>
+        </section>
+
+        <!-- 결제 정보 -->
+        <section class="card">
+            <h3>결제 정보</h3>
+
+            <p>
+                <strong>결제 금액</strong>
+                <span th:text="|${#numbers.formatInteger(payment.totalAmount, 0, 'COMMA')}원|">0원</span>
+            </p>
+
+            <p>
+                <strong>결제 수단</strong>
+                <span th:text="${payment.paymentMethod}">CARD</span>
+            </p>
+
+            <p>
+                <strong>결제사</strong>
+                <span th:text="${payment.paymentProvider}">TOSS</span>
+            </p>
+
+            <p>
+                <strong>결제 일시</strong>
+                <span th:text="${#temporals.format(payment.paymentCreatedAt, 'yyyy. MM. dd. HH:mm')}">
+                    2025.01.01 12:00
+                </span>
+            </p>
+        </section>
+
+        <!-- 버튼 영역 -->
+        <div class="actions">
+            <a class="btn secondary"
+               th:href="${payment.paymentReceiptUrl}"
+               target="_blank">
+                영수증 보기
+            </a>
+
+            <a class="btn primary"
+               th:href="@{/}">
+                홈으로 이동
+            </a>
+
+            <a class="btn secondary"
+               th:href="@{/orders/guest/login}">
+                비회원 주문 조회
+            </a>
+        </div>
+
+        <!-- 안내 -->
+        <section class="notice-card">
+            <h4>안내사항</h4>
+            <ul>
+                <li>비회원 주문은 주문번호와 비밀번호로 조회할 수 있습니다.</li>
+                <li>영수증은 결제사 페이지에서 확인 가능합니다.</li>
+                <li>배송 관련 문의는 고객센터로 연락주세요.</li>
+            </ul>
+        </section>
+
+    </div>
+</main>
+</body>
+</html>

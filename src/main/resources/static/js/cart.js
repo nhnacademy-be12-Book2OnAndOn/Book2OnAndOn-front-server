@@ -575,7 +575,7 @@ function submitOrderPrepare(selectedItems) {
 function submitGuestOrderPrepare(selectedItems) {
     const form = document.createElement("form");
     form.method = "POST";
-    form.action = "/orders/guest/prepare";
+    form.action = "/guest/orders/prepare";
 
     selectedItems.forEach((item, idx) => {
         form.appendChild(createHidden(`bookItems[${idx}].bookId`, item.bookId));

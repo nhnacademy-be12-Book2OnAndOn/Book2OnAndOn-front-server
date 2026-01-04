@@ -16,12 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class DeliveryPolicyController {
     private final DeliveryPolicyClient deliveryPolicyClient;
 
-    @GetMapping("/delivery-policies")
+    @GetMapping("/api/delivery-policies")
     public ResponseEntity<List<DeliveryPolicyDto>> getDeliveryPoliciesSimple(){
         Page<DeliveryPolicyDto> page = deliveryPolicyClient.getDeliveryPolicy();
         List<DeliveryPolicyDto> content = page.getContent(); // Page -> List 변환
 
-        log.info("{}", content.size());
         return ResponseEntity.ok(content);
     }
 

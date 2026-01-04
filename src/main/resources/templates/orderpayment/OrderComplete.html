@@ -81,6 +81,13 @@
         </div>
 
         <div class="actions">
+            <a class="btn secondary"
+               th:if="${order?.paymentResponse?.paymentReceiptUrl != null}"
+               th:href="${order.paymentResponse.paymentReceiptUrl}"
+               target="_blank"
+               rel="noopener noreferrer">
+                영수증 보기
+            </a>
             <a class="btn secondary" th:href="@{/}">쇼핑 계속하기</a>
             <a class="btn primary" th:href="@{/orders/my-order}">주문 내역 보기</a>
         </div>
