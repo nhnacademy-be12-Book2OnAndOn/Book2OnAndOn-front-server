@@ -240,6 +240,10 @@
         <a class="btn-secondary" th:href="@{/users/me/orders}">목록으로</a>
         <a class="btn-primary" style="text-decoration:none;"
            th:href="@{/refunds/orders/{orderId}/form(orderId=${order.orderId})}" th:if="${order.orderId != null}">반품</a>
+        <a class="btn-secondary"
+           th:href="@{/mypage/delivery(orderId=${order.orderId})}">
+            배송 조회
+        </a>
         <a class="btn-primary"
            th:if="${order.orderStatus == '주문 완료'}"
            th:href="@{/orders/{orderNumber}/cancel(orderNumber=${order.orderNumber})}"
