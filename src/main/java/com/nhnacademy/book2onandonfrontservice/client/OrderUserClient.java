@@ -2,12 +2,9 @@ package com.nhnacademy.book2onandonfrontservice.client;
 
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCancelResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreateResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderDetailResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderSimpleDto;
-import com.nhnacademy.book2onandonfrontservice.client.OrderClient;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;

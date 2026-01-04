@@ -58,7 +58,7 @@ public class OrderRedirectController {
 
             if (responseBody != null) {
                 String accessToken = responseBody.getAccessToken();
-                Long orderId = responseBody.getOrderId();
+                String orderNumber = responseBody.getOrderNumber();
 
                 // 토큰을 쿠키에 저장
                 Cookie cookie = new Cookie("guestOrderToken", accessToken);
@@ -68,7 +68,7 @@ public class OrderRedirectController {
                 response.addCookie(cookie);
 
                 // 주문 상세 페이지로 리다이렉트
-                return "redirect:/orders/" + orderId;
+                return "redirect:/guest/orders/" + orderNumber;
             }
 
         } catch (Exception e) {
