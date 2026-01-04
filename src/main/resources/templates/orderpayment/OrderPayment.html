@@ -63,6 +63,7 @@
                             <div class="order-item-detail"
                                  th:each="item : ${orderItems}"
                                  th:attr="data-book-id=${item.bookId},
+                                          data-category-id=${item.categoryId},
                                           data-quantity=${item.quantity},
                                           data-price-sales=${item.priceSales}">
 
@@ -225,9 +226,19 @@
                     <select id="couponSelect" name="memberCouponId">
                         <option value="0" data-discount="0">쿠폰 미사용</option>
                         <option th:each="c : ${coupons}"
-                                th:value="${c.memberCouponId}"
-                                th:data-discount="${c.discountValue}"
-                                th:text="|${c.couponName} (-${#numbers.formatInteger(c.discountValue, 0, 'COMMA')}원)|">쿠폰</option>
+                                th:attr="value=${c.memberCouponId},
+                                         data-coupon-min-price=${c.minPrice},
+                                         data-coupon-max-price=${c.maxPrice},
+                                         data-coupon-discount-value=${c.discountValue},
+                                         data-coupon-discount-type=${c.discountType},
+                                         data-coupon-target-book-id=${c.targetBookIds},
+                                         data-coupon-target-category-id=${c.targetCategoryIds}
+                                "
+                                th:with="isRate=${c.discountType == 'PERCENT'}"
+                                th:text="|${c.couponName}
+                                         (-${isRate ? c.discountValue : #numbers.formatInteger(c.discountValue, 0, 'COMMA')}
+                                         ${isRate ? '%' : '원'})|">
+                        </option>
                     </select>
                 </div>
             </section>
