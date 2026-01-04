@@ -1,5 +1,8 @@
 package com.nhnacademy.book2onandonfrontservice.dto.orderDto.status;
 
+import lombok.Getter;
+
+@Getter
 public enum OrderItemStatus {
     PREPARING(0, "상품 준비중"),
     SHIPPED(1, "출고 완료"),
@@ -18,13 +21,6 @@ public enum OrderItemStatus {
     OrderItemStatus(int code, String description) {
         this.code = code;
         this.description = description;
-    }
-
-    public int getCode() {
-        return code;
-    }
-    public String getDescription() {
-        return description;
     }
 
 
