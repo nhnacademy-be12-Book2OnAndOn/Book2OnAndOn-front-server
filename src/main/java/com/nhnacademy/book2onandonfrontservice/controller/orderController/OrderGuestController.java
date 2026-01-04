@@ -24,8 +24,7 @@ public class OrderGuestController {
     @GetMapping("/{orderNumber}")
     public String getOrderDetail(Model model,
                                  @CookieValue(value = "guestOrderToken", required = false) String guestToken,
-                                 @PathVariable("orderNumber") String orderNumber,
-                                 HttpServletRequest request){
+                                 @PathVariable("orderNumber") String orderNumber){
         log.info("GET /guest/orders/{} 호출 : 주문 상세 데이터 반환" , orderNumber);
 
         if(guestToken == null){
@@ -34,9 +33,6 @@ public class OrderGuestController {
 
         OrderDetailResponseDto order = orderUserClient.getOrderDetail(null, guestToken, orderNumber);
 
-        Object cartCount =
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-        model.addAttribute("cartCount", cartCount);
         model.addAttribute("order", order);
 
         return "orderpayment/guest-order-detail";

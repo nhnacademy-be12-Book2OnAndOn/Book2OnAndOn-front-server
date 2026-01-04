@@ -8,6 +8,9 @@ import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateWrapperRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.CouponTargetResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.MemberCouponResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.MemberCouponTargetResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreateResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderDetailResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
@@ -20,6 +23,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,59 +78,20 @@ public class OrderUserController {
             return "redirect:/";
         }
 
-
-//        try {
-//            if (token == null) {
-//                if (guestId == null || guestId.isBlank()) {
-//                    guestId = CookieUtils.getCookieValue(request, "guestId");
-//                }
-//                if (guestId == null || guestId.isBlank()) {
-//                    return "redirect:/cartpage?error=guest_id_missing";
-//                }
-//                orderPrepareResponseDto = guestOrderClient.getOrderPrepare(guestId, req);
-//            } else {
-//                orderPrepareResponseDto = orderUserClient.getOrderPrepare(token, guestId, userHeader, req);
-//            }
-//        } catch (FeignException.Unauthorized e) {
-//            // 토큰이 만료/무효인 경우 게스트로 전환하여 다시 시도
-//            log.warn("주문 준비 401 -> 게스트로 재시도");
-//            frontTokenService.clearTokens();
-//            token = null;
-//            userHeader = null;
-//            try {
-//                if (guestId == null || guestId.isBlank()) {
-//                    guestId = CookieUtils.getCookieValue(request, "guestId");
-//                }
-//                orderPrepareResponseDto = guestOrderClient.getOrderPrepare(guestId, req);
-//            } catch (Exception ex) {
-//                log.warn("주문 준비 게스트 재시도 실패", ex);
-//                return "redirect:/cartpage?error=order_prepare_failed";
-//            }
-//        } catch (Exception e) {
-//            log.warn("주문 준비 데이터 조회 실패", e);
-//            return "redirect:/cartpage?error=order_prepare_failed";
-//        }
-//
-//        // 헤더/뷰 공통 데이터
-//        if (token != null) {
-//            try {
-//                model.addAttribute("user", userClient.getMyInfo(token));
-//            } catch (Exception e) {
-//                model.addAttribute("user", null);
-//                log.warn("사용자 정보 조회 실패: {}", e.getMessage());
-//            }
-//        } else {
-//            model.addAttribute("user", null);
-//        }
-//        model.addAttribute("cartCount",
-//                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null);
-
         boolean isGuest = (token == null);
         model.addAttribute("isGuest", isGuest);
 
+        List<MemberCouponResponseDto> memberCouponResponseDtoList = orderPrepareResponseDto.coupons();
+        List<CouponTargetResponseDto> couponTargetResponseDtoList = orderPrepareResponseDto.couponTargets();
+
+        List<MemberCouponTargetResponseDto> memberCouponTargetResponseDtoList = createMemberCouponTargetList(
+                couponTargetResponseDtoList,
+                memberCouponResponseDtoList);
+
+
         model.addAttribute("orderItems", orderPrepareResponseDto.orderItems());
         model.addAttribute("addresses", orderPrepareResponseDto.addresses());
-        model.addAttribute("coupons", orderPrepareResponseDto.coupons());
+        model.addAttribute("coupons", memberCouponTargetResponseDtoList);
         model.addAttribute("point", orderPrepareResponseDto.currentPoint());
         long itemTotal = orderPrepareResponseDto.orderItems() == null ? 0L :
                 orderPrepareResponseDto.orderItems().stream()
@@ -167,8 +133,7 @@ public class OrderUserController {
     @GetMapping("/my-order")
     public String getOrderList(Model model,
                                @CookieValue(value = "accessToken", required = false) String accessToken,
-                               @PageableDefault(size = 3, sort = "orderDateTime", direction = Sort.Direction.DESC) Pageable pageable,
-                               HttpServletRequest request) {
+                               @PageableDefault(size = 3, sort = "orderDateTime", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("GET /orders/my-order 호출 : 주문 리스트 데이터 반환");
 
         // TODO err 페이지
@@ -187,9 +152,7 @@ public class OrderUserController {
             model.addAttribute("user", null);
             log.warn("사용자 정보 조회 실패: {}", e.getMessage());
         }
-//        Object cartCount =
-//                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-//        model.addAttribute("cartCount", cartCount);
+
         model.addAttribute("orderList", page);
         List<Integer> pageNumbers = page.getTotalPages() > 0
                 ? IntStream.rangeClosed(1, page.getTotalPages()).boxed().toList()
@@ -222,8 +185,7 @@ public class OrderUserController {
     @GetMapping("/{orderNumber}/page")
     public String orderDetailPage(Model model,
                                   @CookieValue(value = "accessToken", required = false) String accessToken,
-                                  @PathVariable("orderNumber") String orderNumber,
-                                  HttpServletRequest request) {
+                                  @PathVariable("orderNumber") String orderNumber) {
         if (accessToken == null) {
             return "redirect:/login";
         }
@@ -235,9 +197,7 @@ public class OrderUserController {
         } catch (Exception e) {
             model.addAttribute("user", null);
         }
-        Object cartCount =
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-        model.addAttribute("cartCount", cartCount);
+
         model.addAttribute("order", order);
 
         return "orderpayment/OrderDetail";
@@ -258,9 +218,7 @@ public class OrderUserController {
         } catch (Exception e) {
             model.addAttribute("user", null);
         }
-        Object cartCount =
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-        model.addAttribute("cartCount", cartCount);
+
         model.addAttribute("order", order);
         return "orderpayment/OrderComplete";
     }
@@ -321,5 +279,33 @@ public class OrderUserController {
             total = content.size();
         }
         return new RestPage<>(content, pageable, total);
+    }
+
+    private List<MemberCouponTargetResponseDto> createMemberCouponTargetList(List<CouponTargetResponseDto> couponTargetResponseDtoList,
+                                                                             List<MemberCouponResponseDto> memberCouponResponseDtoList){
+        Map<Long, CouponTargetResponseDto> couponTargetMap =
+                couponTargetResponseDtoList.stream()
+                        .collect(Collectors.toMap(
+                                CouponTargetResponseDto::memberCouponId,
+                                Function.identity()
+                        ));
+
+
+        return memberCouponResponseDtoList.stream()
+                .map(coupon -> {
+                    MemberCouponTargetResponseDto dto =
+                            new MemberCouponTargetResponseDto(coupon);
+
+                    CouponTargetResponseDto target =
+                            couponTargetMap.get(coupon.getMemberCouponId());
+
+                    if (target != null) {
+                        dto.setTargetBookIds(target.targetBookIds());
+                        dto.setTargetCategoryIds(target.targetCategoryIds());
+                    }
+
+                    return dto;
+                })
+                .toList();
     }
 }
