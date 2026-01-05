@@ -19,4 +19,18 @@ public class MemberCouponResponseDto {
     private LocalDateTime memberCouponEndDate;
     private LocalDateTime memberCouponUseDate;
     private String discountDescription;
+
+    public MemberCouponResponseDto(MemberCouponResponseDto resp) {
+        this.memberCouponId = resp.memberCouponId;
+        this.couponName = resp.couponName;
+        this.minPrice = resp.minPrice;
+        this.maxPrice = resp.maxPrice;
+        this.discountValue = resp.discountValue;
+        this.discountType = resp.discountType;
+        this.memberCouponStatus = resp.memberCouponStatus;
+        this.memberCouponEndDate = resp.memberCouponEndDate;
+        this.memberCouponUseDate = resp.memberCouponUseDate;
+        this.discountDescription = resp.discountDescription;
+    }
+
 }

@@ -3,23 +3,28 @@ package com.nhnacademy.book2onandonfrontservice.controller.orderController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.nhnacademy.book2onandonfrontservice.client.GuestOrderClient;
 import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
-import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateWrapperRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.CouponTargetResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.MemberCouponResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.MemberCouponTargetResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreateResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderDetailResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderSimpleDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.RestPage;
 import com.nhnacademy.book2onandonfrontservice.service.FrontTokenService;
-import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import com.nhnacademy.book2onandonfrontservice.util.JwtUtils;
-import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +42,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -45,6 +51,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequiredArgsConstructor
 @RequestMapping("/orders")
 public class OrderUserController {
+    private final GuestOrderClient guestOrderClient;
     private final OrderUserClient orderUserClient;
     private final UserClient userClient;
     private final FrontTokenService frontTokenService;
@@ -53,61 +60,41 @@ public class OrderUserController {
     @PostMapping("/prepare")
     public String getOrderPrepare(Model model,
                                   @CookieValue(value = "accessToken", required = false) String accessToken,
-                                  @ModelAttribute OrderPrepareRequestDto req,
-                                  HttpServletRequest request) {
+                                  @CookieValue(value = "GUEST_ID", required = false) String guestId, // 하나의 컨트롤러에서 처리하는 용도
+                                  @ModelAttribute OrderPrepareRequestDto req) {
         log.info("POST /orders/prepare 호출");
 
-        // 비로그인 게스트는 회원 주문 준비를 호출하지 않고 게스트 결제 페이지로 보낸다.
-        if (accessToken == null || accessToken.isBlank()) {
-            return "redirect:/orders/guest/payment";
-        }
-
         String token = toBearer(accessToken);
-        String guestId = CookieUtils.getCookieValue(request, "GUEST_ID");
-        Long userId = resolveUserId(accessToken);
-        Long userHeader = userId;
-        model.addAttribute("isGuest", false);
 
-        OrderPrepareResponseDto orderSheetResponseDto;
-        try {
-            orderSheetResponseDto = orderUserClient.getOrderPrepare(token, guestId, userHeader, req);
-        } catch (FeignException.Unauthorized e) {
-            // 토큰이 만료/무효인 경우 게스트로 전환하여 다시 시도
-            log.warn("주문 준비 401 -> 게스트로 재시도");
-            frontTokenService.clearTokens();
-            token = null;
-            userHeader = null;
-            try {
-                orderSheetResponseDto = orderUserClient.getOrderPrepare(null, guestId, null, req);
-            } catch (Exception ex) {
-                log.warn("주문 준비 게스트 재시도 실패", ex);
-                return "redirect:/cartpage?error=order_prepare_failed";
+        OrderPrepareResponseDto orderPrepareResponseDto = null;
+        try{
+            if(accessToken != null){
+                orderPrepareResponseDto = orderUserClient.getOrderPrepare(token, req);
+            }else if(guestId != null){
+                orderPrepareResponseDto = guestOrderClient.getOrderPrepare(guestId, req);
             }
         } catch (Exception e) {
-            log.warn("주문 준비 데이터 조회 실패", e);
-            return "redirect:/cartpage?error=order_prepare_failed";
+            log.error("주문 페이지 이동 실패 {}", e.getMessage());
+            return "redirect:/";
         }
 
-        // 헤더/뷰 공통 데이터
-        if (token != null) {
-            try {
-                model.addAttribute("user", userClient.getMyInfo(token));
-            } catch (Exception e) {
-                model.addAttribute("user", null);
-                log.warn("사용자 정보 조회 실패: {}", e.getMessage());
-            }
-        } else {
-            model.addAttribute("user", null);
-        }
-        model.addAttribute("cartCount",
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null);
+        boolean isGuest = (token == null);
+        model.addAttribute("isGuest", isGuest);
 
-        model.addAttribute("orderItems", orderSheetResponseDto.orderItems());
-        model.addAttribute("addresses", orderSheetResponseDto.addresses());
-        model.addAttribute("coupons", orderSheetResponseDto.coupons());
-        model.addAttribute("point", orderSheetResponseDto.currentPoint());
-        long itemTotal = orderSheetResponseDto.orderItems() == null ? 0L :
-                orderSheetResponseDto.orderItems().stream()
+        List<MemberCouponResponseDto> memberCouponResponseDtoList = orderPrepareResponseDto.coupons();
+        List<CouponTargetResponseDto> couponTargetResponseDtoList = orderPrepareResponseDto.couponTargets();
+
+        List<MemberCouponTargetResponseDto> memberCouponTargetResponseDtoList = createMemberCouponTargetList(
+                couponTargetResponseDtoList,
+                memberCouponResponseDtoList);
+
+
+        model.addAttribute("orderItems", orderPrepareResponseDto.orderItems());
+        model.addAttribute("addresses", orderPrepareResponseDto.addresses());
+        model.addAttribute("coupons", memberCouponTargetResponseDtoList);
+        model.addAttribute("point", orderPrepareResponseDto.currentPoint());
+        long itemTotal = orderPrepareResponseDto.orderItems() == null ? 0L :
+                orderPrepareResponseDto.orderItems().stream()
                         .mapToLong(i -> {
                             long price = i.getPriceSales() != null ? i.getPriceSales()
                                     : (i.getPriceStandard() != null ? i.getPriceStandard() : 0L);
@@ -116,7 +103,7 @@ public class OrderUserController {
                         }).sum();
         model.addAttribute("itemTotal", itemTotal);
 
-        return token != null ? "orderpayment/OrderPayment" : "orderpayment/OrderPaymentGuest";
+        return "orderpayment/OrderPayment";
     }
 
     @PostMapping
@@ -124,14 +111,18 @@ public class OrderUserController {
     public ResponseEntity<OrderCreateResponseDto> createPreOrder(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @CookieValue(value = "GUEST_ID", required = false) String guestId,
-            @RequestBody OrderCreateRequestDto req) {
+            @RequestBody OrderCreateWrapperRequestDto req) {
         log.info("POST /orders 호출 : 사전 주문 데이터 생성");
 
         String token = toBearer(accessToken);
-        Long userId = resolveUserId(accessToken);
-        Long userHeader = userId != null ? userId : 0L;
 
-        OrderCreateResponseDto orderCreateResponseDto = orderUserClient.createPreOrder(token, guestId, userHeader, req);
+        OrderCreateResponseDto orderCreateResponseDto = null;
+
+        if(token == null || token.isEmpty()){
+            orderCreateResponseDto = guestOrderClient.createGuestOrder(guestId, req.guest());
+        }else{
+            orderCreateResponseDto = orderUserClient.createPreOrder(token, req.user());
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(orderCreateResponseDto);
     }
@@ -140,8 +131,7 @@ public class OrderUserController {
     @GetMapping("/my-order")
     public String getOrderList(Model model,
                                @CookieValue(value = "accessToken", required = false) String accessToken,
-                               @PageableDefault(size = 3, sort = "orderDateTime", direction = Sort.Direction.DESC) Pageable pageable,
-                               HttpServletRequest request) {
+                               @PageableDefault(size = 3, sort = "orderDateTime", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("GET /orders/my-order 호출 : 주문 리스트 데이터 반환");
 
         // TODO err 페이지
@@ -160,9 +150,7 @@ public class OrderUserController {
             model.addAttribute("user", null);
             log.warn("사용자 정보 조회 실패: {}", e.getMessage());
         }
-        Object cartCount =
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-        model.addAttribute("cartCount", cartCount);
+
         model.addAttribute("orderList", page);
         List<Integer> pageNumbers = page.getTotalPages() > 0
                 ? IntStream.rangeClosed(1, page.getTotalPages()).boxed().toList()
@@ -195,8 +183,7 @@ public class OrderUserController {
     @GetMapping("/{orderNumber}/page")
     public String orderDetailPage(Model model,
                                   @CookieValue(value = "accessToken", required = false) String accessToken,
-                                  @PathVariable("orderNumber") String orderNumber,
-                                  HttpServletRequest request) {
+                                  @PathVariable("orderNumber") String orderNumber) {
         if (accessToken == null) {
             return "redirect:/login";
         }
@@ -208,9 +195,7 @@ public class OrderUserController {
         } catch (Exception e) {
             model.addAttribute("user", null);
         }
-        Object cartCount =
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-        model.addAttribute("cartCount", cartCount);
+
         model.addAttribute("order", order);
 
         return "orderpayment/OrderDetail";
@@ -222,7 +207,7 @@ public class OrderUserController {
                                 @PathVariable("orderNumber") String orderNumber,
                                 HttpServletRequest request) {
         if (accessToken == null) {
-            return "redirect:/login";
+            return "redirect:/";
         }
         String token = toBearer(accessToken);
         OrderDetailResponseDto order = orderUserClient.getOrderDetail(token, null, orderNumber);
@@ -231,30 +216,32 @@ public class OrderUserController {
         } catch (Exception e) {
             model.addAttribute("user", null);
         }
-        Object cartCount =
-                request.getSession(false) != null ? request.getSession(false).getAttribute("cartCount") : null;
-        model.addAttribute("cartCount", cartCount);
+
         model.addAttribute("order", order);
         return "orderpayment/OrderComplete";
     }
 
-    // 결제 후 바로 주문 취소하는 경우
-    @PatchMapping("/{orderNumber}/cancel")
-    public String cancelOrder(@CookieValue(value = "accessToken", required = false) String accessToken,
-                              @PathVariable("orderNumber") String orderNumber) {
-        log.info("PATCH /orders/{}/cancel 호출 : 주문 취소", orderNumber);
+    @GetMapping("/{orderNumber}/cancel")
+    public String cancelOrder(
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @RequestHeader(value = "X-Guest-Order-Token", required = false) String guestToken,
+            @PathVariable("orderNumber") String orderNumber
+    ) {
+        log.info("GET /orders/{}/cancel 호출 : 주문 취소", orderNumber);
 
-        // TODO
         if (accessToken == null) {
-            return null;
+            // 비회원
+            orderUserClient.cancelOrder(null, guestToken, orderNumber);
+        } else {
+            // 회원
+            String token = toBearer(accessToken);
+            orderUserClient.cancelOrder(token, null, orderNumber);
         }
 
-        String token = toBearer(accessToken);
-
-        orderUserClient.cancelOrder(token, orderNumber);
-
-        return "";
+        // redirect
+        return "redirect:/orders/" + orderNumber + "/page";
     }
+
 
     private String toBearer(String accessToken) {
         if (accessToken == null || accessToken.isBlank()) {
@@ -276,11 +263,11 @@ public class OrderUserController {
         }
     }
 
-    private RestPage<OrderSimpleDto> toRestPage(java.util.Map<String, Object> raw, Pageable pageable) {
+    private RestPage<OrderSimpleDto> toRestPage(Map<String, Object> raw, Pageable pageable) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        var content = mapper.convertValue(raw.getOrDefault("content", java.util.List.of()),
-                new TypeReference<java.util.List<OrderSimpleDto>>() {
+        var content = mapper.convertValue(raw.getOrDefault("content", List.of()),
+                new TypeReference<List<OrderSimpleDto>>() {
                 });
         long total = 0;
         Object totalObj = raw.get("totalElements");
@@ -290,5 +277,33 @@ public class OrderUserController {
             total = content.size();
         }
         return new RestPage<>(content, pageable, total);
+    }
+
+    private List<MemberCouponTargetResponseDto> createMemberCouponTargetList(List<CouponTargetResponseDto> couponTargetResponseDtoList,
+                                                                             List<MemberCouponResponseDto> memberCouponResponseDtoList){
+        Map<Long, CouponTargetResponseDto> couponTargetMap =
+                couponTargetResponseDtoList.stream()
+                        .collect(Collectors.toMap(
+                                CouponTargetResponseDto::memberCouponId,
+                                Function.identity()
+                        ));
+
+
+        return memberCouponResponseDtoList.stream()
+                .map(coupon -> {
+                    MemberCouponTargetResponseDto dto =
+                            new MemberCouponTargetResponseDto(coupon);
+
+                    CouponTargetResponseDto target =
+                            couponTargetMap.get(coupon.getMemberCouponId());
+
+                    if (target != null) {
+                        dto.setTargetBookIds(target.targetBookIds());
+                        dto.setTargetCategoryIds(target.targetCategoryIds());
+                    }
+
+                    return dto;
+                })
+                .toList();
     }
 }

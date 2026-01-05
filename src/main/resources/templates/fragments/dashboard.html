@@ -4,15 +4,21 @@
 <th:block th:fragment="sliderSection(sliderId, books, badgeText)">
     <div class="book-slider"
          th:id="${sliderId}"
-         th:with="list=${books}, total=${list != null ? #lists.size(list) : 0}, sliceCount=${total > 0 ? (total + 4) / 5 : 0}">
+         th:with="actualList=${books instanceof T(org.springframework.data.domain.Page) ? books.content : books},
+                  total=${actualList != null ? actualList.size() : 0},
+                  sliceCount=${total > 0 ? (total + 4) / 5 : 0}">
+
         <button class="slider-btn slider-prev" type="button" aria-label="이전 도서" th:if="${total > 0}">‹</button>
+
         <div class="slider-viewport">
             <div class="slider-track" th:if="${total > 0}">
                 <th:block th:each="slice : ${#numbers.sequence(0, sliceCount - 1)}"
                           th:with="start=${slice * 5}, end=${T(java.lang.Math).min((slice + 1) * 5 - 1, total - 1)}">
                     <div class="book-slide">
                         <div class="book-grid slice-grid">
-                            <th:block th:each="i : ${#numbers.sequence(start, end)}" th:with="b=${list[i] instanceof T(com.nhnacademy.book2onandonfrontservice.dto.bookdto.BookDto) ? list[i] : null}">
+                            <th:block th:each="i : ${#numbers.sequence(start, end)}"
+                                      th:with="b=${actualList[i]}">
+
                                 <div class="book-card" th:if="${b != null}">
                                     <span class="book-badge" th:text="${badgeText}" style="background-color: #7950f2; color: white;">TAG</span>
                                     <a class="book-cover" th:href="@{/books/{id}(id=${b.id})}">

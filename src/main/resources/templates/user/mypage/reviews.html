@@ -7,7 +7,42 @@
 <head>
     <title layout:fragment="title">작성한 리뷰 목록</title>
     <th:block layout:fragment="extraHead">
-        <!-- 필요시 전용 스타일 추가 -->
+        <style>
+            /* 기본 레이아웃 스타일 */
+            .review-card-layout { display: flex; justify-content: space-between; gap: 20px; }
+            .review-content-left { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+            .review-content-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; min-width: 120px; }
+
+            /* 텍스트 스타일 */
+            .book-title-link { font-size: 1.1rem; font-weight: 700; color: #333; text-decoration: none; }
+            .book-title-link:hover { text-decoration: underline; color: #007bff; }
+            .review-subject { font-weight: 600; color: #444; margin: 0; }
+            .review-body { font-size: 0.95rem; color: #666; line-height: 1.5; white-space: pre-wrap; margin: 0; }
+            .star-rating { color: #ffc107; font-weight: bold; font-size: 1.1rem; }
+            .review-date { font-size: 0.85rem; color: #999; }
+
+            /* 이미지 썸네일 */
+            .review-thumb { width: 60px; height: 60px; border-radius: 4px; overflow: hidden; border: 1px solid #eee; cursor: pointer; }
+            .review-thumb img { width: 100%; height: 100%; object-fit: cover; transition: 0.2s; }
+            .review-thumb img:hover { transform: scale(1.1); }
+            .review-gallery-right { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+
+            /* [수정 버튼] 주소록 스타일 */
+            .btn-edit-link {
+                display: inline-block;
+                padding: 6px 16px;
+                background: #fff;
+                border: 1px solid #1f4e3c; /* 짙은 녹색 */
+                color: #1f4e3c;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                font-weight: 500;
+                text-decoration: none;
+                margin-top: 10px;
+                transition: all 0.2s;
+            }
+            .btn-edit-link:hover { background-color: #f5fcf8; }
+        </style>
     </th:block>
 </head>
 
@@ -24,30 +59,37 @@
 
     <div class="card-grid" th:if="${!#lists.isEmpty(reviews)}">
         <article class="dashboard-card" th:each="review : ${reviews}">
-            <div class="linked-title">
-                <a th:href="@{'/books/' + ${review.bookId}}"
-                   th:text="${review.bookTitle}">도서 제목</a>
-            </div>
-            <p class="muted" th:text="${review.content}">리뷰 내용</p>
-            <div class="review-meta">
-                <span class="stars" th:text="'★ ' + ${review.rating}">★ 5</span>
-                <span class="date" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd')}">2024-01-01</span>
+            <div class="review-card-layout">
+                <div class="review-content-left">
+                    <div class="linked-title">
+                        <a class="book-title-link" th:href="@{'/books/' + ${review.bookId}}"
+                           th:text="${review.bookTitle}">도서 제목</a>
+                    </div>
+                    <p class="review-subject" th:text="${review.title}">리뷰 제목</p>
+                    <p class="review-body" th:text="${review.content}">리뷰 내용</p>
+                    <span class="review-date" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd')}">2024-01-01</span>
+                </div>
+
+                <div class="review-content-right">
+                    <span class="star-rating" th:text="'★ ' + ${review.score}">★ 5</span>
+
+                    <div class="review-gallery-right" th:if="${review.images != null and !review.images.isEmpty()}">
+                        <div class="review-thumb" th:each="img : ${review.images}">
+                            <img th:src="${img.imagePath}" onclick="window.open(this.src)">
+                        </div>
+                    </div>
+
+                    <a th:href="@{/books/reviews/{id}(id=${review.id}, bookId=${review.bookId})}"
+                       class="btn-edit-link">수정</a>
+                </div>
             </div>
         </article>
     </div>
 
     <div class="pagination">
-        <button th:if="${!page.first}"
-                th:onclick="'location.href=\'/users/me/reviews?page=' + ${page.number - 1} + '\''">
-            이전
-        </button>
-
+        <button th:if="${!page.first}" th:onclick="'location.href=\'/users/me/reviews?page=' + ${page.number - 1} + '\''">이전</button>
         <button class="active" th:text="${page.number + 1}"></button>
-
-        <button th:if="${!page.last}"
-                th:onclick="'location.href=\'/users/me/reviews?page=' + ${page.number + 1} + '\''">
-            다음
-        </button>
+        <button th:if="${!page.last}" th:onclick="'location.href=\'/users/me/reviews?page=' + ${page.number + 1} + '\''">다음</button>
     </div>
 </div>
 </body>

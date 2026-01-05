@@ -12,11 +12,6 @@
         <link rel="stylesheet" href="/css/OrderPayment.css">
         <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
         <script src="https://js.tosspayments.com/v2/standard"></script>
-        <script th:src="@{/js/OrderPayment.js}" defer></script>
-        <script th:inline="javascript">
-            window.IS_USER_FROM_SERVER = /*[[${user != null}]]*/ false;
-            window.IS_GUEST = /*[[${isGuest}]]*/ false;
-        </script>
         <style>
             .modal {
                 position: fixed; z-index: 1000; left: 0; top: 0;
@@ -46,19 +41,8 @@
 <main layout:fragment="content">
 <div class="container">
     <th:block th:if="${orderItems != null}">
-        <script th:inline="javascript">
-            window.__ORDER_PREPARE__ = {
-                orderItems: /*[[${orderItems}]]*/ [],
-                addresses: /*[[${addresses}]]*/ [],
-                coupons: /*[[${coupons}]]*/ [],
-                currentPoint: /*[[${point}]]*/ null
-            };
-        </script>
     </th:block>
     <th:block th:unless="${orderItems != null}">
-        <script>
-            window.__ORDER_PREPARE__ = null;
-        </script>
     </th:block>
     <header>
         <h1 class="page-title">통합 주문 및 결제</h1>
@@ -78,7 +62,10 @@
 
                             <div class="order-item-detail"
                                  th:each="item : ${orderItems}"
-                                 th:attr="data-book-id=${item.bookId}">
+                                 th:attr="data-book-id=${item.bookId},
+                                          data-category-id=${item.categoryId},
+                                          data-quantity=${item.quantity},
+                                          data-price-sales=${item.priceSales}">
 
                                 <!-- 상품 이미지 -->
                                 <img th:src="${item.imageUrl}"
@@ -93,7 +80,7 @@
 
                                     <div class="item-price">
                                         가격:
-                                        <span th:text="|${#numbers.formatInteger(item.priceSales * item.quantity, 0, 'COMMA')}원|">0원</span>
+                                        <span th:text="|${#numbers.formatInteger((item.priceSales ?: 0) * (item.quantity ?: 1), 0, 'COMMA')}원|">0원</span>
                                     </div>
 
                                     <!-- 포장 옵션 -->
@@ -144,7 +131,7 @@
                                  th:data-phone="${addr.phone}"
                                  th:data-address="${addr.userAddress}"
                                  th:data-detail="${addr.userAddressDetail}"
-                                 th:text="${addr.userAddress} + ' ' + addr.userAddressDetail + ' / ' + addr.recipient + ' / ' + addr.phone">
+                                 th:text="${addr.userAddress} + ' ' + ${addr.userAddressDetail} + ' / ' + ${addr.recipient} + ' / ' + ${addr.phone}">
                                 배송지 표시
                             </div>
                         </div>
@@ -179,46 +166,91 @@
                             </div>
                             <input type="hidden" id="wantDeliveryDate" name="wantDeliveryDate" required>
                         </div>
-                        <div class="form-group" th:if="${isGuest == true}">
-                            <label for="guestOrderPassword">주문 비밀번호 (비회원)</label>
-                            <input type="password" id="guestOrderPassword" placeholder="주문조회에 사용할 비밀번호" required>
-                            <input type="password" id="guestOrderPasswordConfirm" placeholder="비밀번호 확인" style="margin-top: 8px;" required>
-                        </div>
+                </section>
+
+                <section class="order-section guest-info-section"
+                         th:if="${isGuest == true}">
+                    <h2>비회원 정보 입력</h2>
+
+                    <div class="form-group">
+                        <label for="guestName">이름</label>
+                        <input type="text"
+                               id="guestName"
+                               name="guestName"
+                               placeholder="비회원 주문자 이름"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guestPhoneNumber">연락처</label>
+                        <input type="tel"
+                               id="guestPhoneNumber"
+                               name="guestPhoneNumber"
+                               placeholder="01012345678 (숫자만)"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guestPassword">주문 비밀번호</label>
+                        <input type="password"
+                               id="guestPassword"
+                               name="guestPassword"
+                               placeholder="주문 조회에 사용할 비밀번호"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guestPasswordConfirm">주문 비밀번호 확인</label>
+                        <input type="password"
+                               id="guestPasswordConfirm"
+                               placeholder="비밀번호 확인"
+                               required>
+                    </div>
                 </section>
 
                 <section class="order-section delivery-method-section">
                     <h2>배송 방식 선택</h2>
                     <div id="deliveryMethodOptions" class="delivery-method-options">
                         <!-- JS에서 API 호출 후 radio 버튼으로 동적 추가 -->
-                        <p>배송 방식을 불러오는 중...</p>
                     </div>
                 </section>
 
 
             </form>
 
-            <section class="order-section discount-selection-section">
+            <section class="order-section discount-selection-section"
+                     th:if="${isGuest == false}">
                     <h2>쿠폰 선택</h2>
                 <div class="form-group discount-field">
                     <label for="couponSelect">적용 가능한 쿠폰</label>
                     <select id="couponSelect" name="memberCouponId">
                         <option value="0" data-discount="0">쿠폰 미사용</option>
                         <option th:each="c : ${coupons}"
-                                th:value="${c.memberCouponId}"
-                                th:data-discount="${c.discountValue}"
-                                th:text="|${c.couponName} (-${#numbers.formatInteger(c.discountValue, 0, 'COMMA')}원)|">쿠폰</option>
+                                th:attr="value=${c.memberCouponId},
+                                         data-coupon-min-price=${c.minPrice},
+                                         data-coupon-max-price=${c.maxPrice},
+                                         data-coupon-discount-value=${c.discountValue},
+                                         data-coupon-discount-type=${c.discountType},
+                                         data-coupon-target-book-id=${c.targetBookIds},
+                                         data-coupon-target-category-id=${c.targetCategoryIds}
+                                "
+                                th:with="isRate=${c.discountType == 'PERCENT'}"
+                                th:text="|${c.couponName}
+                                         (-${isRate ? c.discountValue : #numbers.formatInteger(c.discountValue, 0, 'COMMA')}
+                                         ${isRate ? '%' : '원'})|">
+                        </option>
                     </select>
                 </div>
             </section>
 
-            <section class="order-section point-usage-section">
+            <section class="order-section point-usage-section"
+                     th:if="${isGuest == false}">
                 <h2>포인트 사용</h2>
                 <div class="form-group discount-field">
                     <span class="current-point">보유 포인트:
                         <span id="currentPointValue"
-                              th:text="${point != null && point.currentPoint != null} ? ${#numbers.formatInteger(point.currentPoint, 3, 'COMMA')} + ' P' : '0 P'"
-                              th:data-current-point="${point != null && point.currentPoint != null ? point.currentPoint : 0}">
-                            0 P
+                              th:text="${#numbers.formatInteger(point?.currentPoint ?: 0, 0, 'COMMA')} + ' P'"
+                              th:data-current-point="${point?.currentPoint ?: 0}">
                         </span>
                     </span>
                     <label for="pointDiscountAmount">사용할 포인트</label>
@@ -272,8 +304,14 @@
                     </div>
                     <div class="summary-line"><span>배송비</span> <span id="deliveryFee" class="price fee" th:text="|0원|">0원</span></div>
                     <div class="summary-line"><span>포장비</span> <span id="wrappingFee" class="price fee" th:text="|0원|">0원</span></div>
-                    <div class="summary-line discount-row"><span>쿠폰 할인</span> <span id="couponDiscount" class="price discount" th:text="|-${#numbers.formatInteger(0,0,'COMMA')}원|">-0원</span></div>
-                    <div class="summary-line discount-row"><span>포인트 사용</span> <span id="pointDiscount" class="price discount" th:text="|-${#numbers.formatInteger(0,0,'COMMA')}원|">-0원</span></div>
+                    <div class="summary-line discount-row"
+                         th:if="${isGuest == false}">
+                        <span>쿠폰 할인</span> <span id="couponDiscount" class="price discount" th:text="|-${#numbers.formatInteger(0,0,'COMMA')}원|">-0원</span>
+                    </div>
+                    <div class="summary-line discount-row"
+                         th:if="${isGuest == false}">
+                        <span>포인트 사용</span> <span id="pointDiscount" class="price discount" th:text="|-${#numbers.formatInteger(0,0,'COMMA')}원|">-0원</span>
+                    </div>
                 </div>
 
                 <div class="final-total-row">
@@ -303,11 +341,13 @@
 
 <span id="user-info"
       th:data-user-name="${user != null ? user.name : ''}"
-      th:data-user-email="${user != null ? user.email : ''}">
+      th:data-user-email="${user != null ? user.email : ''}"
+      th:data-user-id="${user != null ? user.userId : ''}">
 </span>
 <span id="delivery-policy-id"
       th:data-delivery-policy-id="1">
 </span>
+<script th:src="@{/js/OrderPayment.js}" defer></script>
 </main>
 </body>
 </html>

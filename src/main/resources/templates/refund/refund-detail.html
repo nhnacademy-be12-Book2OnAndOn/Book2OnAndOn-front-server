@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/mypage-layout}"
+      th:with="sidebarActive='refunds'">
+<head>
+    <meta charset="UTF-8">
+    <title layout:fragment="title">반품 상세</title>
+</head>
+<body>
+<section layout:fragment="content">
+
+    <h2>반품 상세</h2>
+
+    <div th:if="${errorMessage != null}" th:text="${errorMessage}"
+         style="padding:12px; border:1px solid #f1c; background:#fff5f7;"></div>
+
+    <div th:if="${refund != null}">
+        <p>반품 ID: <span th:text="${refund.refundId}"></span></p>
+        <p>주문 ID: <span th:text="${refund.orderId}"></span></p>
+        <p>상태: <span th:text="${refund.refundStatus}"></span></p>
+        <p>신청일:
+            <span th:text="${refund.refundDatetime != null ? #temporals.format(refund.refundDatetime,'yyyy-MM-dd HH:mm') : ''}"></span>
+        </p>
+        <p>사유: <span th:text="${refund.refundReason}"></span></p>
+        <p>상세 사유: <span th:text="${refund.refundReasonDetail}"></span></p>
+
+        <hr>
+
+        <h3>반품 항목</h3>
+        <div th:if="${refund.refundItems == null || #lists.isEmpty(refund.refundItems)}">
+            반품 항목이 없습니다.
+        </div>
+        <ul th:if="${refund.refundItems != null && !#lists.isEmpty(refund.refundItems)}">
+            <li th:each="it : ${refund.refundItems}">
+                <span th:text="'orderItemId=' + ${it.orderItemId} + ', qty=' + ${it.refundQuantity}"></span>
+            </li>
+        </ul>
+    </div>
+
+    <a th:href="@{/users/me/refunds}">목록으로</a>
+
+</section>
+</body>
+</html>

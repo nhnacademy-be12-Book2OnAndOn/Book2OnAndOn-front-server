@@ -74,6 +74,11 @@
                     <div class="stat-value" th:text="${orderCount} + '건'">0건</div>
                 </div>
                 <div class="summary-pill">
+                    <span class="status-dot completed"></span>
+                    <span th:text="${orderStatusSummary != null ? orderStatusSummary.completed : 0} + '건'">0건</span>
+                    <span class="pill-text">주문 완료</span>
+                </div>
+                <div class="summary-pill">
                     <span class="status-dot in-transit"></span>
                     <span th:text="${orderStatusSummary != null ? orderStatusSummary.inTransit : 0} + '건'">0건</span>
                     <span class="pill-text">배송 중</span>
@@ -137,9 +142,10 @@
 
             <div class="review-preview" th:each="review : ${recentReviews}">
                 <div class="review-title" th:text="${review.bookTitle}">도서 제목</div>
+                <div class="review-title" th:text="${review.title}">리뷰 제목</div>
                 <div class="review-content" th:text="${review.content}">리뷰 내용이 표시됩니다.</div>
                 <div class="review-meta">
-                    <span class="star" th:text="'★ ' + ${review.rating}">★ 0</span>
+                    <span class="star" th:text="'★ ' + ${review.score}">★ 0</span>
                 </div>
             </div>
         </a>

@@ -1,0 +1,219 @@
+/* ===============================
+   관리자 주문 상세 공통 레이아웃
+================================ */
+.admin-order-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+/* ===============================
+   요약 카드
+================================ */
+.admin-order-summary {
+    background: #fff;
+    border: 1px solid #e0e7e2;
+    border-radius: 18px;
+    padding: 22px 24px;
+    box-shadow: 0 18px 40px rgba(7, 28, 15, 0.08);
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px 20px;
+}
+
+.summary-item .label {
+    font-size: 0.85rem;
+    color: #6b7a71;
+    font-weight: 700;
+}
+
+.summary-item .value {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1f2c24;
+}
+
+/* ===============================
+   상태 칩 (PENDING 없음)
+================================ */
+.order-status-chip {
+    display: inline-flex;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+/* 주문 상태 색상 */
+.order-status-PREPARING {
+    background: #fff5e6;
+    color: #c76a00;
+}
+
+.order-status-SHIPPING {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.order-status-DELIVERED {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.order-status-COMPLETED {
+    background: #edf7f0;
+    color: #1b5e20;
+}
+
+.order-status-CANCELED,
+.order-status-RETURN_COMPLETED,
+.order-status-PARTIAL_RETURN,
+.order-status-RETURN_REQUESTED {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* ===============================
+   섹션 카드
+================================ */
+.admin-order-section {
+    background: #fff;
+    border: 1px solid #e0e7e2;
+    border-radius: 18px;
+    padding: 22px 24px;
+    box-shadow: 0 18px 40px rgba(7, 28, 15, 0.08);
+}
+
+.admin-order-section h3 {
+    margin-bottom: 14px;
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+/* ===============================
+   테이블
+================================ */
+.admin-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.admin-table thead th {
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #6b7a71;
+}
+
+.admin-table tbody tr {
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(7, 28, 15, 0.06);
+    border-radius: 14px;
+}
+
+.admin-table tbody td {
+    padding: 14px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1f2c24;
+}
+
+.admin-table tbody td:first-child {
+    text-align: left;
+}
+
+/* ===============================
+   select (상태 변경)
+================================ */
+select {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid #d1ded6;
+    background: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1f2c24;
+    cursor: pointer;
+}
+
+select:focus {
+    outline: none;
+    border-color: #4caf50;
+}
+
+/* ===============================
+   변경 버튼
+================================ */
+.btn-order-update,
+.btn-item-update {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #4caf50, #43a047);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-order-update:hover,
+.btn-item-update:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(67, 160, 71, 0.35);
+}
+
+/* ===============================
+   하단 액션 버튼
+================================ */
+.admin-order-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* 목록 버튼 */
+.btn-secondary {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: 1px solid #d1ded6;
+    background: #f7faf8;
+    color: #1f2c24;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-secondary:hover {
+    background: #eef5f1;
+}
+
+/* 주문 취소 버튼 */
+.btn-danger {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #e53935, #c62828);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(198, 40, 40, 0.4);
+}
