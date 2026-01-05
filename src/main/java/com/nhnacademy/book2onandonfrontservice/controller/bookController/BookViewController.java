@@ -11,6 +11,7 @@ import com.nhnacademy.book2onandonfrontservice.exception.NotFoundBookException;
 import com.nhnacademy.book2onandonfrontservice.service.BookMainService;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import feign.FeignException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -130,18 +131,32 @@ public class BookViewController {
         model.addAttribute("bookDetail", bookDetail);
         String accessToken = CookieUtils.getCookieValue(request, "accessToken");
         boolean canReview = false;
+        String reviewEligibilityWarning = null;
 
         if(accessToken != null){
             try{
                 String bearer = toBearer(accessToken);
                 canReview = bookClient.checkReviewEligibility(bearer, bookId);
+            } catch (FeignException e) {
+                int status = e.status();
+                // 서버 오류 시에는 작성 버튼은 보여주되 안내 메시지 추가
+                if (status >= 500) {
+                    canReview = true;
+                    reviewEligibilityWarning = "리뷰 작성 가능 여부 확인에 실패했습니다. 작성 시 서버에서 거절될 수 있습니다.";
+                    log.warn("리뷰 권한 체크 실패(서버 오류, fallback 허용): status={}, msg={}", status, e.getMessage());
+                } else {
+                    log.warn("리뷰 권한 체크 실패: status={}, msg={}", status, e.getMessage());
+                }
             } catch (Exception e) {
-                log.warn("리뷰 권한 체크 실패: {}", e.getMessage());
+                canReview = true;
+                reviewEligibilityWarning = "리뷰 권한 확인 중 오류가 발생했습니다. 작성 시 서버에서 거절될 수 있습니다.";
+                log.warn("리뷰 권한 체크 실패(일반 오류, fallback 허용): {}", e.getMessage());
 
             }
         }
 
         model.addAttribute("canReview", canReview);
+        model.addAttribute("reviewEligibilityWarning", reviewEligibilityWarning);
         return "books/book-detail";
     }
 
