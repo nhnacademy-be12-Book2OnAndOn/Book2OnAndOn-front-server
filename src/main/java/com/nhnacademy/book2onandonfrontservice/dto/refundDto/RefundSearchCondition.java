@@ -12,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 @NoArgsConstructor
 @ToString
 public class RefundSearchCondition {
+
     private Integer status;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")

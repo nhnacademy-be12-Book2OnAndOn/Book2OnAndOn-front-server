@@ -16,6 +16,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RefundResponseDto {
+
     private Long refundId;
     private Long orderId;
     private String refundReason;

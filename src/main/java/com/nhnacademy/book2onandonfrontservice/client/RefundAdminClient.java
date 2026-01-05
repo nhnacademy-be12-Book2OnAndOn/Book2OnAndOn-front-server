@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "gateway-service", contextId = "RefundAdminClient", url = "${gateway.base-url}")
 public interface RefundAdminClient {
+
     /**
      * 관리자 반품 목록 조회(검색)
      * @SpringQueryMap: 객체의 필드를 쿼리 파라미터로 펼쳐서 보냄

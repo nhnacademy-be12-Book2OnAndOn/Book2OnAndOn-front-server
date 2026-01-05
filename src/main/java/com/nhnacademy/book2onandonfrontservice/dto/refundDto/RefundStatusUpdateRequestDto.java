@@ -13,5 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RefundStatusUpdateRequestDto {
+
     private int statusCode;
+
 }
