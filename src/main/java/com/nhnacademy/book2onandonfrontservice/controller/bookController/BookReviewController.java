@@ -1,15 +1,19 @@
 package com.nhnacademy.book2onandonfrontservice.controller.bookController;
 
 import com.nhnacademy.book2onandonfrontservice.client.BookClient;
+import com.nhnacademy.book2onandonfrontservice.client.PointUserClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewCreateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewUpdateRequest;
-import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.BookReviewResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.pointDto.pointHistory.EarnReviewPointRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.userDto.response.UserResponseDto;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
+import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,14 +24,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import feign.FeignException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Controller
@@ -36,10 +35,10 @@ import java.nio.charset.StandardCharsets;
 public class BookReviewController {
     private final BookClient bookClient;
     private final UserClient userClient;
+    private final PointUserClient pointUserClient;
 
     /**
-     * 리뷰 등록 처리
-     * [POST] /{bookId}/reviews
+     * 리뷰 등록 처리 [POST] /{bookId}/reviews
      */
     @PostMapping("/{bookId}/reviews")
     public String createReview(@PathVariable Long bookId,
@@ -56,7 +55,16 @@ public class BookReviewController {
             UserResponseDto myInfo = userClient.getMyInfo(token);
             request.setWriterName(myInfo.getNickname() == null ? myInfo.getName() : myInfo.getNickname());
 
-            bookClient.createReview(token, myInfo.getUserId(), bookId, request, images);
+            Long reviewId = bookClient.createReview(token, myInfo.getUserId(), bookId, request, images);
+            try {
+                pointUserClient.earnReviewPoint(token, new EarnReviewPointRequestDto(
+                        myInfo.getUserId(),
+                        reviewId,
+                        images != null && !images.isEmpty()
+                ));
+            } catch (Exception e) {
+                log.warn("리뷰 포인트 적립 실패(reviewId={}): {}", reviewId, e.getMessage());
+            }
             log.debug("ReviewCreateRequest title: {}", request.getTitle());
         } catch (FeignException e) {
             HttpStatus status = HttpStatus.resolve(e.status());
@@ -71,8 +79,7 @@ public class BookReviewController {
     }
 
     /**
-     * 리뷰 수정 처리
-     * [POST] /reviews/{reviewId}/update
+     * 리뷰 수정 처리 [POST] /reviews/{reviewId}/update
      */
     @PostMapping("/reviews/{reviewId}")
     public String updateReview(@PathVariable Long reviewId,
@@ -87,7 +94,7 @@ public class BookReviewController {
         }
 
         try {
-            bookClient.updateReview( token,reviewId, request, images);
+            bookClient.updateReview(token, reviewId, request, images);
 
         } catch (Exception e) {
             log.error("리뷰 수정 실패", e);
