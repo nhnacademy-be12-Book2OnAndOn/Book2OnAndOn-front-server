@@ -19,14 +19,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/admin/refunds")
+@RequestMapping
 public class RefundAdminController {
 
     private final RefundAdminClient refundAdminClient;
 
     // 관리자: 반품 목록(검색)
     // GET /admin/refunds?...
-    @GetMapping
+    @GetMapping("/admin/refunds")
     public String list(@ModelAttribute RefundSearchCondition condition,
                        @PageableDefault(size = 20) Pageable pageable,
                        HttpServletRequest request,
@@ -50,7 +50,7 @@ public class RefundAdminController {
     }
 
     // 관리자: 반품 상세
-    @GetMapping("/{refundId}")
+    @GetMapping("/admin/refunds/{refundId}")
     public String detail(@PathVariable Long refundId,
                          HttpServletRequest request,
                          Model model,
@@ -73,7 +73,7 @@ public class RefundAdminController {
 
     // 관리자: 상태 변경(폼 submit)
     // POST /admin/refunds/{refundId}/status
-    @PostMapping("/{refundId}/status")
+    @PostMapping("/admin/refunds/{refundId}/status")
     public String updateStatus(@PathVariable Long refundId,
                                @ModelAttribute RefundStatusUpdateRequestDto requestDto,
                                HttpServletRequest request,

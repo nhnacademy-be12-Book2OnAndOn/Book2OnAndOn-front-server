@@ -1,0 +1,179 @@
+.refund-detail-container {
+    max-width: 800px;
+    padding: 40px 20px;
+}
+
+.page-title {
+    font-size: 1.8em;
+    color: #4A7C59;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.alert-error {
+    background: #fff3f3;
+    border-left: 4px solid #dc3545;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    color: #c0392b;
+}
+
+.detail-card {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 20px;
+}
+
+.info-row {
+    display: flex;
+    padding: 15px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    width: 120px;
+    color: #666;
+    font-size: 0.95em;
+}
+
+.info-value {
+    flex: 1;
+    color: #333;
+    font-weight: 500;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.status-requested { background: #fff3e0; color: #e65100; }
+.status-inspection { background: #e3f2fd; color: #1565c0; }
+.status-approved { background: #e8f5e9; color: #4A7C59; }
+.status-rejected { background: #ffebee; color: #c62828; }
+.status-completed { background: #f0f8f4; color: #4A7C59; }
+
+.section-title {
+    font-size: 1.1em;
+    color: #4A7C59;
+    margin: 30px 0 15px 0;
+    font-weight: 600;
+}
+
+.items-list {
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 20px;
+}
+
+.item-row {
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    justify-content: space-between;
+}
+
+.item-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.item-row:first-child {
+    padding-top: 0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-size: 0.95em;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 0.95em;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.2s;
+}
+
+.btn:hover {
+    opacity: 0.85;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-secondary {
+    background: #4A7C59;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .refund-detail-container {
+        padding: 20px 10px;
+    }
+
+    .detail-card {
+        padding: 20px;
+    }
+
+    .info-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .info-label {
+        width: 100%;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-label::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #bbb;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* 상태별 */
+.label-REQUESTED::before { background: #e3cda4; }
+.label-IN_INSPECTION::before { background: #96b1dc; }
+.label-APPROVED::before { background: #93e6cb; }
+.label-REJECTED::before { background: #f6a1a1; }
+.label-REFUND_COMPLETED::before { background: #c39fe6; }
+.label-REQUEST_CANCELED::before { background: #c0c0c1; }
