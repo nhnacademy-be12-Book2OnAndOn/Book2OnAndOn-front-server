@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>주문 상세 - Admin</title>
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-order-detail.css}">
+    <script th:src="@{/js/admin-order-detail.js}" defer></script>
+</head>
+<body>
+
+<th:block
+        th:replace="~{fragments/layout :: commonHeader(${user} ?: ${session.user}, ${cartCount}, null, null, false)}">
+</th:block>
+
+<div class="admin-container">
+    <!-- 사이드바 -->
+    <th:block th:replace="~{fragments/admin :: adminSidebar('orders')}"></th:block>
+
+    <main class="admin-content">
+        <div class="admin-header">
+            <h2>주문 상세</h2>
+            <span class="muted">관리자 주문 상세 및 상태 관리</span>
+        </div>
+
+        <div class="admin-order-detail">
+
+            <!-- 주문 요약 -->
+            <section class="admin-order-summary">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="label">주문번호</div>
+                        <div class="value" th:text="${order.orderNumber}">ORD-0000</div>
+                    </div>
+
+                    <div class="summary-item">
+                        <div class="label">주문일시</div>
+                        <div class="value"
+                             th:text="${#temporals.format(order.orderDatetime, 'yyyy-MM-dd HH:mm')}">
+                            2025-01-01 12:00
+                        </div>
+                    </div>
+
+                    <div class="summary-item">
+                        <div class="label">주문 상태</div>
+                        <div class="value">
+                            <span class="order-status-chip"
+                                  th:classappend="' order-status-' + ${order.orderStatus}"
+                                  th:text="${order.orderStatus}">
+                                주문 완료
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="summary-item">
+                        <div class="label">총 결제 금액</div>
+                        <div class="value"
+                             th:text="${#numbers.formatInteger(order.totalAmount, 0, 'COMMA')} + '원'">
+                            0원
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 전체 주문 상태 변경 -->
+            <section class="admin-order-section">
+                <h3>주문 상태 변경</h3>
+
+                <div class="order-status-box"
+                     th:data-order-number="${order.orderNumber}">
+
+                    <select class="order-status-select">
+                        <option th:each="status : ${orderStatusList}"
+                                th:if="${status.name() != 'PENDING'}"
+                                th:value="${status.name()}"
+                                th:text="${status.description}"
+                                th:selected="${status == order.orderStatus}">
+                        </option>
+                    </select>
+
+                    <button class="btn-order-update">변경</button>
+                </div>
+            </section>
+
+            <!-- 주문 상품 목록 -->
+            <section class="admin-order-section">
+                <h3>주문 상품</h3>
+
+                <table class="admin-table">
+                    <thead>
+                    <tr>
+                        <th>상품명</th>
+                        <th>수량</th>
+                        <th>금액</th>
+                        <th>상품 상태</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${order.orderItems}">
+                        <td th:text="${item.bookTitle}">도서명</td>
+                        <td th:text="${item.orderItemQuantity}">1</td>
+                        <td th:text="${#numbers.formatInteger(item.unitPrice, 0, 'COMMA')} + '원'">0원</td>
+
+                        <td>
+                            <span class="order-status-chip"
+                                  th:classappend="' order-status-' + ${item.orderItemStatus}"
+                                  th:text="${item.orderItemStatus}">
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="order-item-status-form"
+                                 th:data-order-item-id="${item.orderItemId}">
+
+                                <select class="order-item-status-select">
+                                    <option th:each="status : ${orderItemStatusList}"
+                                            th:if="${status.name() != 'PENDING'}"
+                                            th:value="${status.name()}"
+                                            th:text="${status.description}"
+                                            th:selected="${status == item.orderItemStatus}">
+                                    </option>
+                                </select>
+
+                                <button class="btn-item-update">변경</button>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 하단 액션 -->
+            <div class="admin-order-actions">
+                <a class="btn-secondary" th:href="@{/admin/orders}">목록</a>
+
+                <a class="btn-danger"
+                   th:if="${order.orderStatus == '주문 완료'}"
+                   th:href="@{'/admin/orders/' + ${order.orderNumber} + '/cancel'}"
+                   onclick="return confirm('정말 주문을 취소하시겠습니까?')">
+                    주문 취소
+                </a>
+            </div>
+
+
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout :: commonFooter}"></th:block>
+</body>
+</html>

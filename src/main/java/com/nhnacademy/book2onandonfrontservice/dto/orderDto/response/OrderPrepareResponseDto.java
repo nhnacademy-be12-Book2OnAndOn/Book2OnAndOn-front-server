@@ -12,6 +12,8 @@ OrderPrepareResponseDto(
         List<UserAddressResponseDto> addresses,
         // 사용할 수 있는 쿠폰 조회
         List<MemberCouponResponseDto> coupons,
+
+        List<CouponTargetResponseDto> couponTargets,
         // 유저 포인트 조회
         CurrentPointResponseDto currentPoint
 ) {

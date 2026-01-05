@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko"
-      layout:decorate="~{layout/mypage-layout}"
-      th:with="sidebarActive='orders'"
+      layout:decorate="~{layout/main-layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -10,6 +9,7 @@
     <title layout:fragment="title">주문 상세</title>
     <th:block layout:fragment="extraHead">
         <link rel="stylesheet" th:href="@{/css/OrderHistory.css}">
+        <link rel="stylesheet" th:href="@{/css/mypage.css}">
         <style>
             .order-detail-shell {
                 background: linear-gradient(180deg, #ffffff 0%, #f8fbf8 100%);
@@ -236,32 +236,20 @@
             th:text="${order.totalAmount != null ? #numbers.formatInteger(order.totalAmount, 0, 'COMMA') + '원' : '-'}">0원</span>
     </div>
 
-    <!-- 버튼 활성화 -->
     <div class="actions-row">
-        <a class="btn-secondary" th:href="@{/users/me/orders}">목록으로</a>
+        <a class="btn-secondary" th:href="@{/}">홈으로 이동</a>
         <a class="btn-primary" style="text-decoration:none;"
            th:href="@{/refunds/orders/{orderId}/form(orderId=${order.orderId})}" th:if="${order.orderId != null}">반품</a>
         <a class="btn-secondary"
-           th:href="@{/mypage/delivery(orderId=${order.orderId})}">
+           th:href="@{/guest/delivery(orderId=${order.orderId})}">
             배송 조회
         </a>
         <a class="btn-primary"
            th:if="${order.orderStatus == '주문 완료'}"
-           th:href="@{/orders/{orderNumber}/cancel(orderNumber=${order.orderNumber})}"
+           th:href="@{/guest/orders/{orderNumber}/cancel(orderNumber=${order.orderNumber})}"
            onclick="return confirm('정말로 주문을 취소하시겠습니까?')">
             주문 취소
         </a>
-        <!-- 반품 가능한 아이템이 남아있으면 반품 신청 버튼 노출 -->
-        <a class="btn-primary" style="text-decoration:none;"
-           th:if="${hasRefundableItems}"
-           th:href="@{/orders/{orderId}/refunds/form(orderId=${order.orderId})}">
-            반품 신청
-        </a>
-        <!-- 그 외 상태면 비활성 -->
-        <button th:if="${order.orderStatus != '배송 완료' and order.orderStatus != '반품 신청'}"
-                class="btn-primary" disabled>
-            -
-        </button>
     </div>
 </div>
 </body>
