@@ -118,8 +118,6 @@ public class OrderUserController {
 
         OrderCreateResponseDto orderCreateResponseDto = null;
 
-        log.info("비밀번호 왜 안찌혀 : {}", req.guest().getGuestPassword());
-
         if(token == null || token.isEmpty()){
             orderCreateResponseDto = guestOrderClient.createGuestOrder(guestId, req.guest());
         }else{
