@@ -33,7 +33,13 @@ public class PaymentController {
         log.info("GET /payment/{}/confirm 결제 승인 요청", provider);
 
         CommonConfirmRequest req = new CommonConfirmRequest(orderId, paymentKey, amount);
-        PaymentResponse response = paymentClient.confirmPayment(provider, req);
+        PaymentResponse response = null;
+        try{
+             response = paymentClient.confirmPayment(provider, req);
+        } catch (Exception e) {
+            return "redirect:/";
+        }
+
 
         if(accessToken == null){
             model.addAttribute("payment", response);
