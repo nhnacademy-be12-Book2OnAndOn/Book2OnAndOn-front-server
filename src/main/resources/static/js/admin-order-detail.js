@@ -21,7 +21,6 @@ function bindOrderStatusUpdate() {
     const select = box.querySelector(".order-status-select");
     const button = box.querySelector(".btn-order-update");
 
-    console.log(select);
     button.addEventListener("click", async () => {
         const newStatus = select.value;
 
