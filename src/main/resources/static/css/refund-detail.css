@@ -170,7 +170,7 @@
     }
 }
 
-/* 상태별 */
+/* 상태별 색 변경*/
 .label-REQUESTED::before { background: #e3cda4; }
 .label-IN_INSPECTION::before { background: #96b1dc; }
 .label-APPROVED::before { background: #93e6cb; }
