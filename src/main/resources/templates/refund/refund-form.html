@@ -24,13 +24,12 @@
 
         <!-- userType에 따라 action 분기 -->
         <form id="refundForm"
+              th:data-order-id="${orderId}"
               method="post"
-              th:action="${userType} == 'guest'
-                    ? @{/guest/refunds/orders/{orderId}(orderId=${orderId})}
-                    : @{/refunds/orders/{orderId}(orderId=${orderId})}"
+              th:action="@{/orders/{orderId}/refunds(orderId=${orderId})}"
               th:object="${refundRequest}">
 
-            <div class="info-box">
+        <div class="info-box">
                 <h3>반품 가능 상품 선택</h3>
                 <ul>
                     <li>반품할 상품을 선택해주세요 (선택 시 해당 상품은 ‘전체 수량’ 반품으로 처리됩니다)</li>
@@ -58,9 +57,10 @@
                         <input type="checkbox"
                                class="item-check"
                                th:id="'item_' + ${it.orderItemId}"
-                               th:disabled="${it.activeRefundExists}"
+                               th:disabled="${it.activeRefundExists} or ${!it.refundable}"
                                th:attr="data-order-item-id=${it.orderItemId},
-                                        data-qty=${it.returnableQuantity}"
+                                        data-qty=${it.returnableQuantity},
+                                        data-unit-price=${it.unitPrice}"
                                onclick="event.stopPropagation(); toggleRowFromCheckbox(this)">
 
                         <div class="item-details">
@@ -110,8 +110,8 @@
                         th:field="*{refundReason}"
                         required onchange="recalcSummary()">
                     <option value="">선택해주세요</option>
-                    <option value="DEFECT">상품 불량</option>
-                    <option value="WRONG_ITEM">상품 오배송</option>
+                    <option value="PRODUCT_DEFECT">상품 불량</option>
+                    <option value="WRONG_DELIVERY">상품 오배송</option>
                     <option value="CHANGE_OF_MIND">단순 변심</option>
                     <option value="OTHER">기타</option>
                 </select>

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="ko"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -24,7 +23,7 @@
     </div>
 
     <!-- 필터/검색: JS onchange 대신, GET 파라미터로 submit -->
-    <form class="filters" method="get" th:action="@{/refunds/my}">
+    <form class="filters" method="get" th:action="@{/users/me/refunds}">
       <div class="filter-group">
         <label>상태</label>
         <select name="status" id="filterStatus" onchange="this.form.submit()">
@@ -74,7 +73,7 @@
         <h3>반품 내역이 없습니다.</h3>
         <p>아직 반품 신청 내역이 없습니다.<br>주문 내역에서 반품을 신청하실 수 있습니다.</p>
         <!-- 네 프로젝트 경로에 맞춰 수정 -->
-        <a th:href="@{/orders/my}" class="btn">주문 내역으로 이동</a>
+        <a th:href="@{/orders/my-order/}" class="btn">주문 내역으로 이동</a>
       </div>
 
       <!-- list -->
@@ -84,7 +83,7 @@
             <div>
               <div class="refund-id" th:text="'반품 #' + ${refund.refundId}">반품 #1</div>
               <div class="refund-date"
-                   th:text="'신청일: ' + (${refund.refundDatetime != null ? #temporals.format(refund.refundDatetime,'yyyy-MM-dd HH:mm') : '-'})">
+                   th:text="'신청일: ' + (${refund.refundCreatedAt != null ? #temporals.format(refund.refundCreatedAt,'yyyy-MM-dd HH:mm') : '-'})">
                 신청일: 2025-12-24
               </div>
             </div>
@@ -107,7 +106,9 @@
           <div class="refund-body">
             <div class="info-item">
               <span class="info-label">사유</span>
-              <span class="info-value" th:text="${refund.refundReason}">CHANGE_OF_MIND</span>
+              <span class="info-value"
+                    th:text="${refundReasonLabels[refund.refundReason] ?: refund.refundReason}">
+              </span>
             </div>
 
             <div class="info-item">
@@ -117,24 +118,20 @@
 
             <div class="info-item">
               <span class="info-label">주문 ID</span>
-              <span class="info-value" th:text="${refund.orderId}">123</span>
+              <span class="info-value" th:text="${refund.orderId}">0</span>
             </div>
-          </div>
-
-          <div class="refund-reason">
-            <span class="info-label">상세 사유</span>
-            <div class="info-value" th:text="${refund.detailReason}">책에 얼룩...</div>
           </div>
 
           <div class="action-buttons">
             <!-- 상세보기: 모달 대신 상세 페이지로 -->
             <a class="btn btn-sm btn-outline"
-               th:href="@{/users/me/refunds/{orderId}/{refundId}(orderId=${refund.orderId}, refundId=${refund.refundId})}">
+               th:href="@{/orders/{orderId}/refunds/{refundId}(orderId=${refund.orderId}, refundId=${refund.refundId})}">
               상세보기
             </a>
 
             <!-- 처리중(0)일 때만 취소 버튼 -->
-            <form th:action="@{/users/me/refunds/{orderId}/{refundId}/cancel(orderId=${refund.orderId}, refundId=${refund.refundId})}"
+            <form th:if="${refund.refundStatus == 'REQUESTED' or refund.refundStatus == 'IN_INSPECTION'}"
+                  th:action="@{/orders/{orderId}/refunds/{refundId}/cancel(orderId=${refund.orderId}, refundId=${refund.refundId})}"
                   method="post" style="display:inline;">
               <button type="submit" class="btn btn-sm btn-danger"
                       onclick="return confirm('반품 신청을 취소하시겠습니까?');">
@@ -175,7 +172,7 @@
 
       <!-- next -->
       <a class="btn-sm"
-         th:href="@{/refunds/my(page=${page.number + 1}, size=${page.size},
+         th:href="@{/users/me/refunds(page=${page.number + 1}, size=${page.size},
                     status=${param.status != null ? param.status[0] : ''},
                     period=${param.period != null ? param.period[0] : 'all'},
                     orderNumber=${param.orderNumber != null ? param.orderNumber[0] : ''})}"
