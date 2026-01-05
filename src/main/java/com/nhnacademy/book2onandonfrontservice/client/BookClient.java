@@ -12,8 +12,6 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.CategoryDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewCreateRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewDto;
 import com.nhnacademy.book2onandonfrontservice.dto.bookdto.ReviewUpdateRequest;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.TagDto;
-import com.nhnacademy.book2onandonfrontservice.dto.bookdto.UpdateRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -23,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,8 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 @FeignClient(name = "gateway-service", contextId = "bookClient", url = "${gateway.base-url}", configuration = FeignMultipartConfig.class)
 public interface BookClient {
 
-    /// ----------- Category ------------------
-    /// 카테고리 전체 목록 가져오기 (카테고리 이름들만)
+    /// ----------- Category ------------------ 카테고리 전체 목록 가져오기 (카테고리 이름들만)
     @GetMapping("/api/categories")
     List<CategoryDto> getCategories();
 
@@ -51,7 +47,6 @@ public interface BookClient {
     /// 카테고리 이름 반환
     @GetMapping("/api/categories/{categoryId}/info")
     CategoryDto getCategoryInfo(@PathVariable("categoryId") Long categoryId);
-
 
     ///  ------------------Dashboard --------------------
 
@@ -134,9 +129,8 @@ public interface BookClient {
                                       @RequestHeader("X-User-Id") Long userId,
                                       @PathVariable("bookId") Long bookId);
 
-    /// 도서 재고 DB - Redis 동기화 (재고가 진짜진짜 꼬였을때만 써야함)
-    /// DB가 재고 10개이고 Redis가 9개인 상태에서 쓰면 재고가 1개 뻥튀기 될 수 있음
-    /// 반환값: BookId: 1234 재고 동기화 완료
+    /// 도서 재고 DB - Redis 동기화 (재고가 진짜진짜 꼬였을때만 써야함) DB가 재고 10개이고 Redis가 9개인 상태에서 쓰면 재고가 1개 뻥튀기 될 수 있음 반환값: BookId: 1234 재고
+    /// 동기화 완료
     /// TODO: 이거 재고차감 로직때문에 관리자 페이지에서 DB-Redis 재고 동기화 버튼만들어서 이거 매핑 하면 될 거 같고 안내문구는 꼬옥 재고가 꼬였을때..? 음 지금 남은 재고가 뭔가 이상할때.. 뭐라하지..
     @PostMapping("/api/books/sync/{bookId}")
     String syncStock(@RequestHeader("Authorization") String accessToken,
@@ -157,6 +151,7 @@ public interface BookClient {
     // 리뷰생성
     @PostMapping(value = "/api/books/{bookId}/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     Long createReview(@RequestHeader("Authorization") String accessToken,
+                      @RequestHeader("X-User-Id") Long userId,
                       @PathVariable("bookId") Long bookId,
                       @RequestPart("request") ReviewCreateRequest request,
                       @RequestPart(value = "images", required = false) List<MultipartFile> images);
@@ -171,9 +166,11 @@ public interface BookClient {
     //리뷰 생성가능한지 체크하는 로직 (true:  리뷰생성 버튼 활성화 / false: 리뷰 생성 버튼 비활성화)
 
     @GetMapping("/api/books/{bookId}/reviews/eligibility")
-    Boolean checkReviewEligibility(@RequestHeader("Authorization") String accessToken, @PathVariable Long bookId);
+    Boolean checkReviewEligibility(@RequestHeader("Authorization") String accessToken,
+                                   @RequestHeader("X-User-Id") Long userId,
+                                   @PathVariable Long bookId);
 
-    @GetMapping("/api/books/review/{reviewId}")
+    @GetMapping("/api/books/reviews/{reviewId}")
     ReviewDto getReview(@RequestHeader("Authorization") String accessToken, @PathVariable Long reviewId);
 
 

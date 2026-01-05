@@ -56,7 +56,7 @@ public class BookReviewController {
             UserResponseDto myInfo = userClient.getMyInfo(token);
             request.setWriterName(myInfo.getNickname() == null ? myInfo.getName() : myInfo.getNickname());
 
-            bookClient.createReview( token,bookId, request, images);
+            bookClient.createReview(token, myInfo.getUserId(), bookId, request, images);
             log.debug("ReviewCreateRequest title: {}", request.getTitle());
         } catch (FeignException e) {
             HttpStatus status = HttpStatus.resolve(e.status());
