@@ -10,6 +10,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.bookdto.DashboardDataDto;
 import com.nhnacademy.book2onandonfrontservice.exception.NotFoundBookException;
 import com.nhnacademy.book2onandonfrontservice.service.BookMainService;
 import com.nhnacademy.book2onandonfrontservice.util.CookieUtils;
+import com.nhnacademy.book2onandonfrontservice.util.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import feign.FeignException;
 import java.util.Collections;
@@ -136,7 +137,12 @@ public class BookViewController {
         if(accessToken != null){
             try{
                 String bearer = toBearer(accessToken);
-                canReview = bookClient.checkReviewEligibility(bearer, bookId);
+                Long userId = resolveUserId(accessToken);
+                if (userId != null) {
+                    canReview = bookClient.checkReviewEligibility(bearer, userId, bookId);
+                } else {
+                    log.warn("리뷰 권한 체크 실패: userId 추출 불가");
+                }
             } catch (FeignException e) {
                 int status = e.status();
                 // 서버 오류 시에는 작성 버튼은 보여주되 안내 메시지 추가
@@ -357,6 +363,18 @@ public class BookViewController {
             gid = CookieUtils.getCookieValue(request, "guestId"); // 하위 호환
         }
         return gid;
+    }
+
+    private Long resolveUserId(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return null;
+        }
+        try {
+            return JwtUtils.getUserId(accessToken);
+        } catch (Exception e) {
+            log.warn("토큰에서 userId 추출 실패: {}", e.getMessage());
+            return null;
+        }
     }
 
     private void mergeRecentViews(HttpServletRequest request, String accessToken, String guestId) {
