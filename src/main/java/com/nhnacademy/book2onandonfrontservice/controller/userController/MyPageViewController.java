@@ -109,7 +109,7 @@ public class MyPageViewController {
             }
 
             try {
-                var orderPage = toRestPage(
+                var orderPage = toRestPage( // toRestPage 자체 커스텀에서도 에러(큰 문제는 x)
                         orderUserClient.getOrderList("Bearer " + accessToken, PageRequest.of(0, 5)),
                         PageRequest.of(0, 5));
                 model.addAttribute("orderCount", orderPage.getTotalElements());
@@ -121,6 +121,7 @@ public class MyPageViewController {
                 model.addAttribute("orderStatusSummary", new OrderStatusSummary(0, 0, 0));
                 model.addAttribute("recentOrders", List.of());
             }
+            // 실질적 에러 발생 추정지(원인은 모르겠음)
             model.addAttribute("defaultAddress", resolveDefaultAddress(accessToken));
 
             try {

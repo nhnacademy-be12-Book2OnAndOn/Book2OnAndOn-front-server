@@ -7,40 +7,96 @@
 <head>
     <meta charset="UTF-8">
     <title layout:fragment="title">반품 상세</title>
+    <link rel="stylesheet" th:href="@{/css/refund-detail.css}">
 </head>
 <body>
 <section layout:fragment="content">
+    <div class="refund-detail-container">
+        <h1 class="page-title">반품 상세</h1>
 
-    <h2>반품 상세</h2>
+        <div th:if="${errorMessage != null}" class="alert-error" th:text="${errorMessage}"></div>
 
-    <div th:if="${errorMessage != null}" th:text="${errorMessage}"
-         style="padding:12px; border:1px solid #f1c; background:#fff5f7;"></div>
+        <div th:if="${refund != null}">
+            <div class="detail-card">
+                <div class="info-row">
+                    <div class="info-label">반품 ID</div>
+                    <div class="info-value" th:text="${refund.refundId}"></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">주문 ID</div>
+                    <div class="info-value" th:text="${refund.orderId}"></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label status-label"
+                         th:classappend="' label-' + ${refund.refundStatus}">
+                        상태
+                    </div>
+                    <div class="info-value">
+                        <span class="status-badge"
+                              th:classappend="${refund.refundStatus == 'REQUESTED' ? 'status-requested' :
+                                                 (refund.refundStatus == 'IN_INSPECTION' ? 'status-inspection' :
+                                                 (refund.refundStatus == 'APPROVED' ? 'status-approved' :
+                                                 (refund.refundStatus == 'REJECTED' ? 'status-rejected' :
+                                                 (refund.refundStatus == 'REFUND_COMPLETED' ? 'status-completed' :
+                                                 (refund.refundStatus == 'REQUEST_CANCELED' ? 'status-canceled' : '')))))}"
+                              th:text="${refund.refundStatus == 'REQUESTED' ? '반품 신청' :
+                                         (refund.refundStatus == 'IN_INSPECTION' ? '검수 중' :
+                                         (refund.refundStatus == 'APPROVED' ? '반품 승인' :
+                                         (refund.refundStatus == 'REJECTED' ? '반품 거부' :
+                                         (refund.refundStatus == 'REFUND_COMPLETED' ? '환불 완료' :
+                                         (refund.refundStatus == 'REQUEST_CANCELED' ? '반품 신청 취소' : refund.refundStatus)))))}">
+                        </span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">신청일</div>
+                    <div class="info-value"
+                         th:text="${refund.refundCreatedAt != null ? #temporals.format(refund.refundCreatedAt,'yyyy-MM-dd HH:mm') : '-'}"></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">사유</div>
+                    <span class="info-value"
+                          th:text="${refundReasonLabels[refund.refundReason] ?: refund.refundReason}">
+                    </span>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">상세 사유</div>
+                    <div class="info-value" th:text="${refund.refundReasonDetail ?: '-'}"></div>
+                </div>
+            </div>
 
-    <div th:if="${refund != null}">
-        <p>반품 ID: <span th:text="${refund.refundId}"></span></p>
-        <p>주문 ID: <span th:text="${refund.orderId}"></span></p>
-        <p>상태: <span th:text="${refund.refundStatus}"></span></p>
-        <p>신청일:
-            <span th:text="${refund.refundDatetime != null ? #temporals.format(refund.refundDatetime,'yyyy-MM-dd HH:mm') : ''}"></span>
-        </p>
-        <p>사유: <span th:text="${refund.refundReason}"></span></p>
-        <p>상세 사유: <span th:text="${refund.refundReasonDetail}"></span></p>
+            <h2 class="section-title">반품 항목</h2>
+            <div class="items-list">
+                <div th:if="${refund.refundItems == null || #lists.isEmpty(refund.refundItems)}"
+                     class="empty-state">
+                    반품 항목이 없습니다.
+                </div>
 
-        <hr>
+                <div th:if="${refund.refundItems != null && !#lists.isEmpty(refund.refundItems)}">
+                    <div th:each="item : ${refund.refundItems}" class="item-row">
+                        <span>주문 항목 ID: <strong th:text="${item.orderItemId}"></strong></span>
+                        <span>수량: <strong th:text="${item.refundQuantity}"></strong>개</span>
+                    </div>
+                </div>
+            </div>
 
-        <h3>반품 항목</h3>
-        <div th:if="${refund.refundItems == null || #lists.isEmpty(refund.refundItems)}">
-            반품 항목이 없습니다.
+            <div class="button-group">
+                <form th:if="${refund.refundStatus == 'REQUESTED' || refund.refundStatus == 'IN_INSPECTION'}"
+                th:action="@{/orders/{orderId}/refunds/{refundId}/cancel(orderId=${refund.orderId}, refundId=${refund.refundId})}"
+                      method="post" style="display:inline; margin: 0;">
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('반품 신청을 취소하시겠습니까?');">
+                        반품 취소
+                    </button>
+                </form>
+
+                <a class="btn btn-secondary"
+                   th:href="${userType} == 'guest' ? @{/guest/refunds} : @{/users/me/refunds}">
+                    목록으로
+                </a>
+            </div>
         </div>
-        <ul th:if="${refund.refundItems != null && !#lists.isEmpty(refund.refundItems)}">
-            <li th:each="it : ${refund.refundItems}">
-                <span th:text="'orderItemId=' + ${it.orderItemId} + ', qty=' + ${it.refundQuantity}"></span>
-            </li>
-        </ul>
     </div>
-
-    <a th:href="@{/users/me/refunds}">목록으로</a>
-
 </section>
 </body>
 </html>
