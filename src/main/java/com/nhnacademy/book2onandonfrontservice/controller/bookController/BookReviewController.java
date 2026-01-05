@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import feign.FeignException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Controller
@@ -42,14 +46,23 @@ public class BookReviewController {
                                @ModelAttribute @Valid ReviewCreateRequest request,
                                @RequestParam(value = "images", required = false) List<MultipartFile> images,
                                HttpServletRequest servletRequest) {
-        String token = "Bearer "+ CookieUtils.getCookieValue(servletRequest, "accessToken");
+        String token = toBearer(CookieUtils.getCookieValue(servletRequest, "accessToken"));
+
+        if (token == null) {
+            return "redirect:/login";
+        }
 
         try {
             UserResponseDto myInfo = userClient.getMyInfo(token);
             request.setWriterName(myInfo.getNickname() == null ? myInfo.getName() : myInfo.getNickname());
 
             bookClient.createReview( token,bookId, request, images);
-        log.debug("ReviewCreateRequest title: {}", request.getTitle());
+            log.debug("ReviewCreateRequest title: {}", request.getTitle());
+        } catch (FeignException e) {
+            HttpStatus status = HttpStatus.resolve(e.status());
+            String code = status != null ? status.toString() : "UNKNOWN";
+            log.error("리뷰 등록 실패(status={}): {}", code, e.getMessage());
+            return "redirect:/books/" + bookId + "?error=review_failed&code=" + e.status();
         } catch (Exception e) {
             log.error("리뷰 등록 실패", e);
             return "redirect:/books/" + bookId + "?error=review_failed";
@@ -67,7 +80,11 @@ public class BookReviewController {
                                @RequestParam(value = "images", required = false) List<MultipartFile> images,
                                HttpServletRequest servletRequest) {
 
-        String token = "Bearer " + CookieUtils.getCookieValue(servletRequest, "accessToken");
+        String token = toBearer(CookieUtils.getCookieValue(servletRequest, "accessToken"));
+
+        if (token == null) {
+            return "redirect:/login";
+        }
 
         try {
             bookClient.updateReview( token,reviewId, request, images);
@@ -86,7 +103,11 @@ public class BookReviewController {
                                  HttpServletRequest servletRequest,
                                  Model model) {
 
-        String token = "Bearer " + CookieUtils.getCookieValue(servletRequest, "accessToken");
+        String token = toBearer(CookieUtils.getCookieValue(servletRequest, "accessToken"));
+
+        if (token == null) {
+            return "redirect:/login";
+        }
 
         ReviewDto review = bookClient.getReview(token, reviewId);
 
@@ -94,5 +115,17 @@ public class BookReviewController {
         model.addAttribute("bookId", bookId);
 
         return "user/mypage/review-edit"; // 별도 수정 페이지 HTML
+    }
+
+    private String toBearer(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return null;
+        }
+        String decoded = accessToken;
+        try {
+            decoded = URLDecoder.decode(accessToken, StandardCharsets.UTF_8);
+        } catch (Exception ignored) {
+        }
+        return decoded.startsWith("Bearer ") ? decoded : "Bearer " + decoded;
     }
 }
