@@ -2,10 +2,15 @@ package com.nhnacademy.book2onandonfrontservice.client;// [Front Server] com.nhn
 
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.GuestLoginRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.GuestLoginResponseDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.guest.GuestOrderCreateRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
+import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderCreateResponseDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.response.OrderPrepareResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -20,7 +25,14 @@ public interface GuestOrderClient {
 
     @PostMapping("/api/guest/orders/prepare")
     OrderPrepareResponseDto getOrderPrepare(
-            @RequestHeader(value = "Authorization", required = false) String accessToken,
             @RequestHeader(GUEST_ID_HEADER) String guestId,
             @RequestBody OrderPrepareRequestDto requestDto);
+
+    @PostMapping("/api/guest/orders")
+    OrderCreateResponseDto createGuestOrder(@RequestHeader(GUEST_ID_HEADER) String guestId,
+                                            @RequestBody GuestOrderCreateRequestDto req);
+
+    @PatchMapping("/api/guest/orders/{orderNumber}/cancel")
+    void cancelOrder(@PathVariable("orderNumber") String orderNumber,
+                     @RequestHeader(value = "X-Guest-Order-Token", required = false) String guestToken);
 }

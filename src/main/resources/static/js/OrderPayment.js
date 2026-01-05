@@ -3,7 +3,8 @@ var API_BASE = {
     CART: '/cart',
     ORDER: '/orders',
     WRAP: '/wrappapers',
-    TOSS_CONFIRM: '/payment/TOSS/confirm'
+    TOSS_CONFIRM_SUCCESS: '/payment/TOSS/confirm',
+    TOSS_CONFIRM_FAILURE: '/payment/TOSS/fail'
 };
 
 // const USER_ID = window.USER_ID || null;
@@ -42,9 +43,7 @@ window.ensureGuestId = window.ensureGuestId || function ensureGuestId() {
 
 const ensureGuestId = window.ensureGuestId; // 파일 내부에서 쓸 때는 이렇게 참조만 한다 (재선언 위험 줄이기)
 const GUEST_ID = ensureGuestId();
-const IS_USER = (typeof window.IS_USER_FROM_SERVER === 'boolean')
-    ? window.IS_USER_FROM_SERVER
-    : !!getCookie('accessToken');
+const IS_USER = document.getElementById('user-info').dataset.userId;
 const IS_GUEST = (typeof window.IS_GUEST === 'boolean')
     ? window.IS_GUEST
     : !IS_USER;
@@ -52,14 +51,12 @@ const IS_GUEST = (typeof window.IS_GUEST === 'boolean')
 
 
 const TOSS_CLIENT_KEY = "test_ck_Z1aOwX7K8m1x1vJ2AgDQ8yQxzvNP";
-const FIXED_DELIVERY_FEE = 3000;
-const FREE_DELIVERY_THRESHOLD = 30000;
 
 let cartData = null;
 let selectedWrapData = {};
 let currentBookId = null;
 let userPointBalance = 0;
-const PREPARE_DATA = typeof window !== 'undefined' ? window.__ORDER_PREPARE__ : null;
+// const PREPARE_DATA = typeof window !== 'undefined' ? window.__ORDER_PREPARE__ : null;
 
 function applyPrepareAddresses(addresses) {
     if (!Array.isArray(addresses) || addresses.length === 0) return;
@@ -109,10 +106,10 @@ function buildCartDataFromPrepare(orderItems) {
 document.addEventListener('DOMContentLoaded', async () => {
     setAddressList();
     setDeliveryDateOptions();
-    await loadInitialData();
-    setupEventListeners();
     setDeliveryPolicies();
-    calculateFinalAmount();
+    // await loadInitialData();
+    setupEventListeners();
+    // calculateFinalAmount();
 });
 
 
@@ -152,58 +149,58 @@ function setAddressList(){
 
 
 
-async function loadInitialData() {
-    try {
-        const headers = { 'Content-Type': 'application/json' };
-        if (IS_USER) headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
-        else headers['X-Guest-Id'] = GUEST_ID;
-
-        // 우선 서버에서 내려준 준비 데이터가 있으면 사용
-        if (PREPARE_DATA && PREPARE_DATA.orderItems) {
-            cartData = buildCartDataFromPrepare(PREPARE_DATA.orderItems);
-            if (PREPARE_DATA.coupons) {
-                renderCouponOptions(PREPARE_DATA.coupons);
-            }
-            if (PREPARE_DATA.currentPoint && typeof PREPARE_DATA.currentPoint.currentPoint === 'number') {
-                userPointBalance = PREPARE_DATA.currentPoint.currentPoint;
-            }
-            if (PREPARE_DATA.addresses) {
-                applyPrepareAddresses(PREPARE_DATA.addresses);
-            }
-        } else {
-            let cartEndpoint = IS_USER ? `${API_BASE.CART}/user/items/selected` : `${API_BASE.CART}/guest`;
-
-            let cartRes = await fetch(cartEndpoint, { headers });
-            // 사용자 토큰 만료/401 시 게스트 장바구니로 폴백
-            if (!cartRes.ok && cartRes.status === 401) {
-                cartRes = await fetch(`${API_BASE.CART}/guest/selected`, { headers });
-            }
-
-            const [wrapRes, pointRes] = await Promise.all([
-                fetch(`${API_BASE.WRAP}`, { headers }),
-                IS_USER ? fetch(`/api/user/me/points/api/current`, { headers }) : Promise.resolve(null)
-            ]);
-            const couponRes = IS_USER ? await fetch('/coupons/me', { headers }) : null;
-            if (couponRes && couponRes.ok) {
-                const coupons = await couponRes.json();
-                renderCouponOptions(coupons);
-            }
-
-            if (cartRes.ok) cartData = await cartRes.json();
-            if (wrapRes.ok) wrapOptions = await wrapRes.json();
-            if (pointRes && pointRes.ok) {
-                const pointData = await pointRes.json();
-                userPointBalance = pointData.currentPoint;
-            }
-        }
-
-        // renderProductList();
-        updatePointUI();
-        calculateFinalAmount();
-    } catch (error) {
-        console.error("데이터 로드 실패:", error);
-    }
-}
+// async function loadInitialData() {
+//     try {
+//         const headers = { 'Content-Type': 'application/json' };
+//         if (IS_USER) headers['Authorization'] = `Bearer ${getCookie('accessToken')}`;
+//         else headers['X-Guest-Id'] = GUEST_ID;
+//
+//         // 우선 서버에서 내려준 준비 데이터가 있으면 사용
+//         if (PREPARE_DATA && PREPARE_DATA.orderItems) {
+//             cartData = buildCartDataFromPrepare(PREPARE_DATA.orderItems);
+//             if (PREPARE_DATA.coupons) {
+//                 renderCouponOptions(PREPARE_DATA.coupons);
+//             }
+//             if (PREPARE_DATA.currentPoint && typeof PREPARE_DATA.currentPoint.currentPoint === 'number') {
+//                 userPointBalance = PREPARE_DATA.currentPoint.currentPoint;
+//             }
+//             if (PREPARE_DATA.addresses) {
+//                 applyPrepareAddresses(PREPARE_DATA.addresses);
+//             }
+//         } else {
+//             let cartEndpoint = IS_USER ? `${API_BASE.CART}/user/items/selected` : `${API_BASE.CART}/guest`;
+//
+//             let cartRes = await fetch(cartEndpoint, { headers });
+//             // 사용자 토큰 만료/401 시 게스트 장바구니로 폴백
+//             if (!cartRes.ok && cartRes.status === 401) {
+//                 cartRes = await fetch(`${API_BASE.CART}/guest/selected`, { headers });
+//             }
+//
+//             const [wrapRes, pointRes] = await Promise.all([
+//                 fetch(`${API_BASE.WRAP}`, { headers }),
+//                 IS_USER ? fetch(`/api/user/me/points/api/current`, { headers }) : Promise.resolve(null)
+//             ]);
+//             const couponRes = IS_USER ? await fetch('/coupons/me', { headers }) : null;
+//             if (couponRes && couponRes.ok) {
+//                 const coupons = await couponRes.json();
+//                 renderCouponOptions(coupons);
+//             }
+//
+//             if (cartRes.ok) cartData = await cartRes.json();
+//             if (wrapRes.ok) wrapOptions = await wrapRes.json();
+//             if (pointRes && pointRes.ok) {
+//                 const pointData = await pointRes.json();
+//                 userPointBalance = pointData.currentPoint;
+//             }
+//         }
+//
+//         // renderProductList();
+//         updatePointUI();
+//         calculateFinalAmount();
+//     } catch (error) {
+//         console.error("데이터 로드 실패:", error);
+//     }
+// }
 
 function renderCouponOptions(coupons) {
     const select = document.getElementById('couponSelect');
@@ -272,75 +269,66 @@ function setupEventListeners() {
     const pointInput = document.getElementById('pointDiscountAmount');
     const currentPointValue = document.getElementById('currentPointValue');
 
-    const maxPoint = Number(currentPointValue.dataset.currentPoint);
+    if (pointInput && currentPointValue) {
+        const maxPoint = Number(currentPointValue.dataset.currentPoint || 0);
 
-    pointInput.addEventListener('input', () => {
-        let value = pointInput.value;
+        // 1. input: 숫자만 허용 (alert 없음)
+        pointInput.addEventListener('input', () => {
+            pointInput.value = pointInput.value.replace(/\D/g, '');
+        });
 
-        // 숫자가 아니면 경고
-        if (!/^\d*$/.test(value)) {
-            alert('숫자만 입력할 수 있습니다.');
-            pointInput.value = value.replace(/\D/g, '');
-            return;
-        }
+        // 2. blur: 최종 검증 + alert
+        pointInput.addEventListener('blur', () => {
+            let value = pointInput.value;
 
-        // 빈 값 방지
-        if (value === '') {
-            pointInput.value = '0';
-            return;
-        }
+            if (value === '') {
+                pointInput.value = '0';
+                return;
+            }
 
-        const inputPoint = Number(value);
+            let inputPoint = Number(value);
 
-        // 음수 방지 (사실상 text라 여기까지 오기 힘듦)
-        if (inputPoint < 0) {
-            alert('0 이상의 숫자만 입력할 수 있습니다.');
-            pointInput.value = '0';
-            return;
-        }
+            if (inputPoint > maxPoint) {
+                alert(`사용 가능한 최대 포인트는 ${maxPoint.toLocaleString()}P 입니다.`);
+                pointInput.value = maxPoint;
+                inputPoint = maxPoint;
+            }
 
-        // 보유 포인트 초과
-        if (inputPoint > maxPoint) {
-            alert(`사용 가능한 최대 포인트는 ${maxPoint.toLocaleString()}P 입니다.`);
-            pointInput.value = maxPoint;
-        }
+            calculateFinalAmount();
+        });
 
-        calculateFinalAmount();
-    });
+        // 3. Enter 키 → blur 트리거
+        pointInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                pointInput.blur();
+            }
+        });
+    }
 
-    // 7. 할인 계산 이벤트 리스너 (Payment)
+
+
+    // 7. 할인 계산 이벤트 리스너 (쿠폰)
     document.getElementById('couponSelect')?.addEventListener('change', calculateFinalAmount);
 
-
-    // document.getElementById('pointDiscountAmount')?.addEventListener('blur', (e) => {
-    //     let val = Number(e.target.value);
-    //     if(val > userPointBalance){
-    //         alert('최대 ${userPointBalance.toLocaleString()}P까지 사용 가능합니다.');
-    //         e.target.value = userPointBalance;
-    //     }
-    //     if(val < 0){
-    //         e.target.value = 0;
-    //     }
-    //     calculateFinalAmount();
-    // });
+    // 8. 할인 계산 이벤트 리스너 (배송 방법)
+    document.getElementById('deliveryMethodOptions')
+        ?.addEventListener('change', (e) => {
+            if (e.target.name === 'deliveryMethod') {
+                calculateFinalAmount();
+            }
+        });
 }
 
-
+let isDefault = true;
 function setDeliveryPolicies(){
     const deliveryMethodContainer = document.getElementById('deliveryMethodOptions');
-
 // API 호출 (예: /api/delivery-policies)
     fetch('/api/delivery-policies')
         .then(response => {
             if (!response.ok) throw new Error('배송 방식 불러오기 실패');
             return response.json();
         })
-        .then(pageData => {
-            // Page 객체 안에 content가 실제 리스트라 가정
-            const data = pageData.content || [];
-            deliveryMethodContainer.innerHTML = ''; // 초기 로딩 메시지 제거
-
-            console.log(data)
+        .then(data => {
             data.forEach(method => {
                 const label = document.createElement('label');
                 label.style.display = 'block';
@@ -349,33 +337,42 @@ function setDeliveryPolicies(){
                 const radio = document.createElement('input');
                 radio.type = 'radio';
                 radio.name = 'deliveryMethod';
-                radio.value = method.deliveryPolicyId; // ID 사용
-                radio.checked = method.default || false; // 기본값이 없으면 false 처리
+                radio.dataset.deliveryPolicyId = method.deliveryPolicyId; // ID 사용
+                radio.dataset.deliveryFee = method.deliveryFee;
+                radio.dataset.freeDeliveryThreshold = method.freeDeliveryThreshold;
+
+                if(isDefault){
+                    radio.checked = true;
+                    isDefault = false;
+                }
 
                 label.appendChild(radio);
                 label.appendChild(document.createTextNode(
                     ` ${method.deliveryPolicyName} (${method.deliveryFee.toLocaleString()}원)` +
-                    (method.freeDeliveryThreshold ? ` / ${method.freeDeliveryThreshold.toLocaleString()}원 이상 무료` : '')
+                    (method.freeDeliveryThreshold
+                        ? ` / ${method.freeDeliveryThreshold.toLocaleString()}원 이상 무료`
+                        : '')
                 ));
 
                 deliveryMethodContainer.appendChild(label);
             });
+            calculateFinalAmount();
         })
         .catch(err => {
             console.error(err);
             // API 실패 시 기본 배송정책 값으로 설정
             const defaultPolicyEl = document.getElementById('delivery-policy-id');
-            const defaultId = defaultPolicyEl ? Number(defaultPolicyEl.dataset.deliveryPolicyId || 0) : 0;
+            const defaultId = defaultPolicyEl ? Number(defaultPolicyEl.dataset.deliveryPolicyId || 0) : 1;
             deliveryMethodContainer.innerHTML = '';
             if (defaultId) {
                 const label = document.createElement('label');
                 const radio = document.createElement('input');
                 radio.type = 'radio';
                 radio.name = 'deliveryMethod';
-                radio.value = defaultId;
+                radio.dataset.deliveryPolicyId = defaultId;
                 radio.checked = true;
                 label.appendChild(radio);
-                label.appendChild(document.createTextNode(' 기본 배송 (기본 정책 사용)'));
+                label.appendChild(document.createTextNode(' 일반택배 (기본 정책 사용)'));
                 deliveryMethodContainer.appendChild(label);
             } else {
                 deliveryMethodContainer.textContent = '배송 방식을 불러올 수 없습니다.';
@@ -384,31 +381,31 @@ function setDeliveryPolicies(){
 
 }
 
-function renderProductList() {
-    const listContainer = document.getElementById('selectedProductList');
-    if (!listContainer || !cartData) return;
-    listContainer.innerHTML = '';
-
-    cartData.items.forEach(item => {
-        const currentWrapId = selectedWrapData[item.bookId];
-        const wrapText = currentWrapId ? `선택됨: ${getWrapNameById(currentWrapId)}` : '포장지 선택/변경';
-        const totalItemPrice = (item.price * item.quantity).toLocaleString();
-
-        listContainer.innerHTML += `
-            <div class="order-item-detail" data-book-id="${item.bookId}">
-                <div class="item-info">
-                    <span class="item-title">${item.bookTitle || item.title} (${item.quantity}권)</span>
-                    <span class="item-price">가격: ${totalItemPrice}원</span>
-                </div>
-                <div class="item-wrap-option">
-                    ${item.isPackable !== false ? `
-                        <label><input type="checkbox" class="wrap-toggle" data-book-id="${item.bookId}" ${currentWrapId ? 'checked' : ''}> 포장 선택</label>
-                        <button type="button" class="btn-select-wrap" data-book-id="${item.bookId}" ${currentWrapId ? '' : 'disabled'}>${wrapText}</button>
-                    ` : '<span class="non-packable">포장 불가</span>'}
-                </div>
-            </div>`;
-    });
-}
+// function renderProductList() {
+    // const listContainer = document.getElementById('selectedProductList');
+//     if (!listContainer || !cartData) return;
+//     listContainer.innerHTML = '';
+//
+//     cartData.items.forEach(item => {
+//         const currentWrapId = selectedWrapData[item.bookId];
+//         const wrapText = currentWrapId ? `선택됨: ${getWrapNameById(currentWrapId)}` : '포장지 선택/변경';
+//         const totalItemPrice = (item.price * item.quantity).toLocaleString();
+//
+//         listContainer.innerHTML += `
+//             <div class="order-item-detail" data-book-id="${item.bookId}">
+//                 <div class="item-info">
+//                     <span class="item-title">${item.bookTitle || item.title} (${item.quantity}권)</span>
+//                     <span class="item-price">가격: ${totalItemPrice}원</span>
+//                 </div>
+//                 <div class="item-wrap-option">
+//                     ${item.isPackable !== false ? `
+//                         <label><input type="checkbox" class="wrap-toggle" data-book-id="${item.bookId}" ${currentWrapId ? 'checked' : ''}> 포장 선택</label>
+//                         <button type="button" class="btn-select-wrap" data-book-id="${item.bookId}" ${currentWrapId ? '' : 'disabled'}>${wrapText}</button>
+//                     ` : '<span class="non-packable">포장 불가</span>'}
+//                 </div>
+//             </div>`;
+//     });
+// }
 
 function getWrapNameById(id) {
     const wrap = wrapOptions.find(opt => opt.wrappingPaperId === id);
@@ -515,26 +512,26 @@ function finalizeWrapSelection(bookId, wrapData) {
     calculateFinalAmount();
 }
 
-function collectOrderItems() {
-    if (!cartData || !cartData.items) return [];
-
-    return cartData.items.map(item => {
-        const container = document.querySelector(`.order-item-detail[data-book-id="${item.bookId}"]`);
-        const isWrappedCheckbox = container ? container.querySelector(`.wrap-toggle`) : null;
-        const isWrapped = isWrappedCheckbox && isWrappedCheckbox.checked;
-        const wrappingPaperId = isWrapped ? selectedWrapData[item.bookId] : null;
-
-        const wrapData = wrappingPaperId ? getWrapDataById(wrappingPaperId) : null;
-
-        return {
-            bookId: item.bookId,
-            quantity: item.quantity,
-            wrappingPaperId: wrappingPaperId,
-            isWrapped: isWrapped,
-            wrappingPaperPrice: wrapData ? wrapData.wrappingPaperPrice : 0
-        };
-    });
-}
+// function collectOrderItems() {
+//     if (!cartData || !cartData.items) return [];
+//
+//     return cartData.items.map(item => {
+//         const container = document.querySelector(`.order-item-detail[data-book-id="${item.bookId}"]`);
+//         const isWrappedCheckbox = container ? container.querySelector(`.wrap-toggle`) : null;
+//         const isWrapped = isWrappedCheckbox && isWrappedCheckbox.checked;
+//         const wrappingPaperId = isWrapped ? selectedWrapData[item.bookId] : null;
+//
+//         const wrapData = wrappingPaperId ? getWrapDataById(wrappingPaperId) : null;
+//
+//         return {
+//             bookId: item.bookId,
+//             quantity: item.quantity,
+//             wrappingPaperId: wrappingPaperId,
+//             isWrapped: isWrapped,
+//             wrappingPaperPrice: wrapData ? wrapData.wrappingPaperPrice : 0
+//         };
+//     });
+// }
 
 function collectDeliveryAddress() {
     let deliveryMessage = document.getElementById('deliveryMessage')?.value;
@@ -553,11 +550,56 @@ function collectDeliveryAddress() {
 }
 
 function collectGuestAuth() {
-    if (IS_USER) return {};
-    const password = document.getElementById('guestOrderPassword')?.value || '';
-    const passwordConfirm = document.getElementById('guestOrderPasswordConfirm')?.value || '';
-    return { password, passwordConfirm };
+    // 회원이면 비회원 정보 필요 없음
+    if (IS_USER) return true;
+
+    const guestNameInput = document.getElementById('guestName');
+    const guestPhoneInput = document.getElementById('guestPhoneNumber');
+    const guestPasswordInput = document.getElementById('guestPassword');
+    const guestPasswordConfirmInput = document.getElementById('guestPasswordConfirm');
+
+    // 1. null 체크
+    if (!guestNameInput || !guestPhoneInput || !guestPasswordInput || !guestPasswordConfirmInput) {
+        console.error('비회원 입력 필드가 존재하지 않습니다.');
+        alert('비회원 정보 입력 영역이 올바르지 않습니다.');
+        return false;
+    }
+
+    const guestName = guestNameInput.value.trim();
+    const guestPhoneNumber = guestPhoneInput.value.trim();
+    const guestPassword = guestPasswordInput.value;
+    const guestPasswordConfirm = guestPasswordConfirmInput.value;
+
+    // 2. 빈 값 체크
+    if (!guestName || !guestPhoneNumber || !guestPassword || !guestPasswordConfirm) {
+        alert('비회원 정보를 모두 입력해주세요.');
+        return false;
+    }
+
+    // 3. 전화번호 검증 (숫자 11자리)
+    const phoneRegex = /^010\d{8}$/;
+    if (!phoneRegex.test(guestPhoneNumber)) {
+        alert('전화번호는 010으로 시작하는 11자리 숫자여야 합니다.');
+        guestPhoneInput.focus();
+        return false;
+    }
+
+    // 4. 비밀번호 일치 여부
+    if (guestPassword !== guestPasswordConfirm) {
+        console.error('비회원 주문 비밀번호 불일치');
+        alert('비회원 주문 비밀번호가 일치하지 않습니다.');
+        guestPasswordConfirmInput.focus();
+        return false;
+    }
+
+    // 5. 정상 반환
+    return {
+        guestName : guestName,
+        guestPhoneNumber : guestPhoneNumber,
+        guestPassword : guestPassword
+    };
 }
+
 
 function validateInputs(address, orderItems) {
     if (!address.recipient) {
@@ -578,17 +620,6 @@ function validateInputs(address, orderItems) {
     if(!document.getElementById('wantDeliveryDate')?.value){
         alert("배송 희망 날짜를 입력해주세요");
         return false;
-    }
-    if (!IS_USER) {
-        const { password, passwordConfirm } = collectGuestAuth();
-        if (!password || !passwordConfirm) {
-            alert("비회원 주문 비밀번호를 입력해주세요.");
-            return false;
-        }
-        if (password !== passwordConfirm) {
-            alert("비회원 주문 비밀번호가 일치하지 않습니다.");
-            return false;
-        }
     }
     const phoneRegex = /^\d{11}$/;
     if (!phoneRegex.test(address.recipientPhoneNumber)) {
@@ -619,7 +650,6 @@ function setDeliveryDateOptions() {
         if (hiddenInput) {
             hiddenInput.value = dateString;
             hiddenInput.dispatchEvent(new Event('change'));
-            console.log("선택된 배송 날짜:", dateString); // 콘솔 출력
         }
     };
 
@@ -680,6 +710,124 @@ function openPostcodeSearch() {
     }).open();
 }
 
+// 리스트 파싱 함수
+function parseIdList(value) {
+    if (!value || value === 'null') return [];
+    try {
+        return JSON.parse(value).map(Number);
+    } catch {
+        return [];
+    }
+}
+
+
+function getOrderItemsFromDom() {
+    return Array.from(document.querySelectorAll('.order-item-detail'))
+        .map(el => {
+            const quantity = Number(el.dataset.quantity);
+            const priceSales = Number(el.dataset.priceSales);
+
+            return {
+                bookId: Number(el.dataset.bookId),
+                categoryId: Number(el.dataset.categoryId),
+                quantity: quantity,
+                priceSales: priceSales,
+                totalPrice: quantity * priceSales
+            };
+        });
+}
+
+// 선택 쿠폰 정보 반환
+function getSelectedCoupon() {
+    const select = document.getElementById('couponSelect');
+    if (!select || select.value === '0') return null;
+
+    const option = select.selectedOptions[0];
+    if (!option) return null;
+
+    return {
+        memberCouponId: Number(option.value),
+
+        minPrice: Number(option.dataset.couponMinPrice || 0),
+        maxPrice: Number(option.dataset.couponMaxPrice || 0),
+        discountValue: Number(option.dataset.couponDiscountValue || 0),
+        discountType: option.dataset.couponDiscountType || null,
+        targetBookIds: parseIdList(option.dataset.couponTargetBookId),
+        targetCategoryIds: parseIdList(option.dataset.couponTargetCategoryId)
+    };
+}
+
+// 할인 대상 금액 계산
+function calculateDiscountBaseAmount(orderItems, targetBookIds, targetCategoryIds, totalItemAmount) {
+    const hasBookTarget = targetBookIds && targetBookIds.length > 0;
+    const hasCategoryTarget = targetCategoryIds && targetCategoryIds.length > 0;
+
+    // 특정 도서 대상
+    if (hasBookTarget && !hasCategoryTarget) {
+        return orderItems
+            .filter(item => targetBookIds.includes(item.bookId))
+            .reduce((sum, item) => sum + item.totalPrice, 0);
+    }
+
+    // 특정 카테고리 대상
+    if (!hasBookTarget && hasCategoryTarget) {
+        return orderItems
+            .filter(item => targetCategoryIds.includes(item.categoryId))
+            .reduce((sum, item) => sum + item.totalPrice, 0);
+    }
+
+    // 전체 금액 대상
+    if (!hasBookTarget && !hasCategoryTarget) {
+        return totalItemAmount;
+    }
+
+    // 특정 도서 + 카테고리 대상
+    return orderItems
+        .filter(item =>
+            targetBookIds.includes(item.bookId) ||
+            targetCategoryIds.includes(item.categoryId)
+        )
+        .reduce((sum, item) => sum + item.totalPrice, 0);
+}
+
+// 할인 금액 반환
+function calculateCouponDiscount(orderItems, totalItemAmount) {
+    const coupon = getSelectedCoupon();
+    if (!coupon) return 0;
+
+    const discountBaseAmount = calculateDiscountBaseAmount(
+        orderItems,
+        coupon.targetBookIds,
+        coupon.targetCategoryIds,
+        totalItemAmount
+    );
+
+
+    // 최소 주문 금액 체크
+    if (discountBaseAmount < coupon.minPrice) {
+        alert(`최소 주문 금액 ${coupon.minPrice.toLocaleString()}원 이상부터 쿠폰 적용이 가능합니다.`);
+        return 0;
+    }
+
+    // 최소 결제 금액 100원 정책
+    if (discountBaseAmount - coupon.discountValue < 100) {
+        alert('쿠폰 적용 후 최소 결제 금액은 100원 이상이어야 합니다.');
+        return 0;
+    }
+
+    // FIXED
+    if (coupon.discountType === 'FIXED') {
+        return coupon.discountValue;
+    }
+
+    // RATE (%)
+    let discount = Math.floor(discountBaseAmount * coupon.discountValue / 100);
+
+    // 최대 할인 금액 제한
+    return coupon.maxPrice
+        ? Math.min(discount, coupon.maxPrice)
+        : discount;
+}
 
 // =================================================================
 // II. PAYMENT LOGIC (할인, 금액 계산, 결제 요청)
@@ -687,12 +835,12 @@ function openPostcodeSearch() {
 
 // --- 금액 계산 ---
 function calculateFinalAmount() {
-    if (!cartData) return;
-    const totalItemPrice = Number(cartData.selectedTotalPrice || 0);
-    const couponDiscount = Number(document.getElementById('couponSelect')?.value) || 0;
+    const orderItems = getOrderItemsFromDom();
+    // if (!cartData) return;
+    const totalItemPrice = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const couponDiscount = calculateCouponDiscount(orderItems, totalItemPrice) || 0;
     let pointDiscount = Number(document.getElementById('pointDiscountAmount')?.value) || 0;
 
-    const orderItems = collectOrderItems();
     const result = calculateFeesAndDiscounts(totalItemPrice, couponDiscount, pointDiscount, orderItems);
 
     const deliveryFeeVal = Number((result.deliveryFee) || 0);
@@ -704,8 +852,15 @@ function calculateFinalAmount() {
     document.getElementById('summaryTotalItemPrice').textContent = `${totalItemPrice.toLocaleString()}원`;
     document.getElementById('deliveryFee').textContent = `${deliveryFeeVal.toLocaleString()}원`;
     document.getElementById('wrappingFee').textContent = `${wrappingFeeVal.toLocaleString()}원`;
-    document.getElementById('couponDiscount').textContent = `-${couponDiscount.toLocaleString()}원`;
-    document.getElementById('pointDiscount').textContent = `-${pointDiscount.toLocaleString()}원`;
+    const couponEl = document.getElementById('couponDiscount');
+    if (couponEl) {
+        couponEl.textContent = `-${couponDiscount.toLocaleString()}원`;
+    }
+
+    const pointEl = document.getElementById('pointDiscount');
+    if (pointEl) {
+        pointEl.textContent = `-${pointDiscount.toLocaleString()}원`;
+    }
 
     const finalStr = `${finalAmountVal.toLocaleString()}원`;
     document.getElementById('finalPaymentAmount').textContent = finalStr;
@@ -713,8 +868,12 @@ function calculateFinalAmount() {
 }
 
 function calculateFeesAndDiscounts(totalItemPrice, coupon, point, items) {
+    const selectedDeliveryMethodRadio = document.querySelector('input[name="deliveryMethod"]:checked');
+    const setDeliveryFee = Number(selectedDeliveryMethodRadio.dataset.deliveryFee);
+    const freeDeliveryThreshold = Number(selectedDeliveryMethodRadio.dataset.freeDeliveryThreshold);
+
     const wrappingFee = items.reduce((sum, i) => sum + (i.isWrapped ? i.wrappingPaperPrice : 0), 0);
-    const deliveryFee = (totalItemPrice + wrappingFee) > 15000 ? 0 : 3000;
+    const deliveryFee = totalItemPrice >= freeDeliveryThreshold ? 0 : setDeliveryFee;
     return {
         deliveryFee, wrappingFee,
         finalAmount: Math.max(0, totalItemPrice + deliveryFee + wrappingFee - coupon - point)
@@ -727,21 +886,31 @@ function getDeliveryPolicyId(){
 }
 
 function getMemberCouponId(){
-    const couponId = document.getElementById('couponSelect').value
-    if(couponId === "0" || couponId === ""){
-        return null;
-    }
+    const select = document.getElementById('couponSelect');
+    if (!select) return null;
+
+    const couponId = select.value;
+    if (couponId === "0" || couponId === "") return null;
+
     return Number(couponId);
 }
 
 
 async function handleTossPaymentRequest() {
-    const orderItems = collectOrderItems();
+    const orderItems = getOrderItemsFromDom();
     const address = collectDeliveryAddress();
     if (!validateInputs(address, orderItems)) return;
     const deliveryPolicyId = getDeliveryPolicyId();
     const memberCouponId = getMemberCouponId();
     const wantDeliveryDate = document.getElementById('wantDeliveryDate')?.value;
+    const pointInput = document.getElementById('pointDiscountAmount');
+    const usedPoint = pointInput ? Number(pointInput.value || 0) : 0;
+
+    const guestInfo = collectGuestAuth();
+
+    if(!guestInfo){
+        return;
+    }
 
     try {
         const headers = { 'Content-Type': 'application/json' };
@@ -754,17 +923,31 @@ async function handleTossPaymentRequest() {
         }
 
         // 1. 서버에 주문 생성
+        const guest = {
+            guestName: guestInfo.guestName,
+            guestPhoneNumber: guestInfo.guestPhoneNumber,
+            guestPassword: guestInfo.guestPassword,
+            orderItems: orderItems,
+            deliveryAddress: address,
+            deliveryPolicyId: deliveryPolicyId,
+            wantDeliveryDate: wantDeliveryDate
+        }
+
+        const user = {
+            orderItems: orderItems,
+            deliveryAddress: address,
+            deliveryPolicyId: deliveryPolicyId,
+            wantDeliveryDate: wantDeliveryDate,
+            memberCouponId: memberCouponId,
+            point: usedPoint,
+        }
+
         const response = await fetch(API_BASE.ORDER, {
             method: 'POST',
             headers,
             body: JSON.stringify({
-                orderItems: orderItems,
-                deliveryAddress: address,
-                deliveryPolicyId: deliveryPolicyId,
-                wantDeliveryDate: wantDeliveryDate,
-                memberCouponId: memberCouponId,
-                point: Number(document.getElementById('pointDiscountAmount').value),
-                guestOrderPassword: IS_USER ? null : collectGuestAuth().password
+                user : user,
+                guest : guest
             })
         });
 
@@ -788,10 +971,6 @@ async function handleTossPaymentRequest() {
         const userInfo = document.getElementById('user-info');
         const customerName = (userInfo?.dataset.userName) || '비회원';
         const customerEmail = (userInfo?.dataset.userEmail) || 'guest@example.com';
-
-        console.log("[TOSS][orderName raw]", orderName);
-        console.log("[TOSS][orderName length]", orderName.length);
-        console.log("[TOSS][orderName chars]", [...orderName].length);
 
         // 2. 토스 결제창 열기
         await requestTossPaymentV2(
@@ -819,7 +998,7 @@ async function requestTossPaymentV2(amount, orderId, orderName, method, customer
         orderName: orderName,
         customerName: customerName,
         customerEmail: customerEmail,
-        successUrl: window.location.origin + API_BASE.TOSS_CONFIRM,
-        failUrl: window.location.origin + "/fail.html"
+        successUrl: window.location.origin + API_BASE.TOSS_CONFIRM_SUCCESS,
+        failUrl: window.location.origin + API_BASE.TOSS_CONFIRM_FAILURE
     });
 }

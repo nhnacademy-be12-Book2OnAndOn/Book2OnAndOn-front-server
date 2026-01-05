@@ -246,7 +246,7 @@ public class MyPageViewController {
             if (status == null) {
                 continue;
             }
-            if (status == OrderStatus.SHIPPING || status == OrderStatus.PREPARING || status == OrderStatus.PENDING) {
+            if (status == OrderStatus.SHIPPING || status == OrderStatus.PREPARING) {
                 inTransit++;
             } else if (status == OrderStatus.DELIVERED) {
                 delivered++;
