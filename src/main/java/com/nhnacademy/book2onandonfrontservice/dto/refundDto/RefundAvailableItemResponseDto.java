@@ -17,4 +17,5 @@ public class RefundAvailableItemResponseDto {
     private int returnableQuantity; // ordered - alreadyReturned
     private boolean activeRefundExists;
     private boolean refundable; // 정책/상태상 가능한지(예: 수량 0이면 false)
+    private int unitPrice;
 }

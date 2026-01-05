@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nhnacademy.book2onandonfrontservice.client.GuestOrderClient;
 import com.nhnacademy.book2onandonfrontservice.client.OrderUserClient;
+import com.nhnacademy.book2onandonfrontservice.client.RefundClient;
 import com.nhnacademy.book2onandonfrontservice.client.UserClient;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderCreateWrapperRequestDto;
 import com.nhnacademy.book2onandonfrontservice.dto.orderDto.request.OrderPrepareRequestDto;
@@ -54,6 +55,7 @@ public class OrderUserController {
     private final GuestOrderClient guestOrderClient;
     private final OrderUserClient orderUserClient;
     private final UserClient userClient;
+    private final RefundClient refundClient;
     private final FrontTokenService frontTokenService;
 
     // 장바구니 혹은 바로구매시 준비할 데이터 (책 정보, 회원 배송지 정보)
@@ -199,6 +201,29 @@ public class OrderUserController {
         }
 
         model.addAttribute("order", order);
+
+        // ============Refund============
+        // 반품 버튼 판단 값 계산
+        boolean hasRefundableItems = false;
+
+        try {
+            Long orderId = order.getOrderId();
+
+            var items = refundClient.getRefundForm(token, null, orderId);
+
+            hasRefundableItems = items != null && items.stream().anyMatch(it ->
+                    it.isRefundable()
+                            && it.getReturnableQuantity() > 0
+                            && !it.isActiveRefundExists()
+            );
+
+        } catch (Exception e) {
+            hasRefundableItems = false;
+            log.warn("주문상세 반품버튼 계산 실패: {}", e.getMessage());
+        }
+
+        model.addAttribute("hasRefundableItems", hasRefundableItems);
+        // ============Refund============
 
         return "orderpayment/OrderDetail";
     }
