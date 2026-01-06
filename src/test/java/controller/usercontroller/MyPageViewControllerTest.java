@@ -73,17 +73,15 @@ class MyPageViewControllerTest {
             UserResponseDto myInfo = mock(UserResponseDto.class);
             given(userClient.getMyInfo(anyString())).willReturn(myInfo);
 
-            // [수정] 적절한 생성자를 사용하도록 변경 (List, Pageable, total)
             given(userClient.getUserReviews(anyLong(), anyInt(), anyInt()))
                     .willReturn(new RestPage<com.nhnacademy.book2onandonfrontservice.dto.userDto.response.BookReviewResponseDto>(
-                            List.of(),           // content
-                            PageRequest.of(0, 3), // pageable
-                            0L                  // totalElements
+                            List.of(),
+                            PageRequest.of(0, 3),
+                            0L
                     ));
 
             given(memberCouponClient.getMyCoupon(anyString(), anyInt(), anyInt(), any())).willReturn(new PageImpl<>(List.of()));
 
-            // orderUserClient가 Map을 반환하는 경우
             given(orderUserClient.getOrderList(anyString(), any())).willReturn(Map.of("content", List.of(), "totalElements", 0));
 
             given(userClient.getMyAddresses(anyString())).willReturn(List.of());
@@ -112,14 +110,13 @@ class MyPageViewControllerTest {
     @Test
     @DisplayName("내 정보 수정 처리 성공 - 리다이렉트 확인")
     void updateInfo_Success() throws Exception {
-        // [수정] given() 대신 doNothing() 문법 사용
         doNothing().when(userClient).updateMyInfo(anyString(), any(com.nhnacademy.book2onandonfrontservice.dto.userDto.request.UserUpdateRequest.class));
 
         mockMvc.perform(post("/users/me/edit")
                         .cookie(authCookie)
                         .param("name", "수정된이름")
                         .param("nickname", "새닉네임")
-                        .with(csrf())) // Standalone 설정 시 CSRF 무시 설정이 없다면 필요
+                        .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/users/me?success=update"));
     }

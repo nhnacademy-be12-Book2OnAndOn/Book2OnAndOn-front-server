@@ -58,7 +58,6 @@ class AuthViewControllerTest {
 
         mockMvc = MockMvcBuilders.standaloneSetup(authViewController)
                 .setViewResolvers(viewResolver)
-                // Validator를 등록하지 않거나 가짜를 등록하여 검증 에러를 무시하게 함
                 .setValidator(mock(org.springframework.validation.Validator.class))
                 .build();
     }
