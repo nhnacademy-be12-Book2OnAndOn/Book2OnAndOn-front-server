@@ -323,7 +323,7 @@ let isDefault = true;
 function setDeliveryPolicies(){
     const deliveryMethodContainer = document.getElementById('deliveryMethodOptions');
 // API 호출 (예: /api/delivery-policies)
-    fetch('/api/delivery-policies')
+    fetch('/delivery-policies')
         .then(response => {
             if (!response.ok) throw new Error('배송 방식 불러오기 실패');
             return response.json();
