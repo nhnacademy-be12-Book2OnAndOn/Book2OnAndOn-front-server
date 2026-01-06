@@ -85,10 +85,12 @@ public class OrderUserController {
 
         List<MemberCouponResponseDto> memberCouponResponseDtoList = orderPrepareResponseDto.coupons();
         List<CouponTargetResponseDto> couponTargetResponseDtoList = orderPrepareResponseDto.couponTargets();
-
-        List<MemberCouponTargetResponseDto> memberCouponTargetResponseDtoList = createMemberCouponTargetList(
-                couponTargetResponseDtoList,
-                memberCouponResponseDtoList);
+        List<MemberCouponTargetResponseDto> memberCouponTargetResponseDtoList = null;
+        if(!isGuest){
+            memberCouponTargetResponseDtoList = createMemberCouponTargetList(
+                    couponTargetResponseDtoList,
+                    memberCouponResponseDtoList);
+        }
 
 
         model.addAttribute("orderItems", orderPrepareResponseDto.orderItems());

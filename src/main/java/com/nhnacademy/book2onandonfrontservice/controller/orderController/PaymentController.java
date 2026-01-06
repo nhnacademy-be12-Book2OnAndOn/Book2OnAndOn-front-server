@@ -5,6 +5,7 @@ import com.nhnacademy.book2onandonfrontservice.dto.paymentDto.request.CommonConf
 import com.nhnacademy.book2onandonfrontservice.dto.paymentDto.response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Slf4j
 @Controller
@@ -33,7 +35,13 @@ public class PaymentController {
         log.info("GET /payment/{}/confirm 결제 승인 요청", provider);
 
         CommonConfirmRequest req = new CommonConfirmRequest(orderId, paymentKey, amount);
-        PaymentResponse response = paymentClient.confirmPayment(provider, req);
+        PaymentResponse response = null;
+        try{
+             response = paymentClient.confirmPayment(provider, req);
+        } catch (Exception e) {
+            return "redirect:/";
+        }
+
 
         if(accessToken == null){
             model.addAttribute("payment", response);
@@ -56,5 +64,13 @@ public class PaymentController {
         model.addAttribute("message", message);
 
         return "orderpayment/error";
+    }
+
+    @GetMapping("/payment/{orderNumber}/rollback")
+    @ResponseBody
+    public ResponseEntity<Void> rollbackResources(@PathVariable("orderNumber") String orderNumber){
+        paymentClient.rollbackResources(orderNumber);
+
+        return ResponseEntity.noContent().build();
     }
 }

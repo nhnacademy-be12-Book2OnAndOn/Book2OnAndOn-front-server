@@ -3,6 +3,7 @@ package com.nhnacademy.book2onandonfrontservice.client;
 import com.nhnacademy.book2onandonfrontservice.dto.paymentDto.request.CommonConfirmRequest;
 import com.nhnacademy.book2onandonfrontservice.dto.paymentDto.response.PaymentResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,4 +14,7 @@ public interface PaymentClient {
     @PostMapping("/api/payment/{provider}/confirm")
     PaymentResponse confirmPayment(@PathVariable("provider")String provider,
                                    @RequestBody CommonConfirmRequest req);
+
+    @PatchMapping("/api/payment/{orderNumber}/rollback")
+    void rollbackResources(@PathVariable("orderNumber") String orderNumber);
 }

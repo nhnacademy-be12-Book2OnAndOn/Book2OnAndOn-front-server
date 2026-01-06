@@ -231,6 +231,9 @@
 
                     <div class="form-card-inner"
                          th:if="${currentUser != null and canReview}">
+                        <div class="alert-warning" th:if="${reviewEligibilityWarning != null}"
+                             th:text="${reviewEligibilityWarning}"
+                             style="margin-bottom:12px;"></div>
                         <form th:action="@{/books/{id}/reviews(id=${bookDetail.id})}" method="post" enctype="multipart/form-data">
                             <div class="form-grid two-col">
                                 <div class="form-field">

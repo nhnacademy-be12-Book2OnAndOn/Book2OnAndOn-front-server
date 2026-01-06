@@ -912,6 +912,8 @@ async function handleTossPaymentRequest() {
         return;
     }
 
+    let orderNumber = null;
+
     try {
         const headers = { 'Content-Type': 'application/json' };
         if (!IS_USER) {
@@ -952,6 +954,7 @@ async function handleTossPaymentRequest() {
         });
 
         const orderResult = await response.json();
+        orderNumber = orderResult.orderNumber;
 
         if (!response.ok) {
             let message = "주문 생성 실패";
@@ -983,6 +986,16 @@ async function handleTossPaymentRequest() {
         );
     } catch (e) {
         console.error("결제 프로세스 오류:", e);
+        try {
+            await fetch(`/payment/${orderNumber}/rollback`, {
+                method: "GET"
+            });
+            console.log("롤백 완료");
+        } catch (rollbackError) {
+            console.error("롤백 처리 실패:", rollbackError);
+        }
+
+
         alert("주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
 }
