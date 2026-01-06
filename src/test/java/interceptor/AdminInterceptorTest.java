@@ -34,14 +34,12 @@ class AdminInterceptorTest {
         response = mock(HttpServletResponse.class);
         handler = new Object();
 
-        // 정적 메서드 모킹 시작
         cookieUtils = mockStatic(CookieUtils.class);
         jwtUtils = mockStatic(JwtUtils.class);
     }
 
     @AfterEach
     void tearDown() {
-        // 정적 메서드 모킹 종료 (필수)
         cookieUtils.close();
         jwtUtils.close();
     }
@@ -63,7 +61,6 @@ class AdminInterceptorTest {
         cookieUtils.when(() -> CookieUtils.getCookieValue(request, "accessToken")).thenReturn("token");
         jwtUtils.when(() -> JwtUtils.getRole("token")).thenReturn("ROLE_USER");
         
-        // 스크립트 출력을 위한 Writer 설정
         StringWriter stringWriter = new StringWriter();
         when(response.getWriter()).thenReturn(new PrintWriter(stringWriter));
 
