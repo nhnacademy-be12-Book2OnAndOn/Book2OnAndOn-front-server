@@ -142,8 +142,6 @@ class BookViewControllerTest {
     @Test
     @DisplayName("AI 검색 결과 JSON 반환")
     void getAiSearchResult_Success() throws Exception {
-        // anyLong() 대신 any()를 사용하여 categoryId가 null인 경우도 대응하게 하거나
-        // anyString() 등이 정확히 매칭되도록 합니다.
         given(bookClient.searchAiBooks(any(), anyString(), any())).willReturn("{\"result\":\"ok\"}");
 
         mockMvc.perform(get("/books/search/ai-result")
