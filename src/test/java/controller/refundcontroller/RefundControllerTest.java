@@ -51,7 +51,6 @@ class RefundControllerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // 템플릿 파일 부재로 인한 렌더링 에러 방지 설정
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
         viewResolver.setPrefix("/templates/");
         viewResolver.setSuffix(".html");
