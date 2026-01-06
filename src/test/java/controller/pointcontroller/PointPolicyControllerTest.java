@@ -63,10 +63,8 @@ class PointPolicyControllerTest {
     @Test
     @DisplayName("포인트 정책 전체 목록 조회 성공")
     void listPolicies_Success() throws Exception {
-        // [수정] 생성자 대신 mock()을 사용하여 객체 생성
         PointPolicyResponseDto mockPolicy = mock(PointPolicyResponseDto.class);
 
-        // 만약 템플릿에서 필드값이 필요하다면 아래처럼 설정 (필요 시)
         given(mockPolicy.getPointPolicyName()).willReturn("REGISTER");
 
         given(pointPolicyAdminClient.getAllPolicies(anyString())).willReturn(List.of(mockPolicy));
@@ -96,10 +94,9 @@ class PointPolicyControllerTest {
     @Test
     @DisplayName("포인트 정책 수정 처리 및 상세 페이지 리다이렉트")
     void updatePolicy_Process() throws Exception {
-        // [수정] doNothing() 대신 given().willReturn() 사용
-        // 반환 타입을 모르므로 any() 또는 mock 객체를 넘깁니다.
+
         given(pointPolicyAdminClient.updatePolicy(anyInt(), any(PointPolicyUpdateRequestDto.class), anyString()))
-                .willReturn(null); // 또는 .willReturn(ResponseEntity.ok().build()) 등 실제 반환형에 맞게 수정
+                .willReturn(null);
 
         mockMvc.perform(post("/admin/point-policies/1")
                         .param("pointPolicyValue", "500")
@@ -112,7 +109,6 @@ class PointPolicyControllerTest {
     @Test
     @DisplayName("포인트 정책 활성화 상태 변경 처리 및 리다이렉트")
     void updatePolicyActive_Process() throws Exception {
-        // [수정] doNothing() 대신 given().willReturn() 사용
         given(pointPolicyAdminClient.updatePolicyActive(anyInt(), any(PointPolicyActiveUpdateRequestDto.class), anyString()))
                 .willReturn(null);
 
