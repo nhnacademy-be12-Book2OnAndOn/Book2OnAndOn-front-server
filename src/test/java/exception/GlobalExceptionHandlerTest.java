@@ -42,7 +42,6 @@ class GlobalExceptionHandlerTest {
     static class TestController {
         @GetMapping("/test/not-found-book/{bookId}")
         public void throwException(@org.springframework.web.bind.annotation.PathVariable Long bookId) {
-            // NotFoundBookException(Long bookId) 생성자 호출
             throw new NotFoundBookException(bookId);
         }
     }

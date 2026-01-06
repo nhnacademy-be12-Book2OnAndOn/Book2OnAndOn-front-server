@@ -13,14 +13,11 @@ class NotFoundBookExceptionTest {
     @Test
     @DisplayName("예외 발생 시 전달된 bookId를 포함한 정확한 메시지가 생성되어야 한다")
     void exceptionMessageTest() {
-        // given
         Long bookId = 12345L;
         String expectedMessage = "bookId=12345를 찾을 수 없습니다.";
 
-        // when
         NotFoundBookException exception = new NotFoundBookException(bookId);
 
-        // then
         assertThat(exception.getMessage()).isEqualTo(expectedMessage);
     }
 
