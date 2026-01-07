@@ -1,35 +1,39 @@
-body.delivery-track {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background-color: var(--ivory);
-    margin: 0;
-    padding: 20px;
+.delivery-track-page {
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
+    flex-direction: column;
+    gap: 1.2rem;
+    width: 100%;
 }
 
-.track-container {
+.track-card {
     width: 100%;
-    max-width: 800px;
-    background: #fff;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
 }
 
 .track-header {
     border-bottom: 2px solid #205433;
-    padding-bottom: 1rem;
-    margin-bottom: 1.5rem;
+    padding-bottom: 1.1rem;
+    margin-bottom: 0.5rem;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.track-title h2 {
+    margin: 0 0 0.2rem;
+    color: #205433;
+    font-size: 1.6rem;
+}
+
+.track-title .muted {
+    margin: 0;
 }
 
 .track-header h2 {
     margin: 0;
-    color: #333;
     font-size: 1.5rem;
 }
 
@@ -60,38 +64,42 @@ body.delivery-track {
 .info-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 2rem;
+    border: 1px solid #e7ede8;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .info-table th, .info-table td {
-    padding: 12px;
+    padding: 14px 16px;
     text-align: left;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #e7ede8;
 }
 
 .info-table th {
-    width: 120px;
-    color: #666;
-    font-weight: 600;
-    background: #fafafa;
+    width: 160px;
+    color: #446451;
+    font-weight: 700;
+    background: #f8fbf8;
 }
 
 .info-table td {
-    color: #333;
-    font-weight: 500;
+    color: #1f4a30;
+    font-weight: 600;
 }
 
 .tracking-section {
-    margin-top: 2rem;
-    border-top: 1px solid #eee;
-    padding-top: 1.5rem;
+    margin-top: 0.6rem;
+    border-top: 1px solid #e7ede8;
+    padding-top: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
 }
 
 .tracking-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: bold;
     color: #205433;
-    margin-bottom: 1rem;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -100,11 +108,12 @@ body.delivery-track {
 .iframe-wrapper {
     position: relative;
     width: 100%;
-    height: 600px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    height: 540px;
+    border: 1px solid #dce5dc;
+    border-radius: 12px;
     overflow: hidden;
     background: #fff;
+    box-shadow: inset 0 0 0 1px rgba(224, 231, 226, 0.4);
 }
 
 .tracking-frame {
@@ -124,18 +133,19 @@ body.delivery-track {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    color: #666;
+    color: #4f6354;
     z-index: 10;
     transition: opacity 0.3s;
 }
 
 .no-info {
     text-align: center;
-    padding: 3rem 0;
-    color: #999;
-    background: #fafafa;
-    border-radius: 8px;
-    border: 1px dashed #ddd;
+    padding: 2.6rem 1rem;
+    color: #4f6354;
+    background: linear-gradient(180deg, #f8fbf8 0%, #f1f5f2 100%);
+    border-radius: 14px;
+    border: 1px dashed #cdd8d0;
+    box-shadow: 0 14px 32px rgba(7, 28, 15, 0.06);
 }
 
 .spinner-large {
@@ -146,4 +156,56 @@ body.delivery-track {
 .empty-icon {
     font-size: 3rem;
     margin-bottom: 10px;
+}
+
+.track-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.4rem;
+}
+
+.btn-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.3rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2f6242, #2b593a);
+    color: #ffffff;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 12px 24px rgba(47, 98, 66, 0.18);
+    border: 1px solid #2f6242;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn-close:hover {
+    background: linear-gradient(135deg, #2b593a, #264f35);
+    transform: translateY(-1px);
+    text-decoration: underline;
+    box-shadow: 0 16px 28px rgba(47, 98, 66, 0.22);
+}
+
+.btn-close:active {
+    transform: translateY(0);
+    box-shadow: 0 10px 20px rgba(47, 98, 66, 0.16);
+}
+
+@media (max-width: 768px) {
+    .track-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .info-table th {
+        width: 120px;
+    }
+
+    .iframe-wrapper {
+        height: 420px;
+    }
+
+    .track-actions {
+        justify-content: center;
+    }
 }
