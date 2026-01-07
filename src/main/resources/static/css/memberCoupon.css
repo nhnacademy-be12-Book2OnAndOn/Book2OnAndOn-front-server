@@ -50,15 +50,12 @@
 
 /* ===== 쿠폰 그리드 (카드 배치) - 수정됨 ===== */
 .coupon-grid {
-    display: flex;
-    /* 카드가 너무 작아지지 않도록 280px 유지, 화면 꽉 차게 자동 배열 */
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px; /* 간격 조정 */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
     width: 100%;
     margin-top: 1.2rem;
-
-    /* 정렬 문제 해결 */
-    justify-items: stretch;
+    align-items: stretch;
 }
 
 /* ===== 쿠폰 카드 디자인 - 수정됨 ===== */
