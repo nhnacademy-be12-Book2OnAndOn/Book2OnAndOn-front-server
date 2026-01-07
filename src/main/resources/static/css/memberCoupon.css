@@ -50,8 +50,8 @@
 
 /* ===== 쿠폰 그리드 (카드 배치) - 수정됨 ===== */
 .coupon-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
     width: 100%;
     margin-top: 1.2rem;
@@ -73,6 +73,8 @@
     flex-direction: column;
     justify-content: space-between;
     min-height: 160px;
+    flex: 1 1 320px;
+    max-width: 100%;
     position: relative;
     overflow: hidden;
     background: linear-gradient(180deg, #ffffff 0%, #f9fbf9 100%);
