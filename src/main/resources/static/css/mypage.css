@@ -163,13 +163,13 @@
 
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.8rem;
     margin-bottom: 1.2rem;
 }
 
 .card-grid.quick-stats {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.8rem;
     align-items: stretch;
 }
@@ -437,7 +437,7 @@
 
 @media (min-width: 980px) {
     .card-grid.quick-stats {
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1.05fr 1.05fr 1.35fr;
         grid-template-areas:
             "info point order"
             "coupon review order";
