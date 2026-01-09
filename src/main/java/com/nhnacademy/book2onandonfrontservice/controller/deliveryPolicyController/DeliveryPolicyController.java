@@ -18,7 +18,13 @@ public class DeliveryPolicyController {
 
     @GetMapping("/delivery-policies")
     public ResponseEntity<List<DeliveryPolicyDto>> getDeliveryPoliciesSimple(){
+
+        log.info("delivery-policies 들어옴");
+
         Page<DeliveryPolicyDto> page = deliveryPolicyClient.getDeliveryPolicy();
+
+        log.info("page : {}", page);
+
         List<DeliveryPolicyDto> content = page.getContent(); // Page -> List 변환
 
         return ResponseEntity.ok(content);
