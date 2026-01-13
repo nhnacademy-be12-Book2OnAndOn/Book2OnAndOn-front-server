@@ -338,8 +338,8 @@ function setDeliveryPolicies(){
                 radio.type = 'radio';
                 radio.name = 'deliveryMethod';
                 radio.dataset.deliveryPolicyId = method.deliveryPolicyId; // ID 사용
-                radio.dataset.deliveryFee = method.deliveryFee;
-                radio.dataset.freeDeliveryThreshold = method.freeDeliveryThreshold;
+                radio.dataset.deliveryFee = method.deliveryFee || 0;
+                radio.dataset.freeDeliveryThreshold = method.freeDeliveryThreshold || 0;
 
                 if(isDefault){
                     radio.checked = true;
@@ -362,14 +362,15 @@ function setDeliveryPolicies(){
             console.error(err);
             // API 실패 시 기본 배송정책 값으로 설정
             const defaultPolicyEl = document.getElementById('delivery-policy-id');
-            const defaultId = defaultPolicyEl ? Number(defaultPolicyEl.dataset.deliveryPolicyId || 0) : 1;
             deliveryMethodContainer.innerHTML = '';
             if (defaultId) {
                 const label = document.createElement('label');
                 const radio = document.createElement('input');
                 radio.type = 'radio';
                 radio.name = 'deliveryMethod';
-                radio.dataset.deliveryPolicyId = defaultId;
+                radio.dataset.deliveryPolicyId = defaultPolicyEl.dataset.deliveryPolicyId || 1;
+                radio.dataset.deliveryFee = defaultPolicyEl.dataset.deliveryFee || 0;
+                radio.dataset.freeDeliveryThreshold = defaultPolicyEl.dataset.freeDeliveryThreshold || 0;
                 radio.checked = true;
                 label.appendChild(radio);
                 label.appendChild(document.createTextNode(' 일반택배 (기본 정책 사용)'));
