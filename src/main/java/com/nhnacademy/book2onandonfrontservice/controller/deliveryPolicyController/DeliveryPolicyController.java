@@ -20,15 +20,19 @@ public class DeliveryPolicyController {
     public ResponseEntity<List<DeliveryPolicyDto>> getDeliveryPoliciesSimple(){
 
         log.info("delivery-policies 들어옴");
+        Page<DeliveryPolicyDto> page;
+        try{
+             page = deliveryPolicyClient.getDeliveryPolicy();
+        } catch (Exception e) {
+            log.error("원인: {}",e.getMessage());
+            log.error("트레이서 : {}", e.getStackTrace());
+            throw new RuntimeException(e);
+        }
 
-        int page = 0;
-        int size = 10;
-
-        Page<DeliveryPolicyDto> pages = deliveryPolicyClient.getDeliveryPolicy(page, size);
 
         log.info("page : {}", page);
 
-        List<DeliveryPolicyDto> content = pages.getContent(); // Page -> List 변환
+        List<DeliveryPolicyDto> content = page.getContent(); // Page -> List 변환
 
         return ResponseEntity.ok(content);
     }
