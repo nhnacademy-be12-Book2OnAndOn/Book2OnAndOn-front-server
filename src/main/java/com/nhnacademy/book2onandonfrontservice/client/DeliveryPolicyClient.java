@@ -34,6 +34,5 @@ public interface DeliveryPolicyClient {
                               @RequestBody DeliveryPolicyDto requestDto);
 
     @GetMapping("/api/delivery-policies")
-    Page<DeliveryPolicyDto> getDeliveryPolicy(@RequestParam("page") int page,
-                                              @RequestParam("size") int size);
+    Page<DeliveryPolicyDto> getDeliveryPolicy();
 }
