@@ -363,7 +363,7 @@ function setDeliveryPolicies(){
             // API 실패 시 기본 배송정책 값으로 설정
             const defaultPolicyEl = document.getElementById('delivery-policy-id');
             deliveryMethodContainer.innerHTML = '';
-            if (defaultId) {
+            if (defaultPolicyEl) {
                 const label = document.createElement('label');
                 const radio = document.createElement('input');
                 radio.type = 'radio';
