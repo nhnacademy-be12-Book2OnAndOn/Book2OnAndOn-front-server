@@ -345,7 +345,9 @@
       th:data-user-id="${user != null ? user.userId : ''}">
 </span>
 <span id="delivery-policy-id"
-      th:data-delivery-policy-id="1">
+      th:data-delivery-policy-id="1"
+      th:data-delivery-fee="3000"
+      th:data-free-delivery-threshold="15000">
 </span>
 <script th:src="@{/js/OrderPayment.js}" defer></script>
 </main>
